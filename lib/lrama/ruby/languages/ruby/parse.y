@@ -932,11 +932,11 @@ primary: k_while expr_value_do compstmt_stmts k_end { $$ = @builder.loop(:while,
 /* upstream parse.y:4520: primary: k_until expr_value_do compstmt_stmts k_end */
 primary: k_until expr_value_do compstmt_stmts k_end { $$ = @builder.loop(:until, $2, $3) };
 /* upstream parse.y:4527: @16: %empty */
-midrule_16: %empty { $$ = @builder.unsupported(374) };
+midrule_16: %empty { $$ = nil };
 /* upstream parse.y:4533: primary: k_case expr_value option_terms @16 case_body k_end */
-primary: k_case expr_value option_terms midrule_16 case_body k_end { $$ = @builder.unsupported(375) };
+primary: k_case expr_value option_terms midrule_16 case_body k_end { $$ = @builder.case_node($2, @builder.case_clauses($5), nil) };
 /* upstream parse.y:4541: @17: %empty */
-midrule_17: %empty { $$ = @builder.unsupported(376) };
+midrule_17: %empty { $$ = nil };
 /* upstream parse.y:4547: primary: k_case option_terms @17 case_body k_end */
 primary: k_case option_terms midrule_17 case_body k_end { $$ = @builder.unsupported(377) };
 /* upstream parse.y:4556: primary: k_case expr_value option_terms p_case_body k_end */
@@ -990,7 +990,7 @@ k_while: keyword_while allow_exits %prec keyword_while { $$ = nil };
 /* upstream parse.y:4767: k_until: "'until'" allow_exits */
 k_until: keyword_until allow_exits %prec keyword_until { $$ = nil };
 /* upstream parse.y:4775: k_case: "'case'" */
-k_case: keyword_case %prec keyword_case { $$ = @builder.unsupported(403) };
+k_case: keyword_case %prec keyword_case { $$ = nil };
 /* upstream parse.y:4782: k_for: "'for'" allow_exits */
 k_for: keyword_for allow_exits %prec keyword_for { $$ = @builder.unsupported(404) };
 /* upstream parse.y:4790: k_class: "'class'" */
@@ -1008,7 +1008,7 @@ k_rescue: keyword_rescue %prec keyword_rescue { $$ = @builder.unsupported(410) }
 /* upstream parse.y:4838: k_ensure: "'ensure'" */
 k_ensure: keyword_ensure %prec keyword_ensure { $$ = @builder.unsupported(411) };
 /* upstream parse.y:4845: k_when: "'when'" */
-k_when: keyword_when %prec keyword_when { $$ = @builder.unsupported(412) };
+k_when: keyword_when %prec keyword_when { $$ = nil };
 /* upstream parse.y:4851: k_else: "'else'" */
 k_else: keyword_else %prec keyword_else { $$ = nil };
 /* upstream parse.y:4866: k_elsif: "'elsif'" */
@@ -1226,19 +1226,19 @@ midrule_30: %empty { $$ = @builder.unsupported(519) };
 /* upstream parse.y:5290: do_body: @30 max_numparam numparam it_id allow_exits opt_block_param_def bodystmt */
 do_body: midrule_30 max_numparam numparam it_id allow_exits opt_block_param_def bodystmt { $$ = @builder.unsupported(520) };
 /* upstream parse.y:5306: case_args: arg_value */
-case_args: arg_value { $$ = @builder.unsupported(521) };
+case_args: arg_value { $$ = [$1].freeze };
 /* upstream parse.y:5312: case_args: "*" arg_value */
 case_args: tSTAR arg_value %prec tSTAR { $$ = @builder.unsupported(522) };
 /* upstream parse.y:5317: case_args: case_args ',' arg_value */
-case_args: case_args ',' arg_value %prec ',' { $$ = @builder.unsupported(523) };
+case_args: case_args ',' arg_value %prec ',' { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:5323: case_args: case_args ',' "*" arg_value */
 case_args: case_args ',' tSTAR arg_value %prec tSTAR { $$ = @builder.unsupported(524) };
 /* upstream parse.y:5332: case_body: k_when case_args then compstmt_stmts cases */
-case_body: k_when case_args then compstmt_stmts cases { $$ = @builder.unsupported(525) };
+case_body: k_when case_args then compstmt_stmts cases { $$ = @builder.when_node($2, $4) };
 /* upstream parse.y:5339: cases: opt_else */
-cases: opt_else { $$ = @builder.unsupported(526) };
+cases: opt_else { $$ = $1 };
 /* upstream parse.y:5340: cases: case_body */
-cases: case_body { $$ = @builder.unsupported(527) };
+cases: case_body { $$ = [$1].freeze };
 /* upstream parse.y:5343: p_pvtbl: %empty */
 p_pvtbl: %empty { $$ = @builder.unsupported(528) };
 /* upstream parse.y:5344: p_pktbl: %empty */

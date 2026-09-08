@@ -2241,19 +2241,19 @@
     "id": 374,
     "rule": "@16: %empty",
     "line": 4527,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 375,
     "rule": "primary: k_case expr_value option_terms @16 case_body k_end",
     "line": 4533,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 376,
     "rule": "@17: %empty",
     "line": 4541,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 377,
@@ -2415,7 +2415,7 @@
     "id": 403,
     "rule": "k_case: \"'case'\"",
     "line": 4775,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 404,
@@ -2469,7 +2469,7 @@
     "id": 412,
     "rule": "k_when: \"'when'\"",
     "line": 4845,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 413,
@@ -3123,7 +3123,7 @@
     "id": 521,
     "rule": "case_args: arg_value",
     "line": 5306,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 522,
@@ -3135,7 +3135,7 @@
     "id": 523,
     "rule": "case_args: case_args ',' arg_value",
     "line": 5317,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 524,
@@ -3147,19 +3147,19 @@
     "id": 525,
     "rule": "case_body: k_when case_args then compstmt_stmts cases",
     "line": 5332,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 526,
     "rule": "cases: opt_else",
     "line": 5339,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 527,
     "rule": "cases: case_body",
     "line": 5340,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 528,

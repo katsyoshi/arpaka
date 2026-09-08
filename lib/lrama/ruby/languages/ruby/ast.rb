@@ -25,6 +25,8 @@ module Lrama
           Control = Data.define(:kind)
           Variable = Data.define(:kind, :name)
           Rescue = Data.define(:expression, :fallback)
+          When = Data.define(:patterns, :body)
+          Case = Data.define(:expression, :whens, :else_body)
         end
       end
     end

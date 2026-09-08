@@ -89,6 +89,18 @@ module Lrama
             AST::Rescue.new(expression, fallback)
           end
 
+          def when_node(patterns, body)
+            AST::When.new(patterns.freeze, body)
+          end
+
+          def case_node(expression, whens, else_body)
+            AST::Case.new(expression, whens.freeze, else_body)
+          end
+
+          def case_clauses(value)
+            value.is_a?(Array) ? value : [value]
+          end
+
           def unary(operator, operand)
             AST::Unary.new(operator, operand)
           end

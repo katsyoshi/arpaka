@@ -32,7 +32,7 @@ module Lrama
         end
 
         module AST
-          type node = Literal | Binary | Unary | If | LocalRead | LocalWrite | BareCall | ArrayLiteral | HashLiteral | RangeLiteral | Ternary | Call | StringLiteral | Index | Loop | Control | Variable | Rescue
+          type node = Literal | Binary | Unary | If | LocalRead | LocalWrite | BareCall | ArrayLiteral | HashLiteral | RangeLiteral | Ternary | Call | StringLiteral | Index | Loop | Control | Variable | Rescue | Case | When
           type hash_pair = Pair
 
           class Program < ::Data
@@ -170,6 +170,21 @@ module Lrama
             attr_reader fallback: node
             def self.new: (node expression, node fallback) -> instance
                         | (expression: node, fallback: node) -> instance
+          end
+
+          class When < ::Data
+            attr_reader patterns: Array[node]
+            attr_reader body: Array[node]
+            def self.new: (Array[node] patterns, Array[node] body) -> instance
+                        | (patterns: Array[node], body: Array[node]) -> instance
+          end
+
+          class Case < ::Data
+            attr_reader expression: node
+            attr_reader whens: Array[When]
+            attr_reader else_body: Array[node]?
+            def self.new: (node expression, Array[When] whens, Array[node]? else_body) -> instance
+                        | (expression: node, whens: Array[When], else_body: Array[node]?) -> instance
           end
         end
       end
