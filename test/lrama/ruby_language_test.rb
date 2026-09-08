@@ -132,6 +132,13 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse([:tLBRACE, nil], [:tLABEL, :foo], [:tINTEGER, 1], ["}", nil]))
   end
 
+  test "while and until loops preserve condition and body" do
+    while_tree = AST::Loop.new(:while, literal(true), [literal(1)])
+    until_tree = AST::Loop.new(:until, literal(false), [literal(2)])
+    assert_equal(AST::Program.new([while_tree]), parse([:keyword_while, nil], [:keyword_true, nil], [:keyword_do_cond, nil], [:tINTEGER, 1], [:keyword_end, nil]))
+    assert_equal(AST::Program.new([until_tree]), parse([:keyword_until, nil], [:keyword_false, nil], [:keyword_do_cond, nil], [:tINTEGER, 2], [:keyword_end, nil]))
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))

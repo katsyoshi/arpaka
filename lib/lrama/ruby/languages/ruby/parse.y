@@ -234,7 +234,7 @@ midrule_5: %empty { $$ = @builder.unsupported(23) };
 /* upstream parse.y:3296: stmt_or_begin: "'BEGIN'" $@5 begin_block */
 stmt_or_begin: keyword_BEGIN midrule_5 begin_block %prec keyword_BEGIN { $$ = @builder.unsupported(24) };
 /* upstream parse.y:3301: allow_exits: %empty */
-allow_exits: %empty { $$ = @builder.unsupported(25) };
+allow_exits: %empty { $$ = nil };
 /* upstream parse.y:3304: k_END: "'END'" lex_ctxt */
 k_END: keyword_END lex_ctxt %prec keyword_END { $$ = @builder.unsupported(26) };
 /* upstream parse.y:3313: $@6: %empty */
@@ -356,11 +356,11 @@ expr_value: value_expr_expr { $$ = $1 };
 /* upstream parse.y:3553: expr_value: error */
 expr_value: YYerror %prec YYerror { $$ = @builder.unsupported(85) };
 /* upstream parse.y:3558: $@10: %empty */
-midrule_10: %empty { $$ = @builder.unsupported(86) };
+midrule_10: %empty { $$ = nil };
 /* upstream parse.y:3558: $@11: %empty */
-midrule_11: %empty { $$ = @builder.unsupported(87) };
+midrule_11: %empty { $$ = nil };
 /* upstream parse.y:3559: expr_value_do: $@10 expr_value do $@11 */
-expr_value_do: midrule_10 expr_value do midrule_11 { $$ = @builder.unsupported(88) };
+expr_value_do: midrule_10 expr_value do midrule_11 { $$ = $2 };
 /* upstream parse.y:3565: command_call: command */
 command_call: command { $$ = @builder.unsupported(89) };
 /* upstream parse.y:3566: command_call: block_command */
@@ -928,9 +928,9 @@ primary: k_if expr_value then compstmt_stmts if_tail k_end { $$ = @builder.if_no
 /* upstream parse.y:4503: primary: k_unless expr_value then compstmt_stmts opt_else k_end */
 primary: k_unless expr_value then compstmt_stmts opt_else k_end { $$ = @builder.unless_node($2, $4, $5) };
 /* upstream parse.y:4511: primary: k_while expr_value_do compstmt_stmts k_end */
-primary: k_while expr_value_do compstmt_stmts k_end { $$ = @builder.unsupported(372) };
+primary: k_while expr_value_do compstmt_stmts k_end { $$ = @builder.loop(:while, $2, $3) };
 /* upstream parse.y:4520: primary: k_until expr_value_do compstmt_stmts k_end */
-primary: k_until expr_value_do compstmt_stmts k_end { $$ = @builder.unsupported(373) };
+primary: k_until expr_value_do compstmt_stmts k_end { $$ = @builder.loop(:until, $2, $3) };
 /* upstream parse.y:4527: @16: %empty */
 midrule_16: %empty { $$ = @builder.unsupported(374) };
 /* upstream parse.y:4533: primary: k_case expr_value option_terms @16 case_body k_end */
@@ -986,9 +986,9 @@ k_if: keyword_if %prec keyword_if { $$ = nil };
 /* upstream parse.y:4752: k_unless: "'unless'" */
 k_unless: keyword_unless %prec keyword_unless { $$ = nil };
 /* upstream parse.y:4759: k_while: "'while'" allow_exits */
-k_while: keyword_while allow_exits %prec keyword_while { $$ = @builder.unsupported(401) };
+k_while: keyword_while allow_exits %prec keyword_while { $$ = nil };
 /* upstream parse.y:4767: k_until: "'until'" allow_exits */
-k_until: keyword_until allow_exits %prec keyword_until { $$ = @builder.unsupported(402) };
+k_until: keyword_until allow_exits %prec keyword_until { $$ = nil };
 /* upstream parse.y:4775: k_case: "'case'" */
 k_case: keyword_case %prec keyword_case { $$ = @builder.unsupported(403) };
 /* upstream parse.y:4782: k_for: "'for'" allow_exits */
@@ -1030,7 +1030,7 @@ then: term keyword_then %prec keyword_then { $$ = nil };
 /* upstream parse.y:4902: do: term */
 do: term { $$ = @builder.unsupported(422) };
 /* upstream parse.y:4903: do: "'do' for condition" */
-do: keyword_do_cond %prec keyword_do_cond { $$ = @builder.unsupported(423) };
+do: keyword_do_cond %prec keyword_do_cond { $$ = nil };
 /* upstream parse.y:4906: if_tail: opt_else */
 if_tail: opt_else { $$ = $1 };
 /* upstream parse.y:4910: if_tail: k_elsif expr_value then compstmt_stmts if_tail */

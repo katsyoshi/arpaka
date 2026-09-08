@@ -73,6 +73,10 @@ module Lrama
             AST::Index.new(receiver, arguments.freeze)
           end
 
+          def loop(kind, condition, body)
+            AST::Loop.new(kind, condition, body)
+          end
+
           def unary(operator, operand)
             AST::Unary.new(operator, operand)
           end

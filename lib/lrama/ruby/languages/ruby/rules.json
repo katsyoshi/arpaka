@@ -147,7 +147,7 @@
     "id": 25,
     "rule": "allow_exits: %empty",
     "line": 3301,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 26,
@@ -513,19 +513,19 @@
     "id": 86,
     "rule": "$@10: %empty",
     "line": 3558,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 87,
     "rule": "$@11: %empty",
     "line": 3558,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 88,
     "rule": "expr_value_do: $@10 expr_value do $@11",
     "line": 3559,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 89,
@@ -2229,13 +2229,13 @@
     "id": 372,
     "rule": "primary: k_while expr_value_do compstmt_stmts k_end",
     "line": 4511,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 373,
     "rule": "primary: k_until expr_value_do compstmt_stmts k_end",
     "line": 4520,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 374,
@@ -2403,13 +2403,13 @@
     "id": 401,
     "rule": "k_while: \"'while'\" allow_exits",
     "line": 4759,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 402,
     "rule": "k_until: \"'until'\" allow_exits",
     "line": 4767,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 403,
@@ -2535,7 +2535,7 @@
     "id": 423,
     "rule": "do: \"'do' for condition\"",
     "line": 4903,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 424,

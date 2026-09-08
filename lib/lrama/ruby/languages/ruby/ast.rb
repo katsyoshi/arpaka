@@ -21,6 +21,7 @@ module Lrama
           Call = Data.define(:name, :arguments)
           StringLiteral = Data.define(:value)
           Index = Data.define(:receiver, :arguments)
+          Loop = Data.define(:kind, :condition, :body)
         end
       end
     end
