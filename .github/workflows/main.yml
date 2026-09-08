@@ -17,7 +17,8 @@ jobs:
     strategy:
       matrix:
         ruby:
-          - '4.0.6'
+          - '4.0'
+          - 'head'
 
     steps:
       - uses: actions/checkout@v6
@@ -27,6 +28,8 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
+          rubygems: latest
+          bundler: latest
           bundler-cache: true
       - name: Run the default task
         env:
