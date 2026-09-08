@@ -2151,7 +2151,7 @@
     "id": 359,
     "rule": "primary: k_return",
     "line": 4438,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 360,
@@ -2499,7 +2499,7 @@
     "id": 417,
     "rule": "k_return: \"'return'\"",
     "line": 4884,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 418,

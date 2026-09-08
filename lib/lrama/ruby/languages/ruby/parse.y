@@ -902,7 +902,7 @@ primary: tLBRACK aref_args ']' %prec ']' { $$ = @builder.array($2) };
 /* upstream parse.y:4432: primary: "{" assoc_list '}' */
 primary: tLBRACE assoc_list '}' %prec '}' { $$ = @builder.hash($2) };
 /* upstream parse.y:4438: primary: k_return */
-primary: k_return { $$ = @builder.unsupported(359) };
+primary: k_return { $$ = @builder.control(:return) };
 /* upstream parse.y:4443: primary: k_yield '(' call_args rparen */
 primary: k_yield '(' call_args rparen %prec '(' { $$ = @builder.unsupported(360) };
 /* upstream parse.y:4448: primary: k_yield '(' rparen */
@@ -1018,7 +1018,7 @@ k_end: keyword_end %prec keyword_end { $$ = nil };
 /* upstream parse.y:4878: k_end: "dummy end" */
 k_end: tDUMNY_END %prec tDUMNY_END { $$ = @builder.unsupported(416) };
 /* upstream parse.y:4884: k_return: "'return'" */
-k_return: keyword_return %prec keyword_return { $$ = @builder.unsupported(417) };
+k_return: keyword_return %prec keyword_return { $$ = nil };
 /* upstream parse.y:4891: k_yield: "'yield'" */
 k_yield: keyword_yield %prec keyword_yield { $$ = @builder.unsupported(418) };
 /* upstream parse.y:4897: then: term */
