@@ -209,6 +209,10 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse([:keyword_defined, nil], ["(", nil], [:keyword_true, nil], [")", nil]))
   end
 
+  test "unparenthesized defined query becomes a call node" do
+    assert_equal(AST::Program.new([AST::Call.new(:defined, [literal(true)])]), parse([:keyword_defined, nil], [:keyword_true, nil]))
+  end
+
   test "return with a value becomes a call node" do
     assert_equal(AST::Program.new([AST::Call.new(:return, [literal(1)])]), parse([:keyword_return, nil], [:tINTEGER, 1]))
   end

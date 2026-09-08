@@ -1665,7 +1665,7 @@
     "id": 278,
     "rule": "arg: \"'defined?'\" option_'\\n' begin_defined arg",
     "line": 4065,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 279,

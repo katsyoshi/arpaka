@@ -740,7 +740,7 @@ arg: arg tANDOP arg %prec tANDOP { $$ = @builder.binary(:"&&", $1, $3) };
 /* upstream parse.y:4060: arg: arg "||" arg */
 arg: arg tOROP arg %prec tOROP { $$ = @builder.binary(:"||", $1, $3) };
 /* upstream parse.y:4065: arg: "'defined?'" option_'\n' begin_defined arg */
-arg: keyword_defined option_newline begin_defined arg %prec keyword_defined { $$ = @builder.unsupported(278) };
+arg: keyword_defined option_newline begin_defined arg %prec keyword_defined { $$ = @builder.call(:defined, [$4]) };
 /* upstream parse.y:2966: def_endless_method_endless_arg: defn_head f_opt_paren_args '=' endless_arg */
 def_endless_method_endless_arg: defn_head f_opt_paren_args '=' endless_arg %prec '=' { $$ = @builder.unsupported(279) };
 /* upstream parse.y:2977: def_endless_method_endless_arg: defs_head f_opt_paren_args '=' endless_arg */
