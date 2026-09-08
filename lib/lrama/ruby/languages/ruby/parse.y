@@ -968,13 +968,13 @@ midrule_24: %empty { $$ = @builder.unsupported(390) };
 /* upstream parse.y:4685: primary: defs_head f_arglist $@24 bodystmt k_end */
 primary: defs_head f_arglist midrule_24 bodystmt k_end { $$ = @builder.unsupported(391) };
 /* upstream parse.y:4694: primary: "'break'" */
-primary: keyword_break %prec keyword_break { $$ = @builder.unsupported(392) };
+primary: keyword_break %prec keyword_break { $$ = @builder.control(:break) };
 /* upstream parse.y:4699: primary: "'next'" */
-primary: keyword_next %prec keyword_next { $$ = @builder.unsupported(393) };
+primary: keyword_next %prec keyword_next { $$ = @builder.control(:next) };
 /* upstream parse.y:4704: primary: "'redo'" */
-primary: keyword_redo %prec keyword_redo { $$ = @builder.unsupported(394) };
+primary: keyword_redo %prec keyword_redo { $$ = @builder.control(:redo) };
 /* upstream parse.y:4709: primary: "'retry'" */
-primary: keyword_retry %prec keyword_retry { $$ = @builder.unsupported(395) };
+primary: keyword_retry %prec keyword_retry { $$ = @builder.control(:retry) };
 /* upstream parse.y:3161: value_expr_primary: primary */
 value_expr_primary: primary { $$ = $1 };
 /* upstream parse.y:4723: primary_value: value_expr_primary */

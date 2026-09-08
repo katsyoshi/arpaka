@@ -22,6 +22,7 @@ module Lrama
           StringLiteral = Data.define(:value)
           Index = Data.define(:receiver, :arguments)
           Loop = Data.define(:kind, :condition, :body)
+          Control = Data.define(:kind)
         end
       end
     end

@@ -2349,25 +2349,25 @@
     "id": 392,
     "rule": "primary: \"'break'\"",
     "line": 4694,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 393,
     "rule": "primary: \"'next'\"",
     "line": 4699,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 394,
     "rule": "primary: \"'redo'\"",
     "line": 4704,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 395,
     "rule": "primary: \"'retry'\"",
     "line": 4709,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 396,

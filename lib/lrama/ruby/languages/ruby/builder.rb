@@ -77,6 +77,10 @@ module Lrama
             AST::Loop.new(kind, condition, body)
           end
 
+          def control(kind)
+            AST::Control.new(kind)
+          end
+
           def unary(operator, operand)
             AST::Unary.new(operator, operand)
           end

@@ -32,7 +32,7 @@ module Lrama
         end
 
         module AST
-          type node = Literal | Binary | Unary | If | LocalRead | LocalWrite | BareCall | ArrayLiteral | HashLiteral | RangeLiteral | Ternary | Call | StringLiteral | Index | Loop
+          type node = Literal | Binary | Unary | If | LocalRead | LocalWrite | BareCall | ArrayLiteral | HashLiteral | RangeLiteral | Ternary | Call | StringLiteral | Index | Loop | Control
           type hash_pair = Pair
 
           class Program < ::Data
@@ -150,6 +150,12 @@ module Lrama
             attr_reader body: Array[node]
             def self.new: (Symbol kind, node condition, Array[node] body) -> instance
                         | (kind: Symbol, condition: node, body: Array[node]) -> instance
+          end
+
+          class Control < ::Data
+            attr_reader kind: Symbol
+            def self.new: (Symbol kind) -> instance
+                        | (kind: Symbol) -> instance
           end
         end
       end
