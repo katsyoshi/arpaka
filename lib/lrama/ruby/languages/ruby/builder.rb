@@ -41,6 +41,10 @@ module Lrama
             value.to_sym
           end
 
+          def range(operator, begin_value, end_value)
+            AST::RangeLiteral.new(operator, begin_value, end_value)
+          end
+
           def unary(operator, operand)
             AST::Unary.new(operator, operand)
           end

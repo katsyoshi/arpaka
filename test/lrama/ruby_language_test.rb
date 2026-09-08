@@ -93,6 +93,13 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Unary.new(:"!", literal(false))]), parse(["!", nil], [:keyword_false, nil]))
   end
 
+  test "range literals preserve inclusive and exclusive operators" do
+    inclusive = AST::RangeLiteral.new(:"..", literal(1), literal(3))
+    exclusive = AST::RangeLiteral.new(:"...", literal(1), literal(3))
+    assert_equal(AST::Program.new([inclusive]), parse([:tINTEGER, 1], ["..", nil], [:tINTEGER, 3]))
+    assert_equal(AST::Program.new([exclusive]), parse([:tINTEGER, 1], ["...", nil], [:tINTEGER, 3]))
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))

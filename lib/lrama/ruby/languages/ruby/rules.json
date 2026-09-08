@@ -1473,13 +1473,13 @@
     "id": 246,
     "rule": "range_expr_arg: arg \"..\" arg",
     "line": 3120,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 247,
     "rule": "range_expr_arg: arg \"...\" arg",
     "line": 3127,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 248,
@@ -1509,7 +1509,7 @@
     "id": 252,
     "rule": "arg: range_expr_arg",
     "line": 3942,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 253,

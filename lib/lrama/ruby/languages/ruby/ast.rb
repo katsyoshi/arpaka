@@ -16,6 +16,7 @@ module Lrama
           ArrayLiteral = Data.define(:elements)
           HashLiteral = Data.define(:pairs)
           Pair = Data.define(:key, :value)
+          RangeLiteral = Data.define(:operator, :begin_value, :end_value)
         end
       end
     end

@@ -676,9 +676,9 @@ op_asgn_arg_rhs: backref tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = @builde
 /* upstream parse.y:3941: arg: op_asgn_arg_rhs */
 arg: op_asgn_arg_rhs { $$ = @builder.unsupported(245) };
 /* upstream parse.y:3120: range_expr_arg: arg ".." arg */
-range_expr_arg: arg tDOT2 arg %prec tDOT2 { $$ = @builder.unsupported(246) };
+range_expr_arg: arg tDOT2 arg %prec tDOT2 { $$ = @builder.range(:"..", $1, $3) };
 /* upstream parse.y:3127: range_expr_arg: arg "..." arg */
-range_expr_arg: arg tDOT3 arg %prec tDOT3 { $$ = @builder.unsupported(247) };
+range_expr_arg: arg tDOT3 arg %prec tDOT3 { $$ = @builder.range(:"...", $1, $3) };
 /* upstream parse.y:3134: range_expr_arg: arg ".." */
 range_expr_arg: arg tDOT2 %prec tDOT2 { $$ = @builder.unsupported(248) };
 /* upstream parse.y:3140: range_expr_arg: arg "..." */
@@ -688,7 +688,7 @@ range_expr_arg: tBDOT2 arg %prec tBDOT2 { $$ = @builder.unsupported(250) };
 /* upstream parse.y:3152: range_expr_arg: "(..." arg */
 range_expr_arg: tBDOT3 arg %prec tBDOT3 { $$ = @builder.unsupported(251) };
 /* upstream parse.y:3942: arg: range_expr_arg */
-arg: range_expr_arg { $$ = @builder.unsupported(252) };
+arg: range_expr_arg { $$ = $1 };
 /* upstream parse.y:3944: arg: arg '+' arg */
 arg: arg '+' arg %prec '+' { $$ = @builder.binary(:+, $1, $3) };
 /* upstream parse.y:3949: arg: arg '-' arg */
