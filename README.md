@@ -2,7 +2,8 @@
 
 A Ruby output backend for [Lrama](https://github.com/ruby/lrama). It uses Lrama's
 LALR/IELR parsing tables to generate a standalone Ruby parser with Ruby semantic
-actions.
+actions. The gem also bundles language-specific grammars and AST actions;
+the first is an experimental, partial Ruby-language frontend.
 
 ## Requirements
 
@@ -110,6 +111,48 @@ the tree's shape. Parentheses affect grouping but are omitted from the AST by
 the action `$$ = $2`. Evaluation or compilation of the resulting tree belongs
 to the application; even `1 / 0` produces a tree without performing division.
 
+### Using the bundled Ruby grammar
+
+```ruby
+require "lrama/ruby"
+
+tree = Lrama::Ruby.parse(
+  [[:tIDENTIFIER, :a], ["=", nil], [:tINTEGER, 1]],
+  language: :ruby
+)
+# Lrama::Ruby::Languages::Ruby::AST::Program containing LocalWrite(:a, Literal(1))
+```
+
+Run with `RUBY_BOX=1`. The first call generates and compiles the bundled grammar
+in memory; later calls reuse the class. Each call has its own parser and local
+variable table. No build command, network access or writable working directory
+is needed. `language:` is required; currently only the symbol `:ruby` is supported.
+
+Supply token pairs from your own lexer. `tINTEGER` values are Integers, `tFLOAT`
+values are Floats, and `tIDENTIFIER` values are Symbols or Strings. Operators and
+keywords may carry `nil`. Parentheses use Ruby's context-dependent token names
+(for example `tLPAREN` followed by `")"`), not a source string tokenizer.
+
+The supported slice includes numeric and nil/boolean literals, binary `+ - * /`,
+unary `+ -`, single-expression parentheses, simple local assignments, and
+statements separated by semicolons or newlines. Every successful parse returns
+an `AST::Program`. Its frozen `statements` array contains immutable Data nodes:
+`Literal(value)`, `Binary(operator, left, right)`, `Unary(operator, operand)`,
+`LocalRead(name)`, `LocalWrite(name, value)`, and `BareCall(name)`.
+An unassigned bare identifier is a `BareCall`; assignment registers a local
+before reading its right-hand side, including in `a = a`.
+
+This is not yet a complete Ruby frontend. Strings, explicit calls, control flow,
+methods, and multi-statement parentheses are unsupported. Nodes have no source
+locations. Input must already reflect the lexical decisions Ruby's parser and
+lexer normally make together; this API does not parse Ruby source text.
+
+`Lrama::Ruby::Languages::Ruby::ParseError` exposes `token` and `state`.
+`UnsupportedSyntax` in the same namespace exposes the original `rule` and
+upstream `line`. Both inherit from `Lrama::Ruby::Error`. Unported rules raise
+instead of returning a partial AST. Lexer exceptions and invalid token values
+propagate to the caller.
+
 ## Current scope
 
 Supported: precedence and associativity, `%prec`, `%empty`, `%start`, `%expect`,
@@ -162,6 +205,19 @@ RUBY_BOX=1 bin/console
 Tests cover generated parsers, Ruby actions, parse errors and Box isolation,
 including execution of a generated file without gems. CI uses Ruby 4.0.6.
 `Gemfile.lock` stays local and is not tracked.
+
+The default task also checks the bundled Ruby grammar against the pinned
+upstream source in `vendor/ruby`. `tool/ruby/actions.rb` defines the ported
+actions; `tool/ruby/upstream_rules.json` records the original expanded rules.
+Run `bundle exec rake ruby:generate` after changing action definitions, and
+`bundle exec rake ruby:check` to check for stale artifacts without writing files.
+The check compares every production, token ID and precedence, including empty
+productions representing midrule actions. Update the pinned revision and rule
+inventory together when deliberately upgrading upstream.
+
+Runtime grammar and rule metadata are packaged; upstream source and developer
+tools are not. Ruby-derived artifacts retain the upstream license notices in
+`lib/lrama/ruby/languages/ruby/COPYING` and `BSDL`.
 
 ## License
 

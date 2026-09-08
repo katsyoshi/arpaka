@@ -5,12 +5,82 @@ module Lrama
     class Error < StandardError
     end
 
+    def self.parse: (Enumerable[[String | Symbol | Integer, untyped]] tokens, language: :ruby) -> Languages::Ruby::AST::Program
+
     def self.generate: (String source, ?filename: String, ?class_name: String, ?mode: (:parser | :recognizer), ?allow_error_rules: bool) -> String
     def self.compile: (String source, ?filename: String, ?class_name: String, ?mode: (:parser | :recognizer), ?allow_error_rules: bool) -> Class
 
     class Generator
       def initialize: () -> void
       def generate: (String source, ?filename: String, ?class_name: String, ?mode: (:parser | :recognizer), ?allow_error_rules: bool) -> String
+    end
+
+    module Languages
+      module Ruby
+        def self.parse: (Enumerable[[String | Symbol | Integer, untyped]] tokens) -> AST::Program
+
+        class ParseError < ::Lrama::Ruby::Error
+          attr_reader token: untyped
+          attr_reader state: Integer
+          def initialize: (untyped error) -> void
+        end
+
+        class UnsupportedSyntax < ::Lrama::Ruby::Error
+          attr_reader rule: String
+          attr_reader line: Integer
+          def initialize: (String rule, Integer line) -> void
+        end
+
+        module AST
+          type node = Literal | Binary | Unary | LocalRead | LocalWrite | BareCall
+
+          class Program < ::Data
+            attr_reader statements: Array[node]
+            def self.new: (Array[node] statements) -> instance
+                        | (statements: Array[node]) -> instance
+          end
+
+          class Literal < ::Data
+            attr_reader value: Integer | Float | bool | nil
+            def self.new: (Integer | Float | bool | nil value) -> instance
+                        | (value: Integer | Float | bool | nil) -> instance
+          end
+
+          class Binary < ::Data
+            attr_reader operator: Symbol
+            attr_reader left: node
+            attr_reader right: node
+            def self.new: (Symbol operator, node left, node right) -> instance
+                        | (operator: Symbol, left: node, right: node) -> instance
+          end
+
+          class Unary < ::Data
+            attr_reader operator: Symbol
+            attr_reader operand: node
+            def self.new: (Symbol operator, node operand) -> instance
+                        | (operator: Symbol, operand: node) -> instance
+          end
+
+          class LocalRead < ::Data
+            attr_reader name: Symbol
+            def self.new: (Symbol name) -> instance
+                        | (name: Symbol) -> instance
+          end
+
+          class LocalWrite < ::Data
+            attr_reader name: Symbol
+            attr_reader value: node
+            def self.new: (Symbol name, node value) -> instance
+                        | (name: Symbol, value: node) -> instance
+          end
+
+          class BareCall < ::Data
+            attr_reader name: Symbol
+            def self.new: (Symbol name) -> instance
+                        | (name: Symbol) -> instance
+          end
+        end
+      end
     end
   end
 end
