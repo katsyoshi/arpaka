@@ -2181,7 +2181,7 @@
     "id": 364,
     "rule": "primary: \"'not'\" '(' expr rparen",
     "line": 4465,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 365,

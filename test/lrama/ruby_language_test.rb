@@ -194,6 +194,11 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Call.new(:super, [])]), parse([:keyword_super, nil]))
   end
 
+  test "parenthesized not becomes a logical negation" do
+    expected = AST::Unary.new(:"!", literal(true))
+    assert_equal(AST::Program.new([expected]), parse([:keyword_not, nil], ["(", nil], [:keyword_true, nil], [")", nil]))
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))

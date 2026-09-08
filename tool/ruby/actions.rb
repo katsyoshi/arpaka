@@ -49,6 +49,7 @@ module RubyGrammarActions
     362 => ["ported", "@builder.call(:yield, [])"],
     512 => ["ported", "@builder.call(:super, $2 || [])"],
     513 => ["ported", "@builder.call(:super, [])"],
+    364 => ["ported", "@builder.unary(:\"!\", $3)"],
     340 => ["pass_through", "$1"],
     639 => ["pass_through", "$1"],
     638 => ["pass_through", "$1"],

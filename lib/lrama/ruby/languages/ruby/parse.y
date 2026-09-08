@@ -912,7 +912,7 @@ primary: k_yield { $$ = @builder.call(:yield, []) };
 /* upstream parse.y:4458: primary: "'defined?'" option_'\n' '(' begin_defined expr rparen */
 primary: keyword_defined option_newline '(' begin_defined expr rparen %prec '(' { $$ = @builder.unsupported(363) };
 /* upstream parse.y:4465: primary: "'not'" '(' expr rparen */
-primary: keyword_not '(' expr rparen %prec '(' { $$ = @builder.unsupported(364) };
+primary: keyword_not '(' expr rparen %prec '(' { $$ = @builder.unary(:"!", $3) };
 /* upstream parse.y:4470: primary: "'not'" '(' rparen */
 primary: keyword_not '(' rparen %prec '(' { $$ = @builder.unsupported(365) };
 /* upstream parse.y:4475: primary: fcall brace_block */
