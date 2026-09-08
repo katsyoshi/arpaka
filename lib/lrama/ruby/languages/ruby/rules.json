@@ -219,7 +219,7 @@
     "id": 37,
     "rule": "stmt: stmt \"'rescue' modifier\" after_rescue stmt",
     "line": 3382,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 38,
@@ -1773,7 +1773,7 @@
     "id": 296,
     "rule": "after_rescue: lex_ctxt",
     "line": 4132,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 297,

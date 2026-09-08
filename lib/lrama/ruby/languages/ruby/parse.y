@@ -258,7 +258,7 @@ stmt: stmt modifier_while expr_value %prec modifier_while { $$ = @builder.loop(:
 /* upstream parse.y:3371: stmt: stmt "'until' modifier" expr_value */
 stmt: stmt modifier_until expr_value %prec modifier_until { $$ = @builder.loop(:until, $3, [$1]) };
 /* upstream parse.y:3382: stmt: stmt "'rescue' modifier" after_rescue stmt */
-stmt: stmt modifier_rescue after_rescue stmt %prec modifier_rescue { $$ = @builder.unsupported(37) };
+stmt: stmt modifier_rescue after_rescue stmt %prec modifier_rescue { $$ = @builder.rescue_modifier($1, $4) };
 /* upstream parse.y:3391: stmt: k_END block_open compstmt_stmts '}' */
 stmt: k_END block_open compstmt_stmts '}' %prec '}' { $$ = @builder.unsupported(38) };
 /* upstream parse.y:3402: stmt: command_asgn */
@@ -776,7 +776,7 @@ lex_ctxt: none { $$ = nil };
 /* upstream parse.y:4125: begin_defined: lex_ctxt */
 begin_defined: lex_ctxt { $$ = nil };
 /* upstream parse.y:4132: after_rescue: lex_ctxt */
-after_rescue: lex_ctxt { $$ = @builder.unsupported(296) };
+after_rescue: lex_ctxt { $$ = nil };
 /* upstream parse.y:3161: value_expr_arg: arg */
 value_expr_arg: arg { $$ = $1 };
 /* upstream parse.y:4138: arg_value: value_expr_arg */

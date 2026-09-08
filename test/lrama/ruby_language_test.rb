@@ -223,6 +223,11 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::If.new(AST::Unary.new(:!, literal(false)), [literal(1)], nil)]), parse([:tINTEGER, 1], [:modifier_unless, nil], [:keyword_false, nil]))
   end
 
+  test "rescue modifier preserves expression and fallback" do
+    expected = AST::Rescue.new(literal(1), literal(2))
+    assert_equal(AST::Program.new([expected]), parse([:tINTEGER, 1], [:modifier_rescue, nil], [:tINTEGER, 2]))
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))

@@ -85,6 +85,10 @@ module Lrama
             AST::Variable.new(kind, name.is_a?(String) ? name.to_sym : name)
           end
 
+          def rescue_modifier(expression, fallback)
+            AST::Rescue.new(expression, fallback)
+          end
+
           def unary(operator, operand)
             AST::Unary.new(operator, operand)
           end

@@ -24,6 +24,7 @@ module Lrama
           Loop = Data.define(:kind, :condition, :body)
           Control = Data.define(:kind)
           Variable = Data.define(:kind, :name)
+          Rescue = Data.define(:expression, :fallback)
         end
       end
     end

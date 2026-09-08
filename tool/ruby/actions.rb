@@ -23,6 +23,8 @@ module RubyGrammarActions
     34 => ["ported", "@builder.unless_node($3, [$1], nil)"],
     35 => ["ported", "@builder.loop(:while, $3, [$1])"],
     36 => ["ported", "@builder.loop(:until, $3, [$1])"],
+    37 => ["ported", "@builder.rescue_modifier($1, $4)"],
+    296 => ["pass_through", "nil"],
     109 => ["ported", "@builder.call(:break, $2 || [])"],
     110 => ["ported", "@builder.call(:next, $2 || [])"],
     89 => ["pass_through", "$1"],
