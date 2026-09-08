@@ -904,11 +904,11 @@ primary: tLBRACE assoc_list '}' %prec '}' { $$ = @builder.hash($2) };
 /* upstream parse.y:4438: primary: k_return */
 primary: k_return { $$ = @builder.control(:return) };
 /* upstream parse.y:4443: primary: k_yield '(' call_args rparen */
-primary: k_yield '(' call_args rparen %prec '(' { $$ = @builder.unsupported(360) };
+primary: k_yield '(' call_args rparen %prec '(' { $$ = @builder.call(:yield, $3 || []) };
 /* upstream parse.y:4448: primary: k_yield '(' rparen */
-primary: k_yield '(' rparen %prec '(' { $$ = @builder.unsupported(361) };
+primary: k_yield '(' rparen %prec '(' { $$ = @builder.call(:yield, []) };
 /* upstream parse.y:4453: primary: k_yield */
-primary: k_yield { $$ = @builder.unsupported(362) };
+primary: k_yield { $$ = @builder.call(:yield, []) };
 /* upstream parse.y:4458: primary: "'defined?'" option_'\n' '(' begin_defined expr rparen */
 primary: keyword_defined option_newline '(' begin_defined expr rparen %prec '(' { $$ = @builder.unsupported(363) };
 /* upstream parse.y:4465: primary: "'not'" '(' expr rparen */
@@ -1020,7 +1020,7 @@ k_end: tDUMNY_END %prec tDUMNY_END { $$ = @builder.unsupported(416) };
 /* upstream parse.y:4884: k_return: "'return'" */
 k_return: keyword_return %prec keyword_return { $$ = nil };
 /* upstream parse.y:4891: k_yield: "'yield'" */
-k_yield: keyword_yield %prec keyword_yield { $$ = @builder.unsupported(418) };
+k_yield: keyword_yield %prec keyword_yield { $$ = nil };
 /* upstream parse.y:4897: then: term */
 then: term { $$ = nil };
 /* upstream parse.y:4898: then: "'then'" */

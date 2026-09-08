@@ -185,6 +185,11 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Variable.new(:backref, :$&)]), parse([:tBACK_REF, "$&"]))
   end
 
+  test "yield without arguments becomes a call node" do
+    expected = AST::Call.new(:yield, [])
+    assert_equal(AST::Program.new([expected]), parse([:keyword_yield, nil]))
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))

@@ -2157,19 +2157,19 @@
     "id": 360,
     "rule": "primary: k_yield '(' call_args rparen",
     "line": 4443,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 361,
     "rule": "primary: k_yield '(' rparen",
     "line": 4448,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 362,
     "rule": "primary: k_yield",
     "line": 4453,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 363,
@@ -2505,7 +2505,7 @@
     "id": 418,
     "rule": "k_yield: \"'yield'\"",
     "line": 4891,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 419,
