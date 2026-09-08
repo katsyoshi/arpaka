@@ -13,6 +13,9 @@ module Lrama
           LocalRead = Data.define(:name)
           LocalWrite = Data.define(:name, :value)
           BareCall = Data.define(:name)
+          ArrayLiteral = Data.define(:elements)
+          HashLiteral = Data.define(:pairs)
+          Pair = Data.define(:key, :value)
         end
       end
     end

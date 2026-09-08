@@ -375,13 +375,13 @@
     "id": 63,
     "rule": "option_'\\n': %empty",
     "line": 3445,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 64,
     "rule": "option_'\\n': '\\n'",
     "line": 3445,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 65,
@@ -1785,31 +1785,31 @@
     "id": 298,
     "rule": "arg_value: value_expr_arg",
     "line": 4138,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 299,
     "rule": "aref_args: none",
     "line": 4141,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 300,
     "rule": "aref_args: args trailer",
     "line": 4142,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 301,
     "rule": "aref_args: args ',' assocs trailer",
     "line": 4144,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 302,
     "rule": "aref_args: assocs trailer",
     "line": 4149,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 303,
@@ -1965,7 +1965,7 @@
     "id": 328,
     "rule": "args: arg_value",
     "line": 4314,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 329,
@@ -1977,7 +1977,7 @@
     "id": 330,
     "rule": "args: args ',' arg_value",
     "line": 4324,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 331,
@@ -2139,13 +2139,13 @@
     "id": 357,
     "rule": "primary: \"[\" aref_args ']'",
     "line": 4427,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 358,
     "rule": "primary: \"{\" assoc_list '}'",
     "line": 4432,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 359,
@@ -4923,31 +4923,31 @@
     "id": 821,
     "rule": "assoc_list: none",
     "line": 6600,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 822,
     "rule": "assoc_list: assocs trailer",
     "line": 6602,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 823,
     "rule": "assocs: assoc",
     "line": 6608,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 824,
     "rule": "assocs: assocs ',' assoc",
     "line": 6611,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 825,
     "rule": "assoc: arg_value \"=>\" arg_value",
     "line": 6634,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 826,
@@ -5079,13 +5079,13 @@
     "id": 847,
     "rule": "trailer: option_'\\n'",
     "line": 6704,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 848,
     "rule": "trailer: ','",
     "line": 6705,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 849,

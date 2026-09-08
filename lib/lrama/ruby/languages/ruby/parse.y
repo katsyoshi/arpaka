@@ -310,9 +310,9 @@ endless_command: command { $$ = @builder.unsupported(61) };
 /* upstream parse.y:3440: endless_command: endless_command "'rescue' modifier" after_rescue arg */
 endless_command: endless_command modifier_rescue after_rescue arg %prec modifier_rescue { $$ = @builder.unsupported(62) };
 /* upstream parse.y:3445: option_'\n': %empty */
-option_newline: %empty { $$ = @builder.unsupported(63) };
+option_newline: %empty { $$ = nil };
 /* upstream parse.y:3445: option_'\n': '\n' */
-option_newline: '\n' %prec '\n' { $$ = @builder.unsupported(64) };
+option_newline: '\n' %prec '\n' { $$ = nil };
 /* upstream parse.y:3446: endless_command: "'not'" option_'\n' endless_command */
 endless_command: keyword_not option_newline endless_command %prec keyword_not { $$ = @builder.unsupported(65) };
 /* upstream parse.y:3452: command_rhs: command_call_value */
@@ -780,15 +780,15 @@ after_rescue: lex_ctxt { $$ = @builder.unsupported(296) };
 /* upstream parse.y:3161: value_expr_arg: arg */
 value_expr_arg: arg { $$ = $1 };
 /* upstream parse.y:4138: arg_value: value_expr_arg */
-arg_value: value_expr_arg { $$ = @builder.unsupported(298) };
+arg_value: value_expr_arg { $$ = $1 };
 /* upstream parse.y:4141: aref_args: none */
-aref_args: none { $$ = @builder.unsupported(299) };
+aref_args: none { $$ = [].freeze };
 /* upstream parse.y:4142: aref_args: args trailer */
-aref_args: args trailer { $$ = @builder.unsupported(300) };
+aref_args: args trailer { $$ = $1 };
 /* upstream parse.y:4144: aref_args: args ',' assocs trailer */
-aref_args: args ',' assocs trailer %prec ',' { $$ = @builder.unsupported(301) };
+aref_args: args ',' assocs trailer %prec ',' { $$ = ($1 + $3).freeze };
 /* upstream parse.y:4149: aref_args: assocs trailer */
-aref_args: assocs trailer { $$ = @builder.unsupported(302) };
+aref_args: assocs trailer { $$ = $1 };
 /* upstream parse.y:4156: arg_rhs: arg */
 arg_rhs: arg %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:4161: arg_rhs: arg "'rescue' modifier" after_rescue arg */
@@ -840,11 +840,11 @@ opt_block_arg: ',' block_arg %prec ',' { $$ = @builder.unsupported(326) };
 /* upstream parse.y:4306: opt_block_arg: none */
 opt_block_arg: none { $$ = @builder.unsupported(327) };
 /* upstream parse.y:4314: args: arg_value */
-args: arg_value { $$ = @builder.unsupported(328) };
+args: arg_value { $$ = [$1].freeze };
 /* upstream parse.y:4319: args: arg_splat */
 args: arg_splat { $$ = @builder.unsupported(329) };
 /* upstream parse.y:4324: args: args ',' arg_value */
-args: args ',' arg_value %prec ',' { $$ = @builder.unsupported(330) };
+args: args ',' arg_value %prec ',' { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:4329: args: args ',' arg_splat */
 args: args ',' arg_splat %prec ',' { $$ = @builder.unsupported(331) };
 /* upstream parse.y:4337: arg_splat: "*" arg_value */
@@ -898,9 +898,9 @@ primary: primary_value tCOLON2 tCONSTANT %prec tCONSTANT { $$ = @builder.unsuppo
 /* upstream parse.y:4422: primary: ":: at EXPR_BEG" "constant" */
 primary: tCOLON3 tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(356) };
 /* upstream parse.y:4427: primary: "[" aref_args ']' */
-primary: tLBRACK aref_args ']' %prec ']' { $$ = @builder.unsupported(357) };
+primary: tLBRACK aref_args ']' %prec ']' { $$ = @builder.array($2) };
 /* upstream parse.y:4432: primary: "{" assoc_list '}' */
-primary: tLBRACE assoc_list '}' %prec '}' { $$ = @builder.unsupported(358) };
+primary: tLBRACE assoc_list '}' %prec '}' { $$ = @builder.hash($2) };
 /* upstream parse.y:4438: primary: k_return */
 primary: k_return { $$ = @builder.unsupported(359) };
 /* upstream parse.y:4443: primary: k_yield '(' call_args rparen */
@@ -1826,15 +1826,15 @@ midrule_41: %empty { $$ = @builder.unsupported(819) };
 /* upstream parse.y:6593: singleton_expr: '(' $@41 expr rparen */
 singleton_expr: '(' midrule_41 expr rparen %prec '(' { $$ = @builder.unsupported(820) };
 /* upstream parse.y:6600: assoc_list: none */
-assoc_list: none { $$ = @builder.unsupported(821) };
+assoc_list: none { $$ = [].freeze };
 /* upstream parse.y:6602: assoc_list: assocs trailer */
-assoc_list: assocs trailer { $$ = @builder.unsupported(822) };
+assoc_list: assocs trailer { $$ = $1 };
 /* upstream parse.y:6608: assocs: assoc */
-assocs: assoc { $$ = @builder.unsupported(823) };
+assocs: assoc { $$ = [$1].freeze };
 /* upstream parse.y:6611: assocs: assocs ',' assoc */
-assocs: assocs ',' assoc %prec ',' { $$ = @builder.unsupported(824) };
+assocs: assocs ',' assoc %prec ',' { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:6634: assoc: arg_value "=>" arg_value */
-assoc: arg_value tASSOC arg_value %prec tASSOC { $$ = @builder.unsupported(825) };
+assoc: arg_value tASSOC arg_value %prec tASSOC { $$ = @builder.pair($1, $3) };
 /* upstream parse.y:6639: assoc: "label" arg_value */
 assoc: tLABEL arg_value %prec tLABEL { $$ = @builder.unsupported(826) };
 /* upstream parse.y:6644: assoc: "label" */
@@ -1878,9 +1878,9 @@ rbracket: option_newline ']' %prec ']' { $$ = @builder.unsupported(845) };
 /* upstream parse.y:6701: rbrace: option_'\n' '}' */
 rbrace: option_newline '}' %prec '}' { $$ = @builder.unsupported(846) };
 /* upstream parse.y:6704: trailer: option_'\n' */
-trailer: option_newline { $$ = @builder.unsupported(847) };
+trailer: option_newline { $$ = nil };
 /* upstream parse.y:6705: trailer: ',' */
-trailer: ',' %prec ',' { $$ = @builder.unsupported(848) };
+trailer: ',' %prec ',' { $$ = nil };
 /* upstream parse.y:6709: term: ';' */
 term: ';' %prec ';' { $$ = nil };
 /* upstream parse.y:6717: term: '\n' */

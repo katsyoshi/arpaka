@@ -78,6 +78,22 @@ module Lrama
             AST::LocalWrite.new(name, value)
           end
 
+          def array(elements)
+            AST::ArrayLiteral.new(elements.freeze)
+          end
+
+          def hash(pairs)
+            AST::HashLiteral.new(pairs.freeze)
+          end
+
+          def pair(key, value)
+            AST::Pair.new(key, value)
+          end
+
+          def append(list, value)
+            value.nil? ? list : (list + [value]).freeze
+          end
+
           def unsupported(id)
             rule = RULES.fetch(id)
             raise UnsupportedSyntax.new(rule.fetch("rule"), rule.fetch("line"))
