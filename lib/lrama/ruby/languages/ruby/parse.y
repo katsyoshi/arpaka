@@ -748,11 +748,11 @@ def_endless_method_endless_arg: defs_head f_opt_paren_args '=' endless_arg %prec
 /* upstream parse.y:4071: arg: def_endless_method_endless_arg */
 arg: def_endless_method_endless_arg { $$ = @builder.unsupported(281) };
 /* upstream parse.y:4072: arg: ternary */
-arg: ternary { $$ = @builder.unsupported(282) };
+arg: ternary { $$ = $1 };
 /* upstream parse.y:4073: arg: primary */
 arg: primary { $$ = $1 };
 /* upstream parse.y:4077: ternary: arg '?' arg option_'\n' ':' arg */
-ternary: arg '?' arg option_newline ':' arg %prec ':' { $$ = @builder.unsupported(284) };
+ternary: arg '?' arg option_newline ':' arg %prec ':' { $$ = @builder.ternary($1, $3, $6) };
 /* upstream parse.y:4085: endless_arg: arg */
 endless_arg: arg %prec modifier_rescue { $$ = @builder.unsupported(285) };
 /* upstream parse.y:4087: endless_arg: endless_arg "'rescue' modifier" after_rescue arg */

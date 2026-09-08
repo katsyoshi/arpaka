@@ -45,6 +45,10 @@ module Lrama
             AST::RangeLiteral.new(operator, begin_value, end_value)
           end
 
+          def ternary(condition, then_value, else_value)
+            AST::Ternary.new(condition, then_value, else_value)
+          end
+
           def unary(operator, operand)
             AST::Unary.new(operator, operand)
           end

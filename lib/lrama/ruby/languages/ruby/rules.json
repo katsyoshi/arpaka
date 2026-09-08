@@ -1689,7 +1689,7 @@
     "id": 282,
     "rule": "arg: ternary",
     "line": 4072,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 283,
@@ -1701,7 +1701,7 @@
     "id": 284,
     "rule": "ternary: arg '?' arg option_'\\n' ':' arg",
     "line": 4077,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 285,
