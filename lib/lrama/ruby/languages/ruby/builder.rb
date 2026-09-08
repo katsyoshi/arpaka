@@ -53,6 +53,18 @@ module Lrama
             AST::Call.new(name, arguments.freeze)
           end
 
+          def string(value)
+            AST::StringLiteral.new(value.to_s)
+          end
+
+          def join_strings(parts)
+            parts.join
+          end
+
+          def concat_strings(left, right)
+            AST::StringLiteral.new(left.value + right.value)
+          end
+
           def unary(operator, operand)
             AST::Unary.new(operator, operand)
           end

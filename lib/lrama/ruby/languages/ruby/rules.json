@@ -2037,7 +2037,7 @@
     "id": 340,
     "rule": "primary: strings",
     "line": 4383,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 341,
@@ -3831,7 +3831,7 @@
     "id": 639,
     "rule": "strings: string",
     "line": 5865,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 640,
@@ -3843,19 +3843,19 @@
     "id": 641,
     "rule": "string: string1",
     "line": 5877,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 642,
     "rule": "string: string string1",
     "line": 5879,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 643,
     "rule": "string1: \"string literal\" string_contents \"terminator\"",
     "line": 5886,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 644,
@@ -3993,13 +3993,13 @@
     "id": 666,
     "rule": "string_contents: %empty",
     "line": 5987,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 667,
     "rule": "string_contents: string_contents string_content",
     "line": 5992,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 668,
@@ -4029,7 +4029,7 @@
     "id": 672,
     "rule": "string_content: \"literal content\"",
     "line": 6041,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 673,

@@ -864,7 +864,7 @@ mrhs: tSTAR arg_value %prec tSTAR { $$ = @builder.unsupported(338) };
 /* upstream parse.y:4383: primary: literal */
 primary: literal { $$ = $1 };
 /* upstream parse.y:4383: primary: strings */
-primary: strings { $$ = @builder.unsupported(340) };
+primary: strings { $$ = $1 };
 /* upstream parse.y:4383: primary: xstring */
 primary: xstring { $$ = @builder.unsupported(341) };
 /* upstream parse.y:4383: primary: regexp */
@@ -1462,15 +1462,15 @@ literal: numeric { $$ = $1 };
 /* upstream parse.y:5861: literal: symbol */
 literal: symbol { $$ = @builder.unsupported(638) };
 /* upstream parse.y:5865: strings: string */
-strings: string { $$ = @builder.unsupported(639) };
+strings: string { $$ = $1 };
 /* upstream parse.y:5876: string: "char literal" */
 string: tCHAR %prec tCHAR { $$ = @builder.unsupported(640) };
 /* upstream parse.y:5877: string: string1 */
-string: string1 { $$ = @builder.unsupported(641) };
+string: string1 { $$ = $1 };
 /* upstream parse.y:5879: string: string string1 */
-string: string string1 { $$ = @builder.unsupported(642) };
+string: string string1 { $$ = @builder.concat_strings($1, $2) };
 /* upstream parse.y:5886: string1: "string literal" string_contents "terminator" */
-string1: tSTRING_BEG string_contents tSTRING_END %prec tSTRING_END { $$ = @builder.unsupported(643) };
+string1: tSTRING_BEG string_contents tSTRING_END %prec tSTRING_END { $$ = @builder.string(@builder.join_strings($2)) };
 /* upstream parse.y:5899: xstring: "backtick literal" xstring_contents "terminator" */
 xstring: tXSTRING_BEG xstring_contents tSTRING_END %prec tSTRING_END { $$ = @builder.unsupported(644) };
 /* upstream parse.y:5911: regexp: "regexp literal" regexp_contents tREGEXP_END */
@@ -1516,9 +1516,9 @@ qsym_list: %empty { $$ = @builder.unsupported(664) };
 /* upstream parse.y:5980: qsym_list: qsym_list "literal content" nonempty_list_' ' */
 qsym_list: qsym_list tSTRING_CONTENT nonempty_list____ %prec tSTRING_CONTENT { $$ = @builder.unsupported(665) };
 /* upstream parse.y:5987: string_contents: %empty */
-string_contents: %empty { $$ = @builder.unsupported(666) };
+string_contents: %empty { $$ = [] };
 /* upstream parse.y:5992: string_contents: string_contents string_content */
-string_contents: string_contents string_content { $$ = @builder.unsupported(667) };
+string_contents: string_contents string_content { $$ = ($1 + [$2]).freeze };
 /* upstream parse.y:5999: xstring_contents: %empty */
 xstring_contents: %empty { $$ = @builder.unsupported(668) };
 /* upstream parse.y:6004: xstring_contents: xstring_contents string_content */
@@ -1528,7 +1528,7 @@ regexp_contents: %empty { $$ = @builder.unsupported(670) };
 /* upstream parse.y:6016: regexp_contents: regexp_contents string_content */
 regexp_contents: regexp_contents string_content { $$ = @builder.unsupported(671) };
 /* upstream parse.y:6041: string_content: "literal content" */
-string_content: tSTRING_CONTENT %prec tSTRING_CONTENT { $$ = @builder.unsupported(672) };
+string_content: tSTRING_CONTENT %prec tSTRING_CONTENT { $$ = $1 };
 /* upstream parse.y:6044: @34: %empty */
 midrule_34: %empty { $$ = @builder.unsupported(673) };
 /* upstream parse.y:6051: string_content: tSTRING_DVAR @34 string_dvar */
