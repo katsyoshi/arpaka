@@ -1464,7 +1464,7 @@ literal: symbol { $$ = $1 };
 /* upstream parse.y:5865: strings: string */
 strings: string { $$ = $1 };
 /* upstream parse.y:5876: string: "char literal" */
-string: tCHAR %prec tCHAR { $$ = @builder.unsupported(640) };
+string: tCHAR %prec tCHAR { $$ = @builder.literal($1) };
 /* upstream parse.y:5877: string: string1 */
 string: string1 { $$ = $1 };
 /* upstream parse.y:5879: string: string string1 */
@@ -1572,9 +1572,9 @@ simple_numeric: tINTEGER %prec tINTEGER { $$ = @builder.integer($1) };
 /* upstream parse.y:6148: simple_numeric: "float literal" */
 simple_numeric: tFLOAT %prec tFLOAT { $$ = @builder.float($1) };
 /* upstream parse.y:6149: simple_numeric: "rational literal" */
-simple_numeric: tRATIONAL %prec tRATIONAL { $$ = @builder.unsupported(694) };
+simple_numeric: tRATIONAL %prec tRATIONAL { $$ = @builder.literal($1) };
 /* upstream parse.y:6150: simple_numeric: "imaginary literal" */
-simple_numeric: tIMAGINARY %prec tIMAGINARY { $$ = @builder.unsupported(695) };
+simple_numeric: tIMAGINARY %prec tIMAGINARY { $$ = @builder.literal($1) };
 /* upstream parse.y:6153: nonlocal_var: "instance variable" */
 nonlocal_var: tIVAR %prec tIVAR { $$ = @builder.unsupported(696) };
 /* upstream parse.y:6154: nonlocal_var: "global variable" */

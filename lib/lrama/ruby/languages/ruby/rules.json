@@ -3837,7 +3837,7 @@
     "id": 640,
     "rule": "string: \"char literal\"",
     "line": 5876,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 641,
@@ -4161,13 +4161,13 @@
     "id": 694,
     "rule": "simple_numeric: \"rational literal\"",
     "line": 6149,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 695,
     "rule": "simple_numeric: \"imaginary literal\"",
     "line": 6150,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 696,
