@@ -15,6 +15,8 @@ module RubyGrammarActions
     22 => ["pass_through", "$1"], 45 => ["pass_through", "$1"],
     25 => ["empty", "nil"],
     63 => ["empty", "nil"], 64 => ["pass_through", "nil"],
+    70 => ["ported", "@builder.binary(:and, $1, $3)"],
+    71 => ["ported", "@builder.binary(:or, $1, $3)"],
     78 => ["pass_through", "$1"], 140 => ["ported", "@builder.declare_local($1)"],
     154 => ["pass_through", "$1"],
     88 => ["pass_through", "$2"],

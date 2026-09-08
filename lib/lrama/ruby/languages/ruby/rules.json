@@ -417,13 +417,13 @@
     "id": 70,
     "rule": "expr: expr \"'and'\" expr",
     "line": 3465,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 71,
     "rule": "expr: expr \"'or'\" expr",
     "line": 3470,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 72,

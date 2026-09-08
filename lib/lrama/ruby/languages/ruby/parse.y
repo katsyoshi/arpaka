@@ -324,9 +324,9 @@ command_rhs: command_asgn { $$ = @builder.unsupported(68) };
 /* upstream parse.y:3463: expr: command_call */
 expr: command_call { $$ = @builder.unsupported(69) };
 /* upstream parse.y:3465: expr: expr "'and'" expr */
-expr: expr keyword_and expr %prec keyword_and { $$ = @builder.unsupported(70) };
+expr: expr keyword_and expr %prec keyword_and { $$ = @builder.binary(:and, $1, $3) };
 /* upstream parse.y:3470: expr: expr "'or'" expr */
-expr: expr keyword_or expr %prec keyword_or { $$ = @builder.unsupported(71) };
+expr: expr keyword_or expr %prec keyword_or { $$ = @builder.binary(:or, $1, $3) };
 /* upstream parse.y:3475: expr: "'not'" option_'\n' expr */
 expr: keyword_not option_newline expr %prec keyword_not { $$ = @builder.unsupported(72) };
 /* upstream parse.y:3480: expr: '!' command_call */
