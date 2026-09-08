@@ -93,6 +93,34 @@ The generator rejects these features rather than dropping their behavior.
 Use plain Ruby values in actions; C actions are not translated into Ruby.
 Prism tokenizes Ruby actions and checks generated syntax; Bison is not required.
 
+### Inspecting a C grammar
+
+Use `mode: :recognizer` to generate a standalone recognizer from a grammar with
+C actions. This mode uses Lrama's C action lexer and deliberately omits all
+semantic actions, prologues, epilogues, hooks, printers and destructors. Type and
+location declarations do not produce runtime values. Error recovery is not
+performed: unexpected input still raises `ParseError`. Conflicts are checked
+as in the default `mode: :parser`.
+
+```ruby
+code = Lrama::Ruby.generate(File.read("parse.preprocessed.y"),
+  class_name: "RubyRecognizer", mode: :recognizer)
+File.write("ruby_recognizer.rb", code)
+```
+
+`parse(tokens)` returns `true` when the token stream is accepted. This mode is
+for inspecting grammar tables; it does not build an AST or preserve checks and
+lexer state changes performed by C actions. You must supply the token stream.
+It does not by itself parse Ruby source text.
+
+For Ruby's upstream `parse.y`, first run Ruby's `tool/id2token.rb` with
+`defs/id.def` from the same revision. This is the preprocessing step used by
+Ruby's build to replace `RUBY_TOKEN(...)` with numeric token IDs:
+
+```sh
+ruby /path/to/ruby/tool/id2token.rb /path/to/ruby/parse.y > parse.preprocessed.y
+```
+
 ## Development
 
 ```sh

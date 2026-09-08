@@ -194,6 +194,57 @@ class Lrama::RubyTest < Test::Unit::TestCase
     assert_include(stderr, "Start Ruby with RUBY_BOX=1")
   end
 
+  test "recognizer accepts C actions and omits C support code" do
+    grammar = <<~'YACC'
+      %{
+      #include "parser.h"
+      %}
+      %locations
+      %union { int value; }
+      %token <value> NUMBER
+      %type <value> start
+      %parse-param {struct parser *p}
+      %lex-param {struct parser *p}
+      %initial-action { initialize(p); }
+      %destructor { release($$); } <value>
+      %%
+      start: NUMBER { if (p->ctxt.in_def) { warn(p); } /* C action */ $$ = $1; }
+           | '(' { enter(p); } NUMBER ')' { $$ = $3; }
+           | error { recover(p); }
+           ;
+      %%
+      void helper(void) { abort(); }
+    YACC
+    code = Lrama::Ruby.generate(grammar, mode: :recognizer)
+    assert_not_include(code, "initialize(p)")
+    assert_not_include(code, "p->ctxt")
+    assert_not_include(code, "void helper")
+    parser_class = compile(grammar, mode: :recognizer)
+    assert_equal(true, parser_class.new.parse([[:NUMBER, 5]]))
+    assert_equal(true, parser_class.new.parse([["(", nil], [:NUMBER, 5], [")", nil]]))
+    assert_raise(parser_class::ParseError) { parser_class.new.parse([]) }
+    assert_raise(parser_class::ParseError) { parser_class.new.parse([[:UNKNOWN, nil]]) }
+    assert_raise(Lrama::Ruby::Error) { compile("%locations\n%%\nstart: %empty;") }
+  end
+
+  test "recognizer mode does not leak into later Ruby action generation" do
+    generator = Lrama::Ruby::Generator.new
+    c_grammar = "%%\nstart: %empty { call_c_function(); };"
+    ruby_grammar = '%%' + "\nstart: %empty { $$ = /}/.match?(\"}\") };"
+    generator.generate(c_grammar, mode: :recognizer)
+    code = generator.generate(ruby_grammar)
+    box = Ruby::Box.new
+    box.eval(code)
+    assert_equal(true, box.const_get(:Parser).new.parse([]))
+    generator.generate(c_grammar, mode: :recognizer)
+    assert_raise(Lrama::Ruby::Error) { generator.generate(c_grammar, mode: :unknown) }
+  end
+
+  test "recognizer still rejects unresolved conflicts" do
+    grammar = "%token NUMBER\n%%\nexpr: NUMBER | expr '+' expr;"
+    assert_raise(Lrama::Ruby::Error) { compile(grammar, mode: :recognizer) }
+  end
+
   private
 
   def compile(grammar, **options)

@@ -10,22 +10,28 @@ module Lrama
         unless ::Ruby::Box.enabled?
           raise Error, "Ruby Box is required. Start Ruby with RUBY_BOX=1."
         end
-
-        @box = ::Ruby::Box.new
-        # A new box does not inherit Bundler's activated load paths.
-        @box.load_path.replace($LOAD_PATH)
-        @box.require(File.expand_path("backend.rb", __dir__))
-        @backend = @box::Lrama::Ruby::Backend.new
       end
 
-      def generate(source, filename: "(grammar)", class_name: "Parser")
+      def generate(source, filename: "(grammar)", class_name: "Parser", mode: :parser)
         unless /\A[A-Z][a-zA-Z0-9_]*\z/.match?(class_name)
           raise Error, "class_name must be a single Ruby constant name"
         end
 
-        @backend.generate(source, filename: filename, class_name: class_name)
-      rescue @box::Lrama::Ruby::Backend::Error => e
-        raise Error, e.message
+        unless [:parser, :recognizer].include?(mode)
+          raise Error, "mode must be :parser or :recognizer"
+        end
+
+        box = ::Ruby::Box.new
+        # A new box does not inherit Bundler's activated load paths.
+        box.load_path.replace($LOAD_PATH)
+        box.require(File.expand_path("backend.rb", __dir__))
+        box.require(File.expand_path("action_code.rb", __dir__)) if mode == :parser
+        begin
+          box::Lrama::Ruby::Backend.new.generate(source,
+            filename: filename, class_name: class_name, mode: mode)
+        rescue box::Lrama::Ruby::Backend::Error => e
+          raise Error, e.message
+        end
       end
     end
   end

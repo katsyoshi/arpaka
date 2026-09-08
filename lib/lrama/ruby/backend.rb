@@ -3,14 +3,14 @@
 require "lrama"
 require "prism"
 require "erb"
-require_relative "action_code"
 
 module Lrama
   module Ruby
     class Backend
       class Error < StandardError; end
 
-      def generate(source, filename:, class_name:)
+      def generate(source, filename:, class_name:, mode:)
+        recognizer = mode == :recognizer
         grammar = Lrama::Parser.new(source, filename).parse
         unless grammar.no_stdlib
           path = Lrama::Command::STDLIB_FILE_PATH
@@ -19,7 +19,7 @@ module Lrama
         end
         grammar.prepare
         grammar.validate!
-        validate_features!(grammar)
+        validate_features!(grammar) unless recognizer
 
         states = Lrama::States.new(grammar, Lrama::Tracer.new($stderr))
         states.compute
@@ -30,13 +30,14 @@ module Lrama
         context = Lrama::Context.new(states)
         tokens = token_names(grammar)
         actions = grammar.rules.filter_map do |rule|
-          next unless rule.token_code
+          next if recognizer || !rule.token_code
           # Preserve whitespace inside multiline strings and heredocs.
           "    when #{rule.id + 1}\n#{translate_action(rule)}\n"
         end.join
         template = File.read(File.expand_path("parser.rb.erb", __dir__))
         result = ::ERB.new(template, trim_mode: "-").result_with_hash(
-          class_name: class_name, context: context, tokens: tokens, actions: actions
+          class_name: class_name, context: context, tokens: tokens, actions: actions,
+          recognizer: recognizer
         )
         errors = Prism.parse(result).errors
         unless errors.empty?
