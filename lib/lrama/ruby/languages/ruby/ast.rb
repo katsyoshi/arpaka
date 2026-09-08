@@ -9,6 +9,7 @@ module Lrama
           Literal = Data.define(:value)
           Binary = Data.define(:operator, :left, :right)
           Unary = Data.define(:operator, :operand)
+          If = Data.define(:condition, :then_body, :else_body)
           LocalRead = Data.define(:name)
           LocalWrite = Data.define(:name, :value)
           BareCall = Data.define(:name)

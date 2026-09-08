@@ -6,6 +6,7 @@ module RubyGrammarActions
   ACTIONS = {
     1 => ["empty", "nil"], 2 => ["empty", "nil"], 3 => ["empty", "nil"],
     4 => ["pass_through", "$1"], 5 => ["ported", "@builder.program($2)"],
+    83 => ["pass_through", "$1"], 84 => ["pass_through", "$1"],
     6 => ["ported", "[].freeze"], 7 => ["ported", "[$1].freeze"],
     8 => ["ported", "($1 + [$3]).freeze"], 9 => ["pass_through", "$1"],
     13 => ["pass_through", "$1"], 19 => ["ported", "[].freeze"],
@@ -31,6 +32,16 @@ module RubyGrammarActions
     704 => ["ported", "@builder.literal(true)"], 705 => ["ported", "@builder.literal(false)"],
     709 => ["ported", "@builder.read_local($1)"], 710 => ["pass_through", "$1"],
     849 => ["empty", "nil"], 850 => ["empty", "nil"], 851 => ["empty", "nil"],
-    852 => ["empty", "nil"], 853 => ["empty", "nil"]
+    852 => ["empty", "nil"], 853 => ["empty", "nil"],
+    370 => ["ported", "@builder.if_node($2, $4, $5)"],
+    371 => ["ported", "@builder.unless_node($2, $4, $5)"],
+    399 => ["pass_through", "nil"], 400 => ["pass_through", "nil"],
+    413 => ["pass_through", "nil"], 414 => ["pass_through", "nil"],
+    415 => ["pass_through", "nil"],
+    419 => ["pass_through", "nil"], 420 => ["pass_through", "nil"],
+    421 => ["pass_through", "nil"],
+    424 => ["pass_through", "$1"],
+    425 => ["ported", "@builder.elsif_node($2, $4, $5)"],
+    426 => ["empty", "nil"], 427 => ["pass_through", "$2"]
   }.freeze
 end

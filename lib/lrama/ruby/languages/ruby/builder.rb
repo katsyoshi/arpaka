@@ -41,6 +41,18 @@ module Lrama
             AST::Unary.new(operator, operand)
           end
 
+          def if_node(condition, then_body, else_body)
+            AST::If.new(condition, then_body, else_body)
+          end
+
+          def unless_node(condition, then_body, else_body)
+            AST::If.new(AST::Unary.new(:!, condition), then_body, else_body)
+          end
+
+          def elsif_node(condition, then_body, else_body)
+            AST::If.new(condition, then_body, else_body)
+          end
+
           def parentheses(statements, rule_id)
             unsupported(rule_id) unless statements.length == 1
             statements.first

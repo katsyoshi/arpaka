@@ -495,13 +495,13 @@
     "id": 83,
     "rule": "value_expr_expr: expr",
     "line": 3161,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 84,
     "rule": "expr_value: value_expr_expr",
     "line": 3551,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 85,
@@ -2217,13 +2217,13 @@
     "id": 370,
     "rule": "primary: k_if expr_value then compstmt_stmts if_tail k_end",
     "line": 4491,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 371,
     "rule": "primary: k_unless expr_value then compstmt_stmts opt_else k_end",
     "line": 4503,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 372,
@@ -2391,13 +2391,13 @@
     "id": 399,
     "rule": "k_if: \"'if'\"",
     "line": 4734,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 400,
     "rule": "k_unless: \"'unless'\"",
     "line": 4752,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 401,
@@ -2475,19 +2475,19 @@
     "id": 413,
     "rule": "k_else: \"'else'\"",
     "line": 4851,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 414,
     "rule": "k_elsif: \"'elsif'\"",
     "line": 4866,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 415,
     "rule": "k_end: \"'end'\"",
     "line": 4873,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 416,
@@ -2511,19 +2511,19 @@
     "id": 419,
     "rule": "then: term",
     "line": 4897,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 420,
     "rule": "then: \"'then'\"",
     "line": 4898,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 421,
     "rule": "then: term \"'then'\"",
     "line": 4899,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 422,
@@ -2541,25 +2541,25 @@
     "id": 424,
     "rule": "if_tail: opt_else",
     "line": 4906,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 425,
     "rule": "if_tail: k_elsif expr_value then compstmt_stmts if_tail",
     "line": 4910,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 426,
     "rule": "opt_else: none",
     "line": 4917,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 427,
     "rule": "opt_else: k_else compstmt_stmts",
     "line": 4919,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 428,

@@ -350,9 +350,9 @@ midrule_9: %empty { $$ = @builder.unsupported(81) };
 /* upstream parse.y:3542: defs_head: k_def singleton dot_or_colon $@9 def_name */
 defs_head: k_def singleton dot_or_colon midrule_9 def_name { $$ = @builder.unsupported(82) };
 /* upstream parse.y:3161: value_expr_expr: expr */
-value_expr_expr: expr { $$ = @builder.unsupported(83) };
+value_expr_expr: expr { $$ = $1 };
 /* upstream parse.y:3551: expr_value: value_expr_expr */
-expr_value: value_expr_expr { $$ = @builder.unsupported(84) };
+expr_value: value_expr_expr { $$ = $1 };
 /* upstream parse.y:3553: expr_value: error */
 expr_value: YYerror %prec YYerror { $$ = @builder.unsupported(85) };
 /* upstream parse.y:3558: $@10: %empty */
@@ -924,9 +924,9 @@ primary: method_call brace_block { $$ = @builder.unsupported(368) };
 /* upstream parse.y:4486: primary: lambda */
 primary: lambda { $$ = @builder.unsupported(369) };
 /* upstream parse.y:4491: primary: k_if expr_value then compstmt_stmts if_tail k_end */
-primary: k_if expr_value then compstmt_stmts if_tail k_end { $$ = @builder.unsupported(370) };
+primary: k_if expr_value then compstmt_stmts if_tail k_end { $$ = @builder.if_node($2, $4, $5) };
 /* upstream parse.y:4503: primary: k_unless expr_value then compstmt_stmts opt_else k_end */
-primary: k_unless expr_value then compstmt_stmts opt_else k_end { $$ = @builder.unsupported(371) };
+primary: k_unless expr_value then compstmt_stmts opt_else k_end { $$ = @builder.unless_node($2, $4, $5) };
 /* upstream parse.y:4511: primary: k_while expr_value_do compstmt_stmts k_end */
 primary: k_while expr_value_do compstmt_stmts k_end { $$ = @builder.unsupported(372) };
 /* upstream parse.y:4520: primary: k_until expr_value_do compstmt_stmts k_end */
@@ -982,9 +982,9 @@ primary_value: value_expr_primary { $$ = @builder.unsupported(397) };
 /* upstream parse.y:4727: k_begin: "'begin'" */
 k_begin: keyword_begin %prec keyword_begin { $$ = @builder.unsupported(398) };
 /* upstream parse.y:4734: k_if: "'if'" */
-k_if: keyword_if %prec keyword_if { $$ = @builder.unsupported(399) };
+k_if: keyword_if %prec keyword_if { $$ = nil };
 /* upstream parse.y:4752: k_unless: "'unless'" */
-k_unless: keyword_unless %prec keyword_unless { $$ = @builder.unsupported(400) };
+k_unless: keyword_unless %prec keyword_unless { $$ = nil };
 /* upstream parse.y:4759: k_while: "'while'" allow_exits */
 k_while: keyword_while allow_exits %prec keyword_while { $$ = @builder.unsupported(401) };
 /* upstream parse.y:4767: k_until: "'until'" allow_exits */
@@ -1010,11 +1010,11 @@ k_ensure: keyword_ensure %prec keyword_ensure { $$ = @builder.unsupported(411) }
 /* upstream parse.y:4845: k_when: "'when'" */
 k_when: keyword_when %prec keyword_when { $$ = @builder.unsupported(412) };
 /* upstream parse.y:4851: k_else: "'else'" */
-k_else: keyword_else %prec keyword_else { $$ = @builder.unsupported(413) };
+k_else: keyword_else %prec keyword_else { $$ = nil };
 /* upstream parse.y:4866: k_elsif: "'elsif'" */
-k_elsif: keyword_elsif %prec keyword_elsif { $$ = @builder.unsupported(414) };
+k_elsif: keyword_elsif %prec keyword_elsif { $$ = nil };
 /* upstream parse.y:4873: k_end: "'end'" */
-k_end: keyword_end %prec keyword_end { $$ = @builder.unsupported(415) };
+k_end: keyword_end %prec keyword_end { $$ = nil };
 /* upstream parse.y:4878: k_end: "dummy end" */
 k_end: tDUMNY_END %prec tDUMNY_END { $$ = @builder.unsupported(416) };
 /* upstream parse.y:4884: k_return: "'return'" */
@@ -1022,23 +1022,23 @@ k_return: keyword_return %prec keyword_return { $$ = @builder.unsupported(417) }
 /* upstream parse.y:4891: k_yield: "'yield'" */
 k_yield: keyword_yield %prec keyword_yield { $$ = @builder.unsupported(418) };
 /* upstream parse.y:4897: then: term */
-then: term { $$ = @builder.unsupported(419) };
+then: term { $$ = nil };
 /* upstream parse.y:4898: then: "'then'" */
-then: keyword_then %prec keyword_then { $$ = @builder.unsupported(420) };
+then: keyword_then %prec keyword_then { $$ = nil };
 /* upstream parse.y:4899: then: term "'then'" */
-then: term keyword_then %prec keyword_then { $$ = @builder.unsupported(421) };
+then: term keyword_then %prec keyword_then { $$ = nil };
 /* upstream parse.y:4902: do: term */
 do: term { $$ = @builder.unsupported(422) };
 /* upstream parse.y:4903: do: "'do' for condition" */
 do: keyword_do_cond %prec keyword_do_cond { $$ = @builder.unsupported(423) };
 /* upstream parse.y:4906: if_tail: opt_else */
-if_tail: opt_else { $$ = @builder.unsupported(424) };
+if_tail: opt_else { $$ = $1 };
 /* upstream parse.y:4910: if_tail: k_elsif expr_value then compstmt_stmts if_tail */
-if_tail: k_elsif expr_value then compstmt_stmts if_tail { $$ = @builder.unsupported(425) };
+if_tail: k_elsif expr_value then compstmt_stmts if_tail { $$ = @builder.elsif_node($2, $4, $5) };
 /* upstream parse.y:4917: opt_else: none */
-opt_else: none { $$ = @builder.unsupported(426) };
+opt_else: none { $$ = nil };
 /* upstream parse.y:4919: opt_else: k_else compstmt_stmts */
-opt_else: k_else compstmt_stmts { $$ = @builder.unsupported(427) };
+opt_else: k_else compstmt_stmts { $$ = $2 };
 /* upstream parse.y:4925: for_var: lhs */
 for_var: lhs { $$ = @builder.unsupported(428) };
 /* upstream parse.y:4926: for_var: mlhs */

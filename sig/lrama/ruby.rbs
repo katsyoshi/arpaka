@@ -32,7 +32,7 @@ module Lrama
         end
 
         module AST
-          type node = Literal | Binary | Unary | LocalRead | LocalWrite | BareCall
+          type node = Literal | Binary | Unary | If | LocalRead | LocalWrite | BareCall
 
           class Program < ::Data
             attr_reader statements: Array[node]
@@ -59,6 +59,14 @@ module Lrama
             attr_reader operand: node
             def self.new: (Symbol operator, node operand) -> instance
                         | (operator: Symbol, operand: node) -> instance
+          end
+
+          class If < ::Data
+            attr_reader condition: node
+            attr_reader then_body: Array[node]
+            attr_reader else_body: Array[node]?
+            def self.new: (node condition, Array[node] then_body, Array[node]? else_body) -> instance
+                        | (condition: node, then_body: Array[node], else_body: Array[node]?) -> instance
           end
 
           class LocalRead < ::Data
