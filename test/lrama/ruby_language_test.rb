@@ -169,6 +169,11 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     end
   end
 
+  test "constant references preserve their constant kind" do
+    expected = AST::Variable.new(:constant, :Foo)
+    assert_equal(AST::Program.new([expected]), parse([:tCONSTANT, :Foo]))
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))

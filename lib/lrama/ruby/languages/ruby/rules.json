@@ -4197,7 +4197,7 @@
     "id": 700,
     "rule": "user_variable: \"constant\"",
     "line": 6158,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 701,

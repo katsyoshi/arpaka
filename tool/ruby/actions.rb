@@ -95,6 +95,7 @@ module RubyGrammarActions
     694 => ["ported", "@builder.literal($1)"],
     695 => ["ported", "@builder.literal($1)"],
     699 => ["ported", "@builder.identifier($1)"],
+    700 => ["ported", "@builder.variable(:constant, $1)"],
     702 => ["ported", "@builder.literal(nil)"],
     703 => ["ported", "@builder.literal(:self)"],
     696 => ["ported", "@builder.variable(:instance, $1)"],

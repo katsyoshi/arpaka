@@ -1584,7 +1584,7 @@ nonlocal_var: tCVAR %prec tCVAR { $$ = @builder.variable(:class, $1) };
 /* upstream parse.y:6158: user_variable: "local variable or method" */
 user_variable: tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.identifier($1) };
 /* upstream parse.y:6158: user_variable: "constant" */
-user_variable: tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(700) };
+user_variable: tCONSTANT %prec tCONSTANT { $$ = @builder.variable(:constant, $1) };
 /* upstream parse.y:6159: user_variable: nonlocal_var */
 user_variable: nonlocal_var { $$ = $1 };
 /* upstream parse.y:6162: keyword_variable: "'nil'" */
