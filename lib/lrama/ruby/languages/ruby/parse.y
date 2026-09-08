@@ -250,13 +250,13 @@ stmt: keyword_alias tGVAR tNTH_REF %prec tNTH_REF { $$ = @builder.unsupported(31
 /* upstream parse.y:3341: stmt: "'undef'" undef_list */
 stmt: keyword_undef undef_list %prec keyword_undef { $$ = @builder.unsupported(32) };
 /* upstream parse.y:3348: stmt: stmt "'if' modifier" expr_value */
-stmt: stmt modifier_if expr_value %prec modifier_if { $$ = @builder.unsupported(33) };
+stmt: stmt modifier_if expr_value %prec modifier_if { $$ = @builder.if_node($3, [$1], nil) };
 /* upstream parse.y:3354: stmt: stmt "'unless' modifier" expr_value */
-stmt: stmt modifier_unless expr_value %prec modifier_unless { $$ = @builder.unsupported(34) };
+stmt: stmt modifier_unless expr_value %prec modifier_unless { $$ = @builder.unless_node($3, [$1], nil) };
 /* upstream parse.y:3360: stmt: stmt "'while' modifier" expr_value */
-stmt: stmt modifier_while expr_value %prec modifier_while { $$ = @builder.unsupported(35) };
+stmt: stmt modifier_while expr_value %prec modifier_while { $$ = @builder.loop(:while, $3, [$1]) };
 /* upstream parse.y:3371: stmt: stmt "'until' modifier" expr_value */
-stmt: stmt modifier_until expr_value %prec modifier_until { $$ = @builder.unsupported(36) };
+stmt: stmt modifier_until expr_value %prec modifier_until { $$ = @builder.loop(:until, $3, [$1]) };
 /* upstream parse.y:3382: stmt: stmt "'rescue' modifier" after_rescue stmt */
 stmt: stmt modifier_rescue after_rescue stmt %prec modifier_rescue { $$ = @builder.unsupported(37) };
 /* upstream parse.y:3391: stmt: k_END block_open compstmt_stmts '}' */
