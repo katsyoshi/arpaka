@@ -3069,13 +3069,13 @@
     "id": 512,
     "rule": "method_call: \"'super'\" paren_args",
     "line": 5231,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 513,
     "rule": "method_call: \"'super'\"",
     "line": 5241,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 514,

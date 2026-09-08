@@ -1208,9 +1208,9 @@ method_call: primary_value tCOLON2 operation3 %prec tCOLON2 { $$ = @builder.unsu
 /* upstream parse.y:5225: method_call: primary_value call_op2 paren_args */
 method_call: primary_value call_op2 paren_args { $$ = @builder.unsupported(511) };
 /* upstream parse.y:5231: method_call: "'super'" paren_args */
-method_call: keyword_super paren_args %prec keyword_super { $$ = @builder.unsupported(512) };
+method_call: keyword_super paren_args %prec keyword_super { $$ = @builder.call(:super, $2 || []) };
 /* upstream parse.y:5241: method_call: "'super'" */
-method_call: keyword_super %prec keyword_super { $$ = @builder.unsupported(513) };
+method_call: keyword_super %prec keyword_super { $$ = @builder.call(:super, []) };
 /* upstream parse.y:5246: method_call: primary_value '[' opt_call_args rbracket */
 method_call: primary_value '[' opt_call_args rbracket %prec '[' { $$ = @builder.index($1, $3 || []) };
 /* upstream parse.y:5254: brace_block: '{' brace_body '}' */
