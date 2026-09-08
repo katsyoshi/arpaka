@@ -204,6 +204,11 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Binary.new(:or, literal(true), literal(false))]), parse([:keyword_true, nil], [:keyword_or, nil], [:keyword_false, nil]))
   end
 
+  test "defined query becomes a call node" do
+    expected = AST::Call.new(:defined, [literal(true)])
+    assert_equal(AST::Program.new([expected]), parse([:keyword_defined, nil], ["(", nil], [:keyword_true, nil], [")", nil]))
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))

@@ -774,7 +774,7 @@ rel_expr: rel_expr relop arg %prec '>' { $$ = @builder.binary($2, $1, $3) };
 /* upstream parse.y:4119: lex_ctxt: none */
 lex_ctxt: none { $$ = nil };
 /* upstream parse.y:4125: begin_defined: lex_ctxt */
-begin_defined: lex_ctxt { $$ = @builder.unsupported(295) };
+begin_defined: lex_ctxt { $$ = nil };
 /* upstream parse.y:4132: after_rescue: lex_ctxt */
 after_rescue: lex_ctxt { $$ = @builder.unsupported(296) };
 /* upstream parse.y:3161: value_expr_arg: arg */
@@ -910,7 +910,7 @@ primary: k_yield '(' rparen %prec '(' { $$ = @builder.call(:yield, []) };
 /* upstream parse.y:4453: primary: k_yield */
 primary: k_yield { $$ = @builder.call(:yield, []) };
 /* upstream parse.y:4458: primary: "'defined?'" option_'\n' '(' begin_defined expr rparen */
-primary: keyword_defined option_newline '(' begin_defined expr rparen %prec '(' { $$ = @builder.unsupported(363) };
+primary: keyword_defined option_newline '(' begin_defined expr rparen %prec '(' { $$ = @builder.call(:defined, [$5]) };
 /* upstream parse.y:4465: primary: "'not'" '(' expr rparen */
 primary: keyword_not '(' expr rparen %prec '(' { $$ = @builder.unary(:"!", $3) };
 /* upstream parse.y:4470: primary: "'not'" '(' rparen */

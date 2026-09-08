@@ -1767,7 +1767,7 @@
     "id": 295,
     "rule": "begin_defined: lex_ctxt",
     "line": 4125,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 296,
@@ -2175,7 +2175,7 @@
     "id": 363,
     "rule": "primary: \"'defined?'\" option_'\\n' '(' begin_defined expr rparen",
     "line": 4458,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 364,
