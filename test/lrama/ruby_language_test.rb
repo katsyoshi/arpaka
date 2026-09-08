@@ -209,6 +209,10 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse([:keyword_defined, nil], ["(", nil], [:keyword_true, nil], [")", nil]))
   end
 
+  test "return with a value becomes a call node" do
+    assert_equal(AST::Program.new([AST::Call.new(:return, [literal(1)])]), parse([:keyword_return, nil], [:tINTEGER, 1]))
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))

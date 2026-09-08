@@ -322,7 +322,7 @@ command_rhs: command_call_value modifier_rescue after_rescue stmt %prec modifier
 /* upstream parse.y:3460: command_rhs: command_asgn */
 command_rhs: command_asgn { $$ = @builder.unsupported(68) };
 /* upstream parse.y:3463: expr: command_call */
-expr: command_call { $$ = @builder.unsupported(69) };
+expr: command_call { $$ = $1 };
 /* upstream parse.y:3465: expr: expr "'and'" expr */
 expr: expr keyword_and expr %prec keyword_and { $$ = @builder.binary(:and, $1, $3) };
 /* upstream parse.y:3470: expr: expr "'or'" expr */
@@ -362,7 +362,7 @@ midrule_11: %empty { $$ = nil };
 /* upstream parse.y:3559: expr_value_do: $@10 expr_value do $@11 */
 expr_value_do: midrule_10 expr_value do midrule_11 { $$ = $2 };
 /* upstream parse.y:3565: command_call: command */
-command_call: command { $$ = @builder.unsupported(89) };
+command_call: command { $$ = $1 };
 /* upstream parse.y:3566: command_call: block_command */
 command_call: block_command { $$ = @builder.unsupported(90) };
 /* upstream parse.y:3161: value_expr_command_call: command_call */
@@ -400,7 +400,7 @@ command: keyword_super command_args %prec keyword_super { $$ = @builder.unsuppor
 /* upstream parse.y:3644: command: k_yield command_args */
 command: k_yield command_args { $$ = @builder.unsupported(107) };
 /* upstream parse.y:3650: command: k_return call_args */
-command: k_return call_args { $$ = @builder.unsupported(108) };
+command: k_return call_args { $$ = @builder.call(:return, $2 || []) };
 /* upstream parse.y:3655: command: "'break'" call_args */
 command: keyword_break call_args %prec keyword_break { $$ = @builder.unsupported(109) };
 /* upstream parse.y:3662: command: "'next'" call_args */

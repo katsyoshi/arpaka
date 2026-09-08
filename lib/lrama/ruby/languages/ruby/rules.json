@@ -411,7 +411,7 @@
     "id": 69,
     "rule": "expr: command_call",
     "line": 3463,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 70,
@@ -531,7 +531,7 @@
     "id": 89,
     "rule": "command_call: command",
     "line": 3565,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 90,
@@ -645,7 +645,7 @@
     "id": 108,
     "rule": "command: k_return call_args",
     "line": 3650,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 109,
