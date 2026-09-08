@@ -29,4 +29,6 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: Run the default task
+        env:
+          RUBY_BOX: '1'
         run: bundle exec rake

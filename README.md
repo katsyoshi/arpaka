@@ -1,39 +1,109 @@
 # Lrama::Ruby
 
-TODO: Delete this and the text below, and describe your gem
+A Ruby output backend for [Lrama](https://github.com/ruby/lrama). It uses Lrama's
+LALR/IELR parsing tables to generate a standalone Ruby parser with Ruby semantic
+actions.
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/lrama/ruby`. To experiment with that code, run `bin/console` for an interactive prompt.
+## Requirements
+
+Ruby 4.0 or later. Start the generator with `RUBY_BOX=1`: Ruby Box isolates the
+Ruby-specific extensions to Lrama. `Lrama::Ruby.compile` also loads each generated
+parser in a separate box, so parsers with the same class name can coexist.
+
+Generated `.rb` files have no gem dependencies and can also be required normally
+without Ruby Box. Support for Ruby 3.4 and earlier remains undecided.
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+For local development:
 
-Install the gem and add to the application's Gemfile by executing:
-
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```sh
+bin/setup
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+To use this unreleased gem from another application's Gemfile:
 
-```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```ruby
+gem "lrama-ruby", git: "https://github.com/katsyoshi/lrama-ruby"
 ```
 
 ## Usage
 
-TODO: Write usage instructions here
+Write a Yacc-style grammar with Ruby actions, such as
+[examples/calculator.y](examples/calculator.y):
+
+```yacc
+%token NUMBER
+%left '+'
+%left '*'
+%%
+expression: NUMBER
+          | expression '+' expression { $$ = $1 + $3 }
+          | expression '*' expression { $$ = $1 * $3 }
+          ;
+```
+
+Run the following Ruby code with `RUBY_BOX=1 bundle exec ruby your_script.rb`:
+
+```ruby
+require "lrama/ruby"
+
+path = "examples/calculator.y"
+grammar = File.read(path)
+parser_class = Lrama::Ruby.compile(grammar, filename: path, class_name: "Calculator")
+parser = parser_class.new
+p parser.parse([[:NUMBER, 2], ["+", nil], [:NUMBER, 3], ["*", nil], [:NUMBER, 4]])
+# => 14
+
+# Generate source without executing its semantic actions.
+File.write("calculator.rb",
+  Lrama::Ruby.generate(grammar, filename: path, class_name: "Calculator"))
+```
+
+`class_name` defaults to `Parser` and must be a single Ruby constant name.
+The generated class exposes `parse(tokens)`. Supply an enumerable of
+`[token, value]` pairs; tokens may be names (symbols or strings), string aliases,
+character literals such as `"+"`, or numeric token IDs. `TOKENS` maps names to IDs.
+Exhausting the enumerable signals EOF; `[0, nil]` also signals EOF explicitly.
+Provide your own tokenizer to convert source text into these pairs.
+
+`$$` is the result of an action. `$1`, `$2`, etc. refer to values on the rule's
+right-hand side; named references such as `$left` and midrule actions are also
+supported. An omitted action returns the first value, or `nil` for an empty rule.
+Strings, comments, regular expressions and Ruby instance variables are preserved.
+Dollar-prefixed names in executable action code are reserved for grammar
+references, including inside Ruby interpolation. Typed references, bracketed
+references, `$0`, and special Ruby globals are not supported.
+
+Unexpected input raises the generated class's `ParseError`, exposing `token` and
+`state`. Exceptions from token enumeration and semantic actions propagate to the
+caller. There is no error recovery yet.
+
+## Current scope
+
+Supported: precedence and associativity, `%prec`, `%empty`, `%start`, `%expect`,
+LALR/IELR tables, and Lrama's standard parameterized rules. Standard list rules
+retain Lrama's default semantic actions; they do not automatically build arrays.
+Unresolved conflicts fail generation unless the shift/reduce count matches
+`%expect`; reduce/reduce conflicts always fail.
+
+Locations, typed values/`%union`, `%code`, prologues, epilogues, parse/lex parameters,
+initial actions, hooks, printers, destructors and error recovery are not implemented.
+The generator rejects these features rather than dropping their behavior.
+Use plain Ruby values in actions; C actions are not translated into Ruby.
+Prism tokenizes Ruby actions and checks generated syntax; Bison is not required.
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```sh
+RUBY_BOX=1 bundle exec rake test
+RUBY_BOX=1 bin/console
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/lrama-ruby.
+Tests cover generated parsers, Ruby actions, parse errors and Box isolation,
+including execution of a generated file without gems. CI uses Ruby 4.0.6.
+`Gemfile.lock` stays local and is not tracked.
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+[MIT](LICENSE.txt).

@@ -6,11 +6,13 @@
 is to support Ruby as an output language for Lrama. Keep implementation decisions
 aligned with this backend role.
 
-The project currently has a Ruby gem scaffold using the `Lrama::Ruby` namespace.
-The entry point defines an error class and loads the version; the Ruby code
-generation backend is not implemented yet.
+The initial backend generates standalone Ruby parsers from Lrama's LALR/IELR
+tables. `Lrama::Ruby.generate` returns source; `Lrama::Ruby.compile` returns a
+parser class loaded in its own Ruby Box. See README for supported grammar features.
 Ruby >= 4.0.0 is required. CI currently runs Ruby 4.0.6.
-The implementation will use Ruby Box. Whether to provide a fallback for Ruby
+Generation uses Ruby Box to isolate Ruby-specific extensions to Lrama; start Ruby
+with `RUBY_BOX=1`. Prism handles Ruby action tokens and generated syntax validation.
+Whether to provide a fallback for Ruby
 3.4 and earlier will be decided during implementation; compatibility with those
 versions is not currently promised.
 
@@ -18,19 +20,22 @@ versions is not currently promised.
 
 - `lib/lrama/ruby.rb`: library entry point.
 - `lib/lrama/ruby/`: implementation files and `version.rb`.
+- `lib/lrama/ruby/parser.rb.erb`: standalone parser template.
+- `lib/lrama/ruby/backend.rb` and `action_code.rb`: internal files loaded in the generator's box.
+- `examples/calculator.y`: executable example grammar.
 - `sig/lrama/ruby.rbs`: RBS declarations.
 - `test/lrama/*_test.rb`: Test::Unit tests; `test/test_helper.rb` loads the library.
 - `lrama-ruby.gemspec`: gem metadata and runtime dependencies.
 - `Gemfile`: development dependencies.
-- `.github/workflows/main.yml`: CI runs `bundle exec rake`.
+- `.github/workflows/main.yml`: CI runs `bundle exec rake` with `RUBY_BOX=1`.
 
 ## Development commands
 
 - `bin/setup`: install dependencies with Bundler.
-- `bundle exec rake test`: run the test suite.
-- `bundle exec rake`: run the default task, also the test suite.
-- `bundle exec ruby -Itest test/lrama/ruby_test.rb`: run one test file.
-- `bin/console`: open an interactive Ruby session with the library loaded.
+- `RUBY_BOX=1 bundle exec rake test`: run the test suite.
+- `RUBY_BOX=1 bundle exec rake`: run the default task, also the test suite.
+- `RUBY_BOX=1 bundle exec ruby -Itest test/lrama/ruby_test.rb`: run one test file.
+- `RUBY_BOX=1 bin/console`: open an interactive Ruby session with the library loaded.
 
 ## Conventions
 
@@ -40,14 +45,9 @@ source files. Keep library code under `Lrama::Ruby`. Add relevant Test::Unit
 coverage for behavior changes and maintain RBS declarations when changing the
 public API. No formatter or linter is configured.
 
-## Known scaffold limitations
+## Packaging and release
 
-The initial suite has two tests and one failure: `test "something useful"`
-compares `"expected"` with `"actual"`. Replace this placeholder when adding
-real behavior; do not treat it as a new regression.
-
-README installation and usage text and gemspec metadata still contain TODOs.
-Resolve these with verified project details before packaging or publishing.
+Keep `Gemfile.lock` untracked; it is ignored intentionally.
 The gemspec packages Git-tracked files, so review package contents when adding
 repository documentation or tooling files.
 

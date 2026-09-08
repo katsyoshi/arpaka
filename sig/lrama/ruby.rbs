@@ -1,6 +1,16 @@
 module Lrama
   module Ruby
     VERSION: String
-    # See the writing guide of rbs: https://github.com/ruby/rbs#guides
+
+    class Error < StandardError
+    end
+
+    def self.generate: (String source, ?filename: String, ?class_name: String) -> String
+    def self.compile: (String source, ?filename: String, ?class_name: String) -> Class
+
+    class Generator
+      def initialize: () -> void
+      def generate: (String source, ?filename: String, ?class_name: String) -> String
+    end
   end
 end
