@@ -20,6 +20,7 @@ module Lrama
           Ternary = Data.define(:condition, :then_value, :else_value)
           Call = Data.define(:name, :arguments)
           StringLiteral = Data.define(:value)
+          Index = Data.define(:receiver, :arguments)
         end
       end
     end

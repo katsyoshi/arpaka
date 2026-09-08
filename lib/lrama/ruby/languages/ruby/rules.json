@@ -2373,13 +2373,13 @@
     "id": 396,
     "rule": "value_expr_primary: primary",
     "line": 3161,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 397,
     "rule": "primary_value: value_expr_primary",
     "line": 4723,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 398,
@@ -3081,7 +3081,7 @@
     "id": 514,
     "rule": "method_call: primary_value '[' opt_call_args rbracket",
     "line": 5246,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 515,
@@ -5067,7 +5067,7 @@
     "id": 845,
     "rule": "rbracket: option_'\\n' ']'",
     "line": 6698,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 846,

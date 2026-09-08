@@ -976,9 +976,9 @@ primary: keyword_redo %prec keyword_redo { $$ = @builder.unsupported(394) };
 /* upstream parse.y:4709: primary: "'retry'" */
 primary: keyword_retry %prec keyword_retry { $$ = @builder.unsupported(395) };
 /* upstream parse.y:3161: value_expr_primary: primary */
-value_expr_primary: primary { $$ = @builder.unsupported(396) };
+value_expr_primary: primary { $$ = $1 };
 /* upstream parse.y:4723: primary_value: value_expr_primary */
-primary_value: value_expr_primary { $$ = @builder.unsupported(397) };
+primary_value: value_expr_primary { $$ = $1 };
 /* upstream parse.y:4727: k_begin: "'begin'" */
 k_begin: keyword_begin %prec keyword_begin { $$ = @builder.unsupported(398) };
 /* upstream parse.y:4734: k_if: "'if'" */
@@ -1212,7 +1212,7 @@ method_call: keyword_super paren_args %prec keyword_super { $$ = @builder.unsupp
 /* upstream parse.y:5241: method_call: "'super'" */
 method_call: keyword_super %prec keyword_super { $$ = @builder.unsupported(513) };
 /* upstream parse.y:5246: method_call: primary_value '[' opt_call_args rbracket */
-method_call: primary_value '[' opt_call_args rbracket %prec '[' { $$ = @builder.unsupported(514) };
+method_call: primary_value '[' opt_call_args rbracket %prec '[' { $$ = @builder.index($1, $3 || []) };
 /* upstream parse.y:5254: brace_block: '{' brace_body '}' */
 brace_block: '{' brace_body '}' %prec '}' { $$ = @builder.unsupported(515) };
 /* upstream parse.y:5260: brace_block: k_do do_body k_end */
@@ -1874,7 +1874,7 @@ call_op2: tCOLON2 %prec tCOLON2 { $$ = @builder.unsupported(843) };
 /* upstream parse.y:6695: rparen: option_'\n' ')' */
 rparen: option_newline ')' %prec ')' { $$ = nil };
 /* upstream parse.y:6698: rbracket: option_'\n' ']' */
-rbracket: option_newline ']' %prec ']' { $$ = @builder.unsupported(845) };
+rbracket: option_newline ']' %prec ']' { $$ = nil };
 /* upstream parse.y:6701: rbrace: option_'\n' '}' */
 rbrace: option_newline '}' %prec '}' { $$ = @builder.unsupported(846) };
 /* upstream parse.y:6704: trailer: option_'\n' */

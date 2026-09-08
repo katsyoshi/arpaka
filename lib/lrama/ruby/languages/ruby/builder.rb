@@ -69,6 +69,10 @@ module Lrama
             AST::StringLiteral.new(left.value + right.value)
           end
 
+          def index(receiver, arguments)
+            AST::Index.new(receiver, arguments.freeze)
+          end
+
           def unary(operator, operand)
             AST::Unary.new(operator, operand)
           end

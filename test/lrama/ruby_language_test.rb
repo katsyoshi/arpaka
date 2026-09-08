@@ -120,6 +120,12 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([literal(:foo)]), parse([:tSYMBEG, nil], [:tIDENTIFIER, :foo]))
   end
 
+  test "index access preserves receiver and index arguments" do
+    receiver = AST::ArrayLiteral.new([literal(1), literal(2)])
+    expected = AST::Index.new(receiver, [literal(0)])
+    assert_equal(AST::Program.new([expected]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil], ["[", nil], [:tINTEGER, 0], ["]", nil]))
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))
