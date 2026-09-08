@@ -938,7 +938,7 @@ primary: k_case expr_value option_terms midrule_16 case_body k_end { $$ = @build
 /* upstream parse.y:4541: @17: %empty */
 midrule_17: %empty { $$ = nil };
 /* upstream parse.y:4547: primary: k_case option_terms @17 case_body k_end */
-primary: k_case option_terms midrule_17 case_body k_end { $$ = @builder.unsupported(377) };
+primary: k_case option_terms midrule_17 case_body k_end { $$ = @builder.case_node(@builder.literal(nil), @builder.case_parts($4).first, @builder.case_parts($4).last) };
 /* upstream parse.y:4556: primary: k_case expr_value option_terms p_case_body k_end */
 primary: k_case expr_value option_terms p_case_body k_end { $$ = @builder.unsupported(378) };
 /* upstream parse.y:4561: $@18: %empty */

@@ -2259,7 +2259,7 @@
     "id": 377,
     "rule": "primary: k_case option_terms @17 case_body k_end",
     "line": 4547,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 378,

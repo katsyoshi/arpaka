@@ -26,6 +26,7 @@ module RubyGrammarActions
     37 => ["ported", "@builder.rescue_modifier($1, $4)"],
     374 => ["empty", "nil"], 376 => ["empty", "nil"],
     375 => ["ported", "@builder.case_node($2, @builder.case_parts($5).first, @builder.case_parts($5).last)"],
+    377 => ["ported", "@builder.case_node(@builder.literal(nil), @builder.case_parts($4).first, @builder.case_parts($4).last)"],
     521 => ["ported", "[$1].freeze"],
     523 => ["ported", "($1 + [$3]).freeze"],
     525 => ["ported", "@builder.case_chain(@builder.when_node($2, $4), $5)"],
