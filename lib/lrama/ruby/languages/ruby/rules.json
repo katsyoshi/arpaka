@@ -1539,7 +1539,7 @@
     "id": 257,
     "rule": "arg: arg '%' arg",
     "line": 3964,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 258,
@@ -1569,97 +1569,97 @@
     "id": 262,
     "rule": "arg: arg '|' arg",
     "line": 3989,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 263,
     "rule": "arg: arg '^' arg",
     "line": 3994,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 264,
     "rule": "arg: arg '&' arg",
     "line": 3999,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 265,
     "rule": "arg: arg \"<=>\" arg",
     "line": 4004,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 266,
     "rule": "arg: rel_expr",
     "line": 4008,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 267,
     "rule": "arg: arg \"==\" arg",
     "line": 4010,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 268,
     "rule": "arg: arg \"===\" arg",
     "line": 4015,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 269,
     "rule": "arg: arg \"!=\" arg",
     "line": 4020,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 270,
     "rule": "arg: arg \"=~\" arg",
     "line": 4025,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 271,
     "rule": "arg: arg \"!~\" arg",
     "line": 4030,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 272,
     "rule": "arg: '!' arg",
     "line": 4035,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 273,
     "rule": "arg: '~' arg",
     "line": 4040,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 274,
     "rule": "arg: arg \"<<\" arg",
     "line": 4045,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 275,
     "rule": "arg: arg \">>\" arg",
     "line": 4050,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 276,
     "rule": "arg: arg \"&&\" arg",
     "line": 4055,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 277,
     "rule": "arg: arg \"||\" arg",
     "line": 4060,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 278,
@@ -1725,37 +1725,37 @@
     "id": 288,
     "rule": "relop: '>'",
     "line": 4099,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 289,
     "rule": "relop: '<'",
     "line": 4100,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 290,
     "rule": "relop: \">=\"",
     "line": 4101,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 291,
     "rule": "relop: \"<=\"",
     "line": 4102,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 292,
     "rule": "rel_expr: arg relop arg",
     "line": 4106,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 293,
     "rule": "rel_expr: rel_expr relop arg",
     "line": 4111,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 294,

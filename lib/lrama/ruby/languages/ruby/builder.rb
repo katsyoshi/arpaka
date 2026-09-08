@@ -37,6 +37,10 @@ module Lrama
             AST::Binary.new(operator, left, right)
           end
 
+          def operator(value)
+            value.to_sym
+          end
+
           def unary(operator, operand)
             AST::Unary.new(operator, operand)
           end

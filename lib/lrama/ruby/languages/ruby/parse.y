@@ -698,7 +698,7 @@ arg: arg '*' arg %prec '*' { $$ = @builder.binary(:*, $1, $3) };
 /* upstream parse.y:3959: arg: arg '/' arg */
 arg: arg '/' arg %prec '/' { $$ = @builder.binary(:/, $1, $3) };
 /* upstream parse.y:3964: arg: arg '%' arg */
-arg: arg '%' arg %prec '%' { $$ = @builder.unsupported(257) };
+arg: arg '%' arg %prec '%' { $$ = @builder.binary(:%, $1, $3) };
 /* upstream parse.y:3969: arg: arg "**" arg */
 arg: arg tPOW arg %prec tPOW { $$ = @builder.unsupported(258) };
 /* upstream parse.y:3974: arg: tUMINUS_NUM simple_numeric "**" arg */
@@ -708,37 +708,37 @@ arg: tUPLUS arg %prec tUPLUS { $$ = @builder.unary(:+, $2) };
 /* upstream parse.y:3984: arg: "unary-" arg */
 arg: tUMINUS arg %prec tUMINUS { $$ = @builder.unary(:-, $2) };
 /* upstream parse.y:3989: arg: arg '|' arg */
-arg: arg '|' arg %prec '|' { $$ = @builder.unsupported(262) };
+arg: arg '|' arg %prec '|' { $$ = @builder.binary(:"|", $1, $3) };
 /* upstream parse.y:3994: arg: arg '^' arg */
-arg: arg '^' arg %prec '^' { $$ = @builder.unsupported(263) };
+arg: arg '^' arg %prec '^' { $$ = @builder.binary(:"^", $1, $3) };
 /* upstream parse.y:3999: arg: arg '&' arg */
-arg: arg '&' arg %prec '&' { $$ = @builder.unsupported(264) };
+arg: arg '&' arg %prec '&' { $$ = @builder.binary(:"&", $1, $3) };
 /* upstream parse.y:4004: arg: arg "<=>" arg */
-arg: arg tCMP arg %prec tCMP { $$ = @builder.unsupported(265) };
+arg: arg tCMP arg %prec tCMP { $$ = @builder.binary(:"<=>", $1, $3) };
 /* upstream parse.y:4008: arg: rel_expr */
-arg: rel_expr %prec tCMP { $$ = @builder.unsupported(266) };
+arg: rel_expr %prec tCMP { $$ = $1 };
 /* upstream parse.y:4010: arg: arg "==" arg */
-arg: arg tEQ arg %prec tEQ { $$ = @builder.unsupported(267) };
+arg: arg tEQ arg %prec tEQ { $$ = @builder.binary(:"==", $1, $3) };
 /* upstream parse.y:4015: arg: arg "===" arg */
-arg: arg tEQQ arg %prec tEQQ { $$ = @builder.unsupported(268) };
+arg: arg tEQQ arg %prec tEQQ { $$ = @builder.binary(:"===", $1, $3) };
 /* upstream parse.y:4020: arg: arg "!=" arg */
-arg: arg tNEQ arg %prec tNEQ { $$ = @builder.unsupported(269) };
+arg: arg tNEQ arg %prec tNEQ { $$ = @builder.binary(:"!=", $1, $3) };
 /* upstream parse.y:4025: arg: arg "=~" arg */
-arg: arg tMATCH arg %prec tMATCH { $$ = @builder.unsupported(270) };
+arg: arg tMATCH arg %prec tMATCH { $$ = @builder.binary(:"=~", $1, $3) };
 /* upstream parse.y:4030: arg: arg "!~" arg */
-arg: arg tNMATCH arg %prec tNMATCH { $$ = @builder.unsupported(271) };
+arg: arg tNMATCH arg %prec tNMATCH { $$ = @builder.binary(:"!~", $1, $3) };
 /* upstream parse.y:4035: arg: '!' arg */
-arg: '!' arg %prec '!' { $$ = @builder.unsupported(272) };
+arg: '!' arg %prec '!' { $$ = @builder.unary(:"!", $2) };
 /* upstream parse.y:4040: arg: '~' arg */
-arg: '~' arg %prec '~' { $$ = @builder.unsupported(273) };
+arg: '~' arg %prec '~' { $$ = @builder.unary(:"~", $2) };
 /* upstream parse.y:4045: arg: arg "<<" arg */
-arg: arg tLSHFT arg %prec tLSHFT { $$ = @builder.unsupported(274) };
+arg: arg tLSHFT arg %prec tLSHFT { $$ = @builder.binary(:"<<", $1, $3) };
 /* upstream parse.y:4050: arg: arg ">>" arg */
-arg: arg tRSHFT arg %prec tRSHFT { $$ = @builder.unsupported(275) };
+arg: arg tRSHFT arg %prec tRSHFT { $$ = @builder.binary(:">>", $1, $3) };
 /* upstream parse.y:4055: arg: arg "&&" arg */
-arg: arg tANDOP arg %prec tANDOP { $$ = @builder.unsupported(276) };
+arg: arg tANDOP arg %prec tANDOP { $$ = @builder.binary(:"&&", $1, $3) };
 /* upstream parse.y:4060: arg: arg "||" arg */
-arg: arg tOROP arg %prec tOROP { $$ = @builder.unsupported(277) };
+arg: arg tOROP arg %prec tOROP { $$ = @builder.binary(:"||", $1, $3) };
 /* upstream parse.y:4065: arg: "'defined?'" option_'\n' begin_defined arg */
 arg: keyword_defined option_newline begin_defined arg %prec keyword_defined { $$ = @builder.unsupported(278) };
 /* upstream parse.y:2966: def_endless_method_endless_arg: defn_head f_opt_paren_args '=' endless_arg */
@@ -760,17 +760,17 @@ endless_arg: endless_arg modifier_rescue after_rescue arg %prec modifier_rescue 
 /* upstream parse.y:4093: endless_arg: "'not'" option_'\n' endless_arg */
 endless_arg: keyword_not option_newline endless_arg %prec keyword_not { $$ = @builder.unsupported(287) };
 /* upstream parse.y:4099: relop: '>' */
-relop: '>' %prec '>' { $$ = @builder.unsupported(288) };
+relop: '>' %prec '>' { $$ = @builder.operator(">") };
 /* upstream parse.y:4100: relop: '<' */
-relop: '<' %prec '<' { $$ = @builder.unsupported(289) };
+relop: '<' %prec '<' { $$ = @builder.operator("<") };
 /* upstream parse.y:4101: relop: ">=" */
-relop: tGEQ %prec tGEQ { $$ = @builder.unsupported(290) };
+relop: tGEQ %prec tGEQ { $$ = @builder.operator(">=") };
 /* upstream parse.y:4102: relop: "<=" */
-relop: tLEQ %prec tLEQ { $$ = @builder.unsupported(291) };
+relop: tLEQ %prec tLEQ { $$ = @builder.operator("<=") };
 /* upstream parse.y:4106: rel_expr: arg relop arg */
-rel_expr: arg relop arg %prec '>' { $$ = @builder.unsupported(292) };
+rel_expr: arg relop arg %prec '>' { $$ = @builder.binary($2, $1, $3) };
 /* upstream parse.y:4111: rel_expr: rel_expr relop arg */
-rel_expr: rel_expr relop arg %prec '>' { $$ = @builder.unsupported(293) };
+rel_expr: rel_expr relop arg %prec '>' { $$ = @builder.binary($2, $1, $3) };
 /* upstream parse.y:4119: lex_ctxt: none */
 lex_ctxt: none { $$ = nil };
 /* upstream parse.y:4125: begin_defined: lex_ctxt */
