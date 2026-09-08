@@ -163,6 +163,12 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     end
   end
 
+  test "instance, global and class variables preserve their kinds" do
+    {tIVAR: :@value, tGVAR: :$value, tCVAR: :@@value}.each do |token, name|
+      assert_equal(AST::Program.new([AST::Variable.new(token == :tIVAR ? :instance : token == :tGVAR ? :global : :class, name)]), parse([token, name]))
+    end
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))

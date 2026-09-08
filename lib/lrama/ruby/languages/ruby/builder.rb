@@ -81,6 +81,10 @@ module Lrama
             AST::Control.new(kind)
           end
 
+          def variable(kind, name)
+            AST::Variable.new(kind, name.to_sym)
+          end
+
           def unary(operator, operand)
             AST::Unary.new(operator, operand)
           end
@@ -115,6 +119,7 @@ module Lrama
           end
 
           def read_local(name)
+            return name if name.is_a?(AST::Variable)
             (@locals.key?(name) ? AST::LocalRead : AST::BareCall).new(name)
           end
 

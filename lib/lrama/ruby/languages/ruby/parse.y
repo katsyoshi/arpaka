@@ -1576,17 +1576,17 @@ simple_numeric: tRATIONAL %prec tRATIONAL { $$ = @builder.literal($1) };
 /* upstream parse.y:6150: simple_numeric: "imaginary literal" */
 simple_numeric: tIMAGINARY %prec tIMAGINARY { $$ = @builder.literal($1) };
 /* upstream parse.y:6153: nonlocal_var: "instance variable" */
-nonlocal_var: tIVAR %prec tIVAR { $$ = @builder.unsupported(696) };
+nonlocal_var: tIVAR %prec tIVAR { $$ = @builder.variable(:instance, $1) };
 /* upstream parse.y:6154: nonlocal_var: "global variable" */
-nonlocal_var: tGVAR %prec tGVAR { $$ = @builder.unsupported(697) };
+nonlocal_var: tGVAR %prec tGVAR { $$ = @builder.variable(:global, $1) };
 /* upstream parse.y:6155: nonlocal_var: "class variable" */
-nonlocal_var: tCVAR %prec tCVAR { $$ = @builder.unsupported(698) };
+nonlocal_var: tCVAR %prec tCVAR { $$ = @builder.variable(:class, $1) };
 /* upstream parse.y:6158: user_variable: "local variable or method" */
 user_variable: tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.identifier($1) };
 /* upstream parse.y:6158: user_variable: "constant" */
 user_variable: tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(700) };
 /* upstream parse.y:6159: user_variable: nonlocal_var */
-user_variable: nonlocal_var { $$ = @builder.unsupported(701) };
+user_variable: nonlocal_var { $$ = $1 };
 /* upstream parse.y:6162: keyword_variable: "'nil'" */
 keyword_variable: keyword_nil %prec keyword_nil { $$ = @builder.literal(nil) };
 /* upstream parse.y:6163: keyword_variable: "'self'" */

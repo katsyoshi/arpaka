@@ -4173,19 +4173,19 @@
     "id": 696,
     "rule": "nonlocal_var: \"instance variable\"",
     "line": 6153,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 697,
     "rule": "nonlocal_var: \"global variable\"",
     "line": 6154,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 698,
     "rule": "nonlocal_var: \"class variable\"",
     "line": 6155,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 699,
@@ -4203,7 +4203,7 @@
     "id": 701,
     "rule": "user_variable: nonlocal_var",
     "line": 6159,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 702,
