@@ -99,6 +99,7 @@ module RubyGrammarActions
     823 => ["ported", "[$1].freeze"],
     824 => ["ported", "($1 + [$3]).freeze"],
     825 => ["ported", "@builder.pair($1, $3)"],
+    826 => ["ported", "@builder.pair(@builder.symbol($1), $2)"],
     847 => ["pass_through", "nil"],
     848 => ["pass_through", "nil"],
     844 => ["pass_through", "nil"],

@@ -1836,7 +1836,7 @@ assocs: assocs ',' assoc %prec ',' { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:6634: assoc: arg_value "=>" arg_value */
 assoc: arg_value tASSOC arg_value %prec tASSOC { $$ = @builder.pair($1, $3) };
 /* upstream parse.y:6639: assoc: "label" arg_value */
-assoc: tLABEL arg_value %prec tLABEL { $$ = @builder.unsupported(826) };
+assoc: tLABEL arg_value %prec tLABEL { $$ = @builder.pair(@builder.symbol($1), $2) };
 /* upstream parse.y:6644: assoc: "label" */
 assoc: tLABEL %prec tLABEL { $$ = @builder.unsupported(827) };
 /* upstream parse.y:6651: assoc: "string literal" string_contents tLABEL_END arg_value */

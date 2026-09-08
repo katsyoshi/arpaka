@@ -4953,7 +4953,7 @@
     "id": 826,
     "rule": "assoc: \"label\" arg_value",
     "line": 6639,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 827,
