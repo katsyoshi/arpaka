@@ -180,6 +180,11 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     end
   end
 
+  test "numbered and named back references preserve their values" do
+    assert_equal(AST::Program.new([AST::Variable.new(:backref, 1)]), parse([:tNTH_REF, 1]))
+    assert_equal(AST::Program.new([AST::Variable.new(:backref, :$&)]), parse([:tBACK_REF, "$&"]))
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))

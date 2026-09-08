@@ -160,9 +160,9 @@ module Lrama
 
           class Variable < ::Data
             attr_reader kind: Symbol
-            attr_reader name: Symbol
-            def self.new: (Symbol kind, Symbol name) -> instance
-                        | (kind: Symbol, name: Symbol) -> instance
+            attr_reader name: Symbol | Integer
+            def self.new: (Symbol kind, Symbol | Integer name) -> instance
+                        | (kind: Symbol, name: Symbol | Integer) -> instance
           end
         end
       end

@@ -82,7 +82,7 @@ module Lrama
           end
 
           def variable(kind, name)
-            AST::Variable.new(kind, name.to_sym)
+            AST::Variable.new(kind, name.is_a?(String) ? name.to_sym : name)
           end
 
           def unary(operator, operand)

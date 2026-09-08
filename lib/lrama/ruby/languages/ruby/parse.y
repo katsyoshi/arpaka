@@ -880,7 +880,7 @@ primary: qsymbols { $$ = @builder.unsupported(346) };
 /* upstream parse.y:4384: primary: var_ref */
 primary: var_ref { $$ = $1 };
 /* upstream parse.y:4385: primary: backref */
-primary: backref { $$ = @builder.unsupported(348) };
+primary: backref { $$ = $1 };
 /* upstream parse.y:4387: primary: "method" */
 primary: tFID %prec tFID { $$ = @builder.unsupported(349) };
 /* upstream parse.y:4392: $@14: %empty */
@@ -1610,9 +1610,9 @@ var_lhs: user_variable { $$ = @builder.unsupported(711) };
 /* upstream parse.y:6189: var_lhs: keyword_variable */
 var_lhs: keyword_variable { $$ = @builder.unsupported(712) };
 /* upstream parse.y:6195: backref: "numbered reference" */
-backref: tNTH_REF %prec tNTH_REF { $$ = @builder.unsupported(713) };
+backref: tNTH_REF %prec tNTH_REF { $$ = @builder.variable(:backref, $1) };
 /* upstream parse.y:6196: backref: "back reference" */
-backref: tBACK_REF %prec tBACK_REF { $$ = @builder.unsupported(714) };
+backref: tBACK_REF %prec tBACK_REF { $$ = @builder.variable(:backref, $1) };
 /* upstream parse.y:6200: $@39: %empty */
 midrule_39: %empty { $$ = @builder.unsupported(715) };
 /* upstream parse.y:6205: superclass: '<' $@39 expr_value term */
