@@ -174,6 +174,12 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse([:tCONSTANT, :Foo]))
   end
 
+  test "special keyword variables preserve their names" do
+    {keyword__FILE__: :__FILE__, keyword__LINE__: :__LINE__, keyword__ENCODING__: :__ENCODING__}.each do |token, value|
+      assert_equal(AST::Program.new([literal(value)]), parse([token, nil]))
+    end
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))

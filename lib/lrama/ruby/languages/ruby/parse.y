@@ -1596,11 +1596,11 @@ keyword_variable: keyword_true %prec keyword_true { $$ = @builder.literal(true) 
 /* upstream parse.y:6165: keyword_variable: "'false'" */
 keyword_variable: keyword_false %prec keyword_false { $$ = @builder.literal(false) };
 /* upstream parse.y:6166: keyword_variable: "'__FILE__'" */
-keyword_variable: keyword__FILE__ %prec keyword__FILE__ { $$ = @builder.unsupported(706) };
+keyword_variable: keyword__FILE__ %prec keyword__FILE__ { $$ = @builder.literal(:__FILE__) };
 /* upstream parse.y:6167: keyword_variable: "'__LINE__'" */
-keyword_variable: keyword__LINE__ %prec keyword__LINE__ { $$ = @builder.unsupported(707) };
+keyword_variable: keyword__LINE__ %prec keyword__LINE__ { $$ = @builder.literal(:__LINE__) };
 /* upstream parse.y:6168: keyword_variable: "'__ENCODING__'" */
-keyword_variable: keyword__ENCODING__ %prec keyword__ENCODING__ { $$ = @builder.unsupported(708) };
+keyword_variable: keyword__ENCODING__ %prec keyword__ENCODING__ { $$ = @builder.literal(:__ENCODING__) };
 /* upstream parse.y:6172: var_ref: user_variable */
 var_ref: user_variable { $$ = @builder.read_local($1) };
 /* upstream parse.y:6182: var_ref: keyword_variable */

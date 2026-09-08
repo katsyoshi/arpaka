@@ -4233,19 +4233,19 @@
     "id": 706,
     "rule": "keyword_variable: \"'__FILE__'\"",
     "line": 6166,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 707,
     "rule": "keyword_variable: \"'__LINE__'\"",
     "line": 6167,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 708,
     "rule": "keyword_variable: \"'__ENCODING__'\"",
     "line": 6168,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 709,
