@@ -934,7 +934,7 @@ primary: k_until expr_value_do compstmt_stmts k_end { $$ = @builder.loop(:until,
 /* upstream parse.y:4527: @16: %empty */
 midrule_16: %empty { $$ = nil };
 /* upstream parse.y:4533: primary: k_case expr_value option_terms @16 case_body k_end */
-primary: k_case expr_value option_terms midrule_16 case_body k_end { $$ = @builder.case_node($2, @builder.case_clauses($5), nil) };
+primary: k_case expr_value option_terms midrule_16 case_body k_end { $$ = @builder.case_node($2, @builder.case_parts($5).first, @builder.case_parts($5).last) };
 /* upstream parse.y:4541: @17: %empty */
 midrule_17: %empty { $$ = nil };
 /* upstream parse.y:4547: primary: k_case option_terms @17 case_body k_end */
@@ -1234,7 +1234,7 @@ case_args: case_args ',' arg_value %prec ',' { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:5323: case_args: case_args ',' "*" arg_value */
 case_args: case_args ',' tSTAR arg_value %prec tSTAR { $$ = @builder.unsupported(524) };
 /* upstream parse.y:5332: case_body: k_when case_args then compstmt_stmts cases */
-case_body: k_when case_args then compstmt_stmts cases { $$ = @builder.when_node($2, $4) };
+case_body: k_when case_args then compstmt_stmts cases { $$ = @builder.case_chain(@builder.when_node($2, $4), $5) };
 /* upstream parse.y:5339: cases: opt_else */
 cases: opt_else { $$ = $1 };
 /* upstream parse.y:5340: cases: case_body */

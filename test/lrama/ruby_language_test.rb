@@ -234,6 +234,12 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse([:keyword_case, nil], [:keyword_true, nil], [:keyword_when, nil], [:tINTEGER, 1], [:keyword_then, nil], [:tINTEGER, 2], [:keyword_end, nil]))
   end
 
+  test "case else body is preserved" do
+    clause = AST::When.new([literal(1)], [literal(2)])
+    expected = AST::Case.new(literal(true), [clause], [literal(3)])
+    assert_equal(AST::Program.new([expected]), parse([:keyword_case, nil], [:keyword_true, nil], [:keyword_when, nil], [:tINTEGER, 1], [:keyword_then, nil], [:tINTEGER, 2], [:keyword_else, nil], [:tINTEGER, 3], [:keyword_end, nil]))
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))

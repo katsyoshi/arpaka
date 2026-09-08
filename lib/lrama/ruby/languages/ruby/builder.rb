@@ -101,6 +101,19 @@ module Lrama
             value.is_a?(Array) ? value : [value]
           end
 
+          def case_parts(value)
+            values = case_clauses(value)
+            if values.all? { |item| item.is_a?(AST::When) }
+              [values, nil]
+            else
+              [values.grep(AST::When), values.reject { |item| item.is_a?(AST::When) }]
+            end
+          end
+
+          def case_chain(when_node, rest)
+            [when_node] + (rest.nil? ? [] : case_clauses(rest))
+          end
+
           def unary(operator, operand)
             AST::Unary.new(operator, operand)
           end
