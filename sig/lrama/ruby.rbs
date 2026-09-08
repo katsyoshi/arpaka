@@ -42,9 +42,9 @@ module Lrama
           end
 
           class Literal < ::Data
-            attr_reader value: Integer | Float | bool | nil
-            def self.new: (Integer | Float | bool | nil value) -> instance
-                        | (value: Integer | Float | bool | nil) -> instance
+            attr_reader value: Integer | Float | Symbol | bool | nil
+            def self.new: (Integer | Float | Symbol | bool | nil value) -> instance
+                        | (value: Integer | Float | Symbol | bool | nil) -> instance
           end
 
           class Binary < ::Data

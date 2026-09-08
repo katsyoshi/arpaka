@@ -492,7 +492,7 @@ cpath: cname { $$ = @builder.unsupported(152) };
 /* upstream parse.y:3858: cpath: primary_value "::" cname */
 cpath: primary_value tCOLON2 cname %prec tCOLON2 { $$ = @builder.unsupported(153) };
 /* upstream parse.y:3864: fname: "local variable or method" */
-fname: tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(154) };
+fname: tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:3864: fname: "constant" */
 fname: tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(155) };
 /* upstream parse.y:3864: fname: "method" */
@@ -874,7 +874,7 @@ primary: words { $$ = @builder.unsupported(343) };
 /* upstream parse.y:4383: primary: qwords */
 primary: qwords { $$ = @builder.unsupported(344) };
 /* upstream parse.y:4383: primary: symbols */
-primary: symbols { $$ = @builder.unsupported(345) };
+primary: symbols { $$ = $1 };
 /* upstream parse.y:4383: primary: qsymbols */
 primary: qsymbols { $$ = @builder.unsupported(346) };
 /* upstream parse.y:4384: primary: var_ref */
@@ -1460,7 +1460,7 @@ opt_ensure: none { $$ = @builder.unsupported(636) };
 /* upstream parse.y:5860: literal: numeric */
 literal: numeric { $$ = $1 };
 /* upstream parse.y:5861: literal: symbol */
-literal: symbol { $$ = @builder.unsupported(638) };
+literal: symbol { $$ = $1 };
 /* upstream parse.y:5865: strings: string */
 strings: string { $$ = $1 };
 /* upstream parse.y:5876: string: "char literal" */
@@ -1552,15 +1552,15 @@ string_dvar: nonlocal_var { $$ = @builder.unsupported(682) };
 /* upstream parse.y:6103: string_dvar: backref */
 string_dvar: backref { $$ = @builder.unsupported(683) };
 /* upstream parse.y:6106: symbol: ssym */
-symbol: ssym { $$ = @builder.unsupported(684) };
+symbol: ssym { $$ = $1 };
 /* upstream parse.y:6107: symbol: dsym */
-symbol: dsym { $$ = @builder.unsupported(685) };
+symbol: dsym { $$ = $1 };
 /* upstream parse.y:6111: ssym: "symbol literal" sym */
-ssym: tSYMBEG sym %prec tSYMBEG { $$ = @builder.unsupported(686) };
+ssym: tSYMBEG sym %prec tSYMBEG { $$ = @builder.symbol($2) };
 /* upstream parse.y:6126: sym: fname */
-sym: fname { $$ = @builder.unsupported(687) };
+sym: fname { $$ = $1 };
 /* upstream parse.y:6127: sym: nonlocal_var */
-sym: nonlocal_var { $$ = @builder.unsupported(688) };
+sym: nonlocal_var { $$ = $1 };
 /* upstream parse.y:6131: dsym: "symbol literal" string_contents "terminator" */
 dsym: tSYMBEG string_contents tSTRING_END %prec tSTRING_END { $$ = @builder.unsupported(689) };
 /* upstream parse.y:6138: numeric: simple_numeric */

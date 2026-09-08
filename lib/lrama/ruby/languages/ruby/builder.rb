@@ -57,6 +57,10 @@ module Lrama
             AST::StringLiteral.new(value.to_s)
           end
 
+          def symbol(value)
+            AST::Literal.new(value.to_sym)
+          end
+
           def join_strings(parts)
             parts.join
           end

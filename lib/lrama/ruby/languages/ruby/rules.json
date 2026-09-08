@@ -921,7 +921,7 @@
     "id": 154,
     "rule": "fname: \"local variable or method\"",
     "line": 3864,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 155,
@@ -2067,7 +2067,7 @@
     "id": 345,
     "rule": "primary: symbols",
     "line": 4383,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 346,
@@ -3825,7 +3825,7 @@
     "id": 638,
     "rule": "literal: symbol",
     "line": 5861,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 639,
@@ -4101,31 +4101,31 @@
     "id": 684,
     "rule": "symbol: ssym",
     "line": 6106,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 685,
     "rule": "symbol: dsym",
     "line": 6107,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 686,
     "rule": "ssym: \"symbol literal\" sym",
     "line": 6111,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 687,
     "rule": "sym: fname",
     "line": 6126,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 688,
     "rule": "sym: nonlocal_var",
     "line": 6127,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 689,
