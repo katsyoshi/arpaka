@@ -651,13 +651,13 @@
     "id": 109,
     "rule": "command: \"'break'\" call_args",
     "line": 3655,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 110,
     "rule": "command: \"'next'\" call_args",
     "line": 3662,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 111,

@@ -402,9 +402,9 @@ command: k_yield command_args { $$ = @builder.unsupported(107) };
 /* upstream parse.y:3650: command: k_return call_args */
 command: k_return call_args { $$ = @builder.call(:return, $2 || []) };
 /* upstream parse.y:3655: command: "'break'" call_args */
-command: keyword_break call_args %prec keyword_break { $$ = @builder.unsupported(109) };
+command: keyword_break call_args %prec keyword_break { $$ = @builder.call(:break, $2 || []) };
 /* upstream parse.y:3662: command: "'next'" call_args */
-command: keyword_next call_args %prec keyword_next { $$ = @builder.unsupported(110) };
+command: keyword_next call_args %prec keyword_next { $$ = @builder.call(:next, $2 || []) };
 /* upstream parse.y:3670: mlhs: mlhs_basic */
 mlhs: mlhs_basic { $$ = @builder.unsupported(111) };
 /* upstream parse.y:3672: mlhs: "(" mlhs_inner rparen */
