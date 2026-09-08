@@ -9,7 +9,7 @@ module Lrama
     class Backend
       class Error < StandardError; end
 
-      def generate(source, filename:, class_name:, mode:)
+      def generate(source, filename:, class_name:, mode:, allow_error_rules: false)
         recognizer = mode == :recognizer
         grammar = Lrama::Parser.new(source, filename).parse
         unless grammar.no_stdlib
@@ -19,7 +19,7 @@ module Lrama
         end
         grammar.prepare
         grammar.validate!
-        validate_features!(grammar) unless recognizer
+        validate_features!(grammar, allow_error_rules: allow_error_rules) unless recognizer
 
         states = Lrama::States.new(grammar, Lrama::Tracer.new($stderr))
         states.compute
@@ -80,7 +80,7 @@ module Lrama
         end
       end
 
-      def validate_features!(grammar)
+      def validate_features!(grammar, allow_error_rules:)
         unsupported = []
         unsupported << "%locations" if grammar.locations
         unsupported << "%union" if grammar.union
@@ -98,7 +98,7 @@ module Lrama
         unsupported << "%error-token" unless grammar.error_tokens.empty?
         unsupported << "%destructor" if grammar.symbols.any?(&:destructor)
         unsupported << "typed symbols" if grammar.symbols.any?(&:tag)
-        if grammar.rules.any? { |rule| rule.rhs.include?(grammar.error_symbol) }
+        if !allow_error_rules && grammar.rules.any? { |rule| rule.rhs.include?(grammar.error_symbol) }
           unsupported << "error recovery rules"
         end
         raise Error, "Not supported by the Ruby backend yet: #{unsupported.join(', ')}" unless unsupported.empty?

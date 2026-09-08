@@ -5,12 +5,12 @@ module Lrama
     class Error < StandardError
     end
 
-    def self.generate: (String source, ?filename: String, ?class_name: String, ?mode: (:parser | :recognizer)) -> String
-    def self.compile: (String source, ?filename: String, ?class_name: String, ?mode: (:parser | :recognizer)) -> Class
+    def self.generate: (String source, ?filename: String, ?class_name: String, ?mode: (:parser | :recognizer), ?allow_error_rules: bool) -> String
+    def self.compile: (String source, ?filename: String, ?class_name: String, ?mode: (:parser | :recognizer), ?allow_error_rules: bool) -> Class
 
     class Generator
       def initialize: () -> void
-      def generate: (String source, ?filename: String, ?class_name: String, ?mode: (:parser | :recognizer)) -> String
+      def generate: (String source, ?filename: String, ?class_name: String, ?mode: (:parser | :recognizer), ?allow_error_rules: bool) -> String
     end
   end
 end

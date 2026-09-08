@@ -54,6 +54,8 @@ class <%= class_name %>
           token, value = pair
           id = token.is_a?(Integer) ? token : TOKENS[token.to_s]
           lookahead = id && id >= 0 ? (YYTRANSLATE[id] || 2) : 2
+          # The reserved error symbol is internal to recovery, never lexer input.
+          raise ParseError.new(token, state) if lookahead == 1
         end
         index = base + lookahead
         if index >= 0 && index < YYCHECK.length && YYCHECK[index] == lookahead

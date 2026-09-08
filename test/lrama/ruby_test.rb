@@ -245,6 +245,18 @@ class Lrama::RubyTest < Test::Unit::TestCase
     assert_raise(Lrama::Ruby::Error) { compile(grammar, mode: :recognizer) }
   end
 
+  test "error productions can be retained without enabling recovery" do
+    grammar = "%token NUMBER\n%%\nstart: NUMBER { $$ = $1 } | error { raise 'recovery ran' };"
+    assert_raise(Lrama::Ruby::Error) { compile(grammar) }
+    parser_class = compile(grammar, allow_error_rules: true)
+    assert_equal(42, parser_class.new.parse([[:NUMBER, 42]]))
+    [[], [[:UNKNOWN, nil]], [[256, nil]], [[:error, nil]]].each do |tokens|
+      assert_raise(parser_class::ParseError) { parser_class.new.parse(tokens) }
+    end
+    recognizer = compile(grammar, mode: :recognizer)
+    assert_raise(recognizer::ParseError) { recognizer.new.parse([[256, nil]]) }
+  end
+
   private
 
   def compile(grammar, **options)

@@ -12,7 +12,7 @@ module Lrama
         end
       end
 
-      def generate(source, filename: "(grammar)", class_name: "Parser", mode: :parser)
+      def generate(source, filename: "(grammar)", class_name: "Parser", mode: :parser, allow_error_rules: false)
         unless /\A[A-Z][a-zA-Z0-9_]*\z/.match?(class_name)
           raise Error, "class_name must be a single Ruby constant name"
         end
@@ -28,7 +28,8 @@ module Lrama
         box.require(File.expand_path("action_code.rb", __dir__)) if mode == :parser
         begin
           box::Lrama::Ruby::Backend.new.generate(source,
-            filename: filename, class_name: class_name, mode: mode)
+            filename: filename, class_name: class_name, mode: mode,
+            allow_error_rules: allow_error_rules)
         rescue box::Lrama::Ruby::Backend::Error => e
           raise Error, e.message
         end

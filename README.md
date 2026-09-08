@@ -79,6 +79,37 @@ Unexpected input raises the generated class's `ParseError`, exposing `token` and
 `state`. Exceptions from token enumeration and semantic actions propagate to the
 caller. There is no error recovery yet.
 
+`allow_error_rules: true` permits grammars containing the reserved `error`
+symbol without enabling error recovery. The default is `false`. With either
+setting the parser stops at the first syntax error; supplying the reserved
+error token from a lexer is rejected. This option is useful when incrementally
+porting a grammar whose recovery rules must remain present.
+
+### Building an AST
+
+[examples/calculator_ast.y](examples/calculator_ast.y) uses Ruby actions to
+build an abstract syntax tree instead of evaluating arithmetic. This example
+represents a number as `[:number, value]` and a binary operation as
+`[:binary, operator, left, right]`. The grammar defines this AST format;
+the backend does not impose a node type.
+
+```ruby
+path = "examples/calculator_ast.y"
+parser = Lrama::Ruby.compile(File.read(path), filename: path,
+  class_name: "CalculatorAst").new
+
+tree = parser.parse([[:NUMBER, 2], ["+", nil], [:NUMBER, 3], ["*", nil], [:NUMBER, 4]])
+p tree
+# => [:binary, :+, [:number, 2], [:binary, :*, [:number, 3], [:number, 4]]]
+```
+
+Run this after requiring `lrama/ruby`, with `RUBY_BOX=1`. Supply tokens from
+your own lexer, or pass a token array as above. The default parser mode runs
+the actions and returns the root node. Precedence and associativity determine
+the tree's shape. Parentheses affect grouping but are omitted from the AST by
+the action `$$ = $2`. Evaluation or compilation of the resulting tree belongs
+to the application; even `1 / 0` produces a tree without performing division.
+
 ## Current scope
 
 Supported: precedence and associativity, `%prec`, `%empty`, `%start`, `%expect`,
