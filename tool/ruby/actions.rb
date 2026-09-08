@@ -93,6 +93,7 @@ module RubyGrammarActions
     692 => ["ported", "@builder.integer($1)"], 693 => ["ported", "@builder.float($1)"],
     699 => ["ported", "@builder.identifier($1)"],
     702 => ["ported", "@builder.literal(nil)"],
+    703 => ["ported", "@builder.literal(:self)"],
     704 => ["ported", "@builder.literal(true)"], 705 => ["ported", "@builder.literal(false)"],
     709 => ["ported", "@builder.read_local($1)"], 710 => ["pass_through", "$1"],
     849 => ["empty", "nil"], 850 => ["empty", "nil"], 851 => ["empty", "nil"],

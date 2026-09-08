@@ -1590,7 +1590,7 @@ user_variable: nonlocal_var { $$ = @builder.unsupported(701) };
 /* upstream parse.y:6162: keyword_variable: "'nil'" */
 keyword_variable: keyword_nil %prec keyword_nil { $$ = @builder.literal(nil) };
 /* upstream parse.y:6163: keyword_variable: "'self'" */
-keyword_variable: keyword_self %prec keyword_self { $$ = @builder.unsupported(703) };
+keyword_variable: keyword_self %prec keyword_self { $$ = @builder.literal(:self) };
 /* upstream parse.y:6164: keyword_variable: "'true'" */
 keyword_variable: keyword_true %prec keyword_true { $$ = @builder.literal(true) };
 /* upstream parse.y:6165: keyword_variable: "'false'" */

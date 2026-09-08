@@ -4215,7 +4215,7 @@
     "id": 703,
     "rule": "keyword_variable: \"'self'\"",
     "line": 6163,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 704,

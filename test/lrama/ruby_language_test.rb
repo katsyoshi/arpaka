@@ -153,6 +153,10 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Control.new(:return)]), parse([:keyword_return, nil]))
   end
 
+  test "self is preserved as a literal value" do
+    assert_equal(AST::Program.new([literal(:self)]), parse([:keyword_self, nil]))
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))
