@@ -573,7 +573,7 @@
     "id": 96,
     "rule": "fcall: \"local variable or method\"",
     "line": 3589,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 97,
@@ -1827,7 +1827,7 @@
     "id": 305,
     "rule": "paren_args: '(' opt_call_args rparen",
     "line": 4170,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 306,
@@ -1845,31 +1845,31 @@
     "id": 308,
     "rule": "opt_paren_args: none",
     "line": 4196,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 309,
     "rule": "opt_paren_args: paren_args",
     "line": 4198,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 310,
     "rule": "opt_call_args: none",
     "line": 4203,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 311,
     "rule": "opt_call_args: call_args",
     "line": 4204,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 312,
     "rule": "opt_call_args: args ','",
     "line": 4205,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 313,
@@ -1905,7 +1905,7 @@
     "id": 318,
     "rule": "call_args: args opt_block_arg",
     "line": 4229,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 319,
@@ -1959,7 +1959,7 @@
     "id": 327,
     "rule": "opt_block_arg: none",
     "line": 4306,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 328,
@@ -2199,7 +2199,7 @@
     "id": 367,
     "rule": "primary: method_call",
     "line": 4479,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 368,
@@ -3039,7 +3039,7 @@
     "id": 507,
     "rule": "method_call: fcall paren_args",
     "line": 5196,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 508,
@@ -5061,7 +5061,7 @@
     "id": 844,
     "rule": "rparen: option_'\\n' ')'",
     "line": 6695,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 845,

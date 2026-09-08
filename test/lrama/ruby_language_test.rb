@@ -105,6 +105,12 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse([:keyword_true, nil], ["?", nil], [:tINTEGER, 1], [":", nil], [:tINTEGER, 2]))
   end
 
+  test "simple method calls preserve the method name and arguments" do
+    expected = AST::Call.new(:f, [literal(1), literal(2)])
+    assert_equal(AST::Program.new([expected]), parse([:tIDENTIFIER, :f], ["(", nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], [")", nil]))
+    assert_equal(AST::Program.new([AST::Call.new(:f, [])]), parse([:tIDENTIFIER, :f], ["(", nil], [")", nil]))
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))
@@ -150,7 +156,6 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
   test "unsupported syntax reports its upstream rule" do
     inputs = [
       [[:tSTRING_BEG, nil], [:tSTRING_CONTENT, "text"], [:tSTRING_END, nil]],
-      [[:tIDENTIFIER, :f], ["(", nil], [")", nil]],
       [[:keyword_def, nil], [:tIDENTIFIER, :f], [";", nil], [:keyword_end, nil]]
     ]
     inputs.each do |tokens|

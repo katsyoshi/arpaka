@@ -32,7 +32,7 @@ module Lrama
         end
 
         module AST
-          type node = Literal | Binary | Unary | If | LocalRead | LocalWrite | BareCall | ArrayLiteral | HashLiteral | RangeLiteral | Ternary
+          type node = Literal | Binary | Unary | If | LocalRead | LocalWrite | BareCall | ArrayLiteral | HashLiteral | RangeLiteral | Ternary | Call
           type hash_pair = Pair
 
           class Program < ::Data
@@ -122,6 +122,13 @@ module Lrama
             attr_reader else_value: node
             def self.new: (node condition, node then_value, node else_value) -> instance
                         | (condition: node, then_value: node, else_value: node) -> instance
+          end
+
+          class Call < ::Data
+            attr_reader name: Symbol
+            attr_reader arguments: Array[node]
+            def self.new: (Symbol name, Array[node] arguments) -> instance
+                        | (name: Symbol, arguments: Array[node]) -> instance
           end
         end
       end

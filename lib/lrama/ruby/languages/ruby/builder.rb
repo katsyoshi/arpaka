@@ -49,6 +49,10 @@ module Lrama
             AST::Ternary.new(condition, then_value, else_value)
           end
 
+          def call(name, arguments)
+            AST::Call.new(name, arguments.freeze)
+          end
+
           def unary(operator, operand)
             AST::Unary.new(operator, operand)
           end

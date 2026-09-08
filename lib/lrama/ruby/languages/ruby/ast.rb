@@ -18,6 +18,7 @@ module Lrama
           Pair = Data.define(:key, :value)
           RangeLiteral = Data.define(:operator, :begin_value, :end_value)
           Ternary = Data.define(:condition, :then_value, :else_value)
+          Call = Data.define(:name, :arguments)
         end
       end
     end
