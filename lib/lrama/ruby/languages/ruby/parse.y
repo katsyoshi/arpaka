@@ -1444,15 +1444,15 @@ opt_rescue: k_rescue exc_list exc_var then compstmt_stmts opt_rescue { $$ = @bui
 /* upstream parse.y:5827: opt_rescue: none */
 opt_rescue: none { $$ = nil };
 /* upstream parse.y:5831: exc_list: arg_value */
-exc_list: arg_value { $$ = @builder.unsupported(630) };
+exc_list: arg_value { $$ = $1 };
 /* upstream parse.y:5836: exc_list: mrhs */
-exc_list: mrhs { $$ = @builder.unsupported(631) };
+exc_list: mrhs { $$ = $1 };
 /* upstream parse.y:5839: exc_list: none */
-exc_list: none { $$ = @builder.unsupported(632) };
+exc_list: none { $$ = nil };
 /* upstream parse.y:5843: exc_var: "=>" lhs */
-exc_var: tASSOC lhs %prec tASSOC { $$ = @builder.unsupported(633) };
+exc_var: tASSOC lhs %prec tASSOC { $$ = $2 };
 /* upstream parse.y:5847: exc_var: none */
-exc_var: none { $$ = @builder.unsupported(634) };
+exc_var: none { $$ = nil };
 /* upstream parse.y:5851: opt_ensure: k_ensure stmts option_terms */
 opt_ensure: k_ensure stmts option_terms { $$ = @builder.unsupported(635) };
 /* upstream parse.y:5857: opt_ensure: none */

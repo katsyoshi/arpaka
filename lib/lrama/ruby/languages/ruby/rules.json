@@ -3777,31 +3777,31 @@
     "id": 630,
     "rule": "exc_list: arg_value",
     "line": 5831,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 631,
     "rule": "exc_list: mrhs",
     "line": 5836,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 632,
     "rule": "exc_list: none",
     "line": 5839,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 633,
     "rule": "exc_var: \"=>\" lhs",
     "line": 5843,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 634,
     "rule": "exc_var: none",
     "line": 5847,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 635,
