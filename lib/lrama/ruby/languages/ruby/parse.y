@@ -336,7 +336,7 @@ midrule_7: %empty { $$ = nil };
 /* upstream parse.y:3490: expr: arg "=>" $@7 p_in_kwarg p_pvtbl p_pktbl p_top_expr_body */
 expr: arg tASSOC midrule_7 p_in_kwarg p_pvtbl p_pktbl p_top_expr_body %prec tASSOC { $$ = @builder.unsupported(75) };
 /* upstream parse.y:3500: $@8: %empty */
-midrule_8: %empty { $$ = @builder.unsupported(76) };
+midrule_8: %empty { $$ = nil };
 /* upstream parse.y:3505: expr: arg "'in'" $@8 p_in_kwarg p_pvtbl p_pktbl p_top_expr_body */
 expr: arg keyword_in midrule_8 p_in_kwarg p_pvtbl p_pktbl p_top_expr_body %prec keyword_in { $$ = @builder.unsupported(77) };
 /* upstream parse.y:3514: expr: arg */
@@ -346,7 +346,7 @@ def_name: fname { $$ = $1 };
 /* upstream parse.y:3529: defn_head: k_def def_name */
 defn_head: k_def def_name { $$ = $2 };
 /* upstream parse.y:3538: $@9: %empty */
-midrule_9: %empty { $$ = @builder.unsupported(81) };
+midrule_9: %empty { $$ = nil };
 /* upstream parse.y:3542: defs_head: k_def singleton dot_or_colon $@9 def_name */
 defs_head: k_def singleton dot_or_colon midrule_9 def_name { $$ = @builder.unsupported(82) };
 /* upstream parse.y:3161: value_expr_expr: expr */
@@ -364,13 +364,13 @@ expr_value_do: midrule_10 expr_value do midrule_11 { $$ = $2 };
 /* upstream parse.y:3565: command_call: command */
 command_call: command { $$ = $1 };
 /* upstream parse.y:3566: command_call: block_command */
-command_call: block_command { $$ = @builder.unsupported(90) };
+command_call: block_command { $$ = $1 };
 /* upstream parse.y:3161: value_expr_command_call: command_call */
-value_expr_command_call: command_call { $$ = @builder.unsupported(91) };
+value_expr_command_call: command_call { $$ = $1 };
 /* upstream parse.y:3569: command_call_value: value_expr_command_call */
-command_call_value: value_expr_command_call { $$ = @builder.unsupported(92) };
+command_call_value: value_expr_command_call { $$ = $1 };
 /* upstream parse.y:3572: block_command: block_call */
-block_command: block_call { $$ = @builder.unsupported(93) };
+block_command: block_call { $$ = $1 };
 /* upstream parse.y:3574: block_command: block_call call_op2 operation2 command_args */
 block_command: block_call call_op2 operation2 command_args { $$ = @builder.unsupported(94) };
 /* upstream parse.y:3581: cmd_brace_block: "{ arg" brace_body '}' */

@@ -453,7 +453,7 @@
     "id": 76,
     "rule": "$@8: %empty",
     "line": 3500,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 77,
@@ -483,7 +483,7 @@
     "id": 81,
     "rule": "$@9: %empty",
     "line": 3538,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 82,
@@ -537,25 +537,25 @@
     "id": 90,
     "rule": "command_call: block_command",
     "line": 3566,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 91,
     "rule": "value_expr_command_call: command_call",
     "line": 3161,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 92,
     "rule": "command_call_value: value_expr_command_call",
     "line": 3569,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 93,
     "rule": "block_command: block_call",
     "line": 3572,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 94,
