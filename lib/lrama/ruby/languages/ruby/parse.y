@@ -1176,7 +1176,7 @@ midrule_27: %empty { $$ = @builder.unsupported(494) };
 /* upstream parse.y:5096: lambda: "->" @26 max_numparam numparam it_id allow_exits f_larglist $@27 lambda_body */
 lambda: tLAMBDA midrule_26 max_numparam numparam it_id allow_exits f_larglist midrule_27 lambda_body %prec tLAMBDA { $$ = @builder.unsupported(495) };
 /* upstream parse.y:5120: f_larglist: '(' f_largs opt_bv_decl ')' */
-f_larglist: '(' f_largs opt_bv_decl ')' %prec ')' { $$ = @builder.unsupported(496) };
+f_larglist: '(' f_largs opt_bv_decl ')' %prec ')' { $$ = $2 };
 /* upstream parse.y:5127: f_larglist: f_largs */
 f_larglist: f_largs { $$ = @builder.unsupported(497) };
 /* upstream parse.y:5136: lambda_body: tLAMBEG compstmt_stmts '}' */
@@ -1754,7 +1754,7 @@ f_args_list_largs_tail_none: tail_only_args_largs_tail { $$ = @builder.unsupport
 /* upstream parse.y:6360: f_args-list_largs_tail_none: f_empty_arg */
 f_args_list_largs_tail_none: f_empty_arg { $$ = @builder.unsupported(784) };
 /* upstream parse.y:6360: f_largs: f_args-list_largs_tail_none */
-f_largs: f_args_list_largs_tail_none { $$ = @builder.unsupported(785) };
+f_largs: f_args_list_largs_tail_none { $$ = $1 };
 /* upstream parse.y:6364: args_forward: "(..." */
 args_forward: tBDOT3 %prec tBDOT3 { $$ = @builder.unsupported(786) };
 /* upstream parse.y:6371: f_bad_arg: "constant" */

@@ -2973,7 +2973,7 @@
     "id": 496,
     "rule": "f_larglist: '(' f_largs opt_bv_decl ')'",
     "line": 5120,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 497,
@@ -4707,7 +4707,7 @@
     "id": 785,
     "rule": "f_largs: f_args-list_largs_tail_none",
     "line": 6360,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 786,

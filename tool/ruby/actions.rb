@@ -88,6 +88,7 @@ module RubyGrammarActions
     340 => ["pass_through", "$1"],
     343 => ["ported", "@builder.word_array($1)"],
     344 => ["ported", "@builder.word_array($1, symbols: true)"],
+    496 => ["pass_through", "$2"], 785 => ["pass_through", "$1"],
     346 => ["pass_through", "$1"],
     611 => ["pass_through", "$1"], 612 => ["pass_through", "$1"],
     613 => ["pass_through", "$1"], 614 => ["pass_through", "$1"],
