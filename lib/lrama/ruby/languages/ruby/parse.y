@@ -434,11 +434,11 @@ mlhs_basic: tSTAR mlhs_node %prec tSTAR { $$ = @builder.unsupported(123) };
 /* upstream parse.y:3722: mlhs_basic: "*" mlhs_node ',' mlhs_items_mlhs_item */
 mlhs_basic: tSTAR mlhs_node ',' mlhs_items_mlhs_item %prec ',' { $$ = @builder.unsupported(124) };
 /* upstream parse.y:3727: mlhs_basic: "*" */
-mlhs_basic: tSTAR %prec tSTAR { $$ = @builder.unsupported(125) };
+mlhs_basic: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:3732: mlhs_basic: "*" ',' mlhs_items_mlhs_item */
 mlhs_basic: tSTAR ',' mlhs_items_mlhs_item %prec ',' { $$ = @builder.unsupported(126) };
 /* upstream parse.y:3738: mlhs_item: mlhs_node */
-mlhs_item: mlhs_node { $$ = @builder.unsupported(127) };
+mlhs_item: mlhs_node { $$ = $1 };
 /* upstream parse.y:3740: mlhs_item: "(" mlhs_inner rparen */
 mlhs_item: tLPAREN mlhs_inner rparen %prec tLPAREN { $$ = @builder.unsupported(128) };
 /* upstream parse.y:3747: mlhs_head: mlhs_item ',' */
@@ -446,9 +446,9 @@ mlhs_head: mlhs_item ',' %prec ',' { $$ = @builder.unsupported(129) };
 /* upstream parse.y:3752: mlhs_head: mlhs_head mlhs_item ',' */
 mlhs_head: mlhs_head mlhs_item ',' %prec ',' { $$ = @builder.unsupported(130) };
 /* upstream parse.y:3760: mlhs_node: user_variable */
-mlhs_node: user_variable { $$ = @builder.unsupported(131) };
+mlhs_node: user_variable { $$ = $1 };
 /* upstream parse.y:3760: mlhs_node: keyword_variable */
-mlhs_node: keyword_variable { $$ = @builder.unsupported(132) };
+mlhs_node: keyword_variable { $$ = $1 };
 /* upstream parse.y:3765: mlhs_node: primary_value '[' opt_call_args rbracket */
 mlhs_node: primary_value '[' opt_call_args rbracket %prec '[' { $$ = @builder.unsupported(133) };
 /* upstream parse.y:3770: mlhs_node: primary_value call_op "local variable or method" */
@@ -462,11 +462,11 @@ mlhs_node: primary_value tCOLON2 tCONSTANT %prec tCONSTANT { $$ = @builder.unsup
 /* upstream parse.y:3786: mlhs_node: ":: at EXPR_BEG" "constant" */
 mlhs_node: tCOLON3 tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(138) };
 /* upstream parse.y:3791: mlhs_node: backref */
-mlhs_node: backref { $$ = @builder.unsupported(139) };
+mlhs_node: backref { $$ = $1 };
 /* upstream parse.y:3799: lhs: user_variable */
 lhs: user_variable { $$ = @builder.declare_local($1) };
 /* upstream parse.y:3799: lhs: keyword_variable */
-lhs: keyword_variable { $$ = @builder.unsupported(141) };
+lhs: keyword_variable { $$ = $1 };
 /* upstream parse.y:3804: lhs: primary_value '[' opt_call_args rbracket */
 lhs: primary_value '[' opt_call_args rbracket %prec '[' { $$ = @builder.unsupported(142) };
 /* upstream parse.y:3809: lhs: primary_value call_op "local variable or method" */

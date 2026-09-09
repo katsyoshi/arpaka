@@ -747,7 +747,7 @@
     "id": 125,
     "rule": "mlhs_basic: \"*\"",
     "line": 3727,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 126,
@@ -759,7 +759,7 @@
     "id": 127,
     "rule": "mlhs_item: mlhs_node",
     "line": 3738,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 128,
@@ -783,13 +783,13 @@
     "id": 131,
     "rule": "mlhs_node: user_variable",
     "line": 3760,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 132,
     "rule": "mlhs_node: keyword_variable",
     "line": 3760,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 133,
@@ -831,7 +831,7 @@
     "id": 139,
     "rule": "mlhs_node: backref",
     "line": 3791,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 140,
@@ -843,7 +843,7 @@
     "id": 141,
     "rule": "lhs: keyword_variable",
     "line": 3799,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 142,
