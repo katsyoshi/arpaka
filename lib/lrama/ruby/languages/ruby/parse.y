@@ -1004,7 +1004,7 @@ k_do: keyword_do %prec keyword_do { $$ = @builder.unsupported(408) };
 /* upstream parse.y:4823: k_do_block: "'do' for block" */
 k_do_block: keyword_do_block %prec keyword_do_block { $$ = @builder.unsupported(409) };
 /* upstream parse.y:4830: k_rescue: "'rescue'" */
-k_rescue: keyword_rescue %prec keyword_rescue { $$ = @builder.unsupported(410) };
+k_rescue: keyword_rescue %prec keyword_rescue { $$ = nil };
 /* upstream parse.y:4838: k_ensure: "'ensure'" */
 k_ensure: keyword_ensure %prec keyword_ensure { $$ = @builder.unsupported(411) };
 /* upstream parse.y:4845: k_when: "'when'" */

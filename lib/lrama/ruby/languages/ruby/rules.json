@@ -2457,7 +2457,7 @@
     "id": 410,
     "rule": "k_rescue: \"'rescue'\"",
     "line": 4830,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 411,
