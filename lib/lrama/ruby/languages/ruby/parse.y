@@ -218,9 +218,9 @@ midrule_3: %empty { $$ = @builder.unsupported(15) };
 /* upstream parse.y:3256: bodystmt: compstmt_stmts lex_ctxt opt_rescue k_else $@2 compstmt_stmts $@3 opt_ensure */
 bodystmt: compstmt_stmts lex_ctxt opt_rescue k_else midrule_2 compstmt_stmts midrule_3 opt_ensure { $$ = @builder.unsupported(16) };
 /* upstream parse.y:3263: $@4: %empty */
-midrule_4: %empty { $$ = @builder.unsupported(17) };
+midrule_4: %empty { $$ = nil };
 /* upstream parse.y:3267: bodystmt: compstmt_stmts lex_ctxt opt_rescue $@4 opt_ensure */
-bodystmt: compstmt_stmts lex_ctxt opt_rescue midrule_4 opt_ensure { $$ = @builder.unsupported(18) };
+bodystmt: compstmt_stmts lex_ctxt opt_rescue midrule_4 opt_ensure { $$ = @builder.body_nodes($1) };
 /* upstream parse.y:3274: stmts: none */
 stmts: none { $$ = [].freeze };
 /* upstream parse.y:3279: stmts: stmt_or_begin */
@@ -342,9 +342,9 @@ expr: arg keyword_in midrule_8 p_in_kwarg p_pvtbl p_pktbl p_top_expr_body %prec 
 /* upstream parse.y:3514: expr: arg */
 expr: arg %prec tLBRACE_ARG { $$ = $1 };
 /* upstream parse.y:3518: def_name: fname */
-def_name: fname { $$ = @builder.unsupported(79) };
+def_name: fname { $$ = $1 };
 /* upstream parse.y:3529: defn_head: k_def def_name */
-defn_head: k_def def_name { $$ = @builder.unsupported(80) };
+defn_head: k_def def_name { $$ = $2 };
 /* upstream parse.y:3538: $@9: %empty */
 midrule_9: %empty { $$ = @builder.unsupported(81) };
 /* upstream parse.y:3542: defs_head: k_def singleton dot_or_colon $@9 def_name */
@@ -960,9 +960,9 @@ midrule_22: %empty { $$ = @builder.unsupported(386) };
 /* upstream parse.y:4652: primary: k_module cpath $@22 bodystmt k_end */
 primary: k_module cpath midrule_22 bodystmt k_end { $$ = @builder.unsupported(387) };
 /* upstream parse.y:4665: $@23: %empty */
-midrule_23: %empty { $$ = @builder.unsupported(388) };
+midrule_23: %empty { $$ = nil };
 /* upstream parse.y:4670: primary: defn_head f_arglist $@23 bodystmt k_end */
-primary: defn_head f_arglist midrule_23 bodystmt k_end { $$ = @builder.unsupported(389) };
+primary: defn_head f_arglist midrule_23 bodystmt k_end { $$ = @builder.def_node($1, $2, @builder.body_nodes($4)) };
 /* upstream parse.y:4680: $@24: %empty */
 midrule_24: %empty { $$ = @builder.unsupported(390) };
 /* upstream parse.y:4685: primary: defs_head f_arglist $@24 bodystmt k_end */
@@ -998,7 +998,7 @@ k_class: keyword_class %prec keyword_class { $$ = @builder.unsupported(405) };
 /* upstream parse.y:4799: k_module: "'module'" */
 k_module: keyword_module %prec keyword_module { $$ = @builder.unsupported(406) };
 /* upstream parse.y:4808: k_def: "'def'" */
-k_def: keyword_def %prec keyword_def { $$ = @builder.unsupported(407) };
+k_def: keyword_def %prec keyword_def { $$ = nil };
 /* upstream parse.y:4816: k_do: "'do'" */
 k_do: keyword_do %prec keyword_do { $$ = @builder.unsupported(408) };
 /* upstream parse.y:4823: k_do_block: "'do' for block" */
@@ -1442,7 +1442,7 @@ p_const: tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(627) };
 /* upstream parse.y:5809: opt_rescue: k_rescue exc_list exc_var then compstmt_stmts opt_rescue */
 opt_rescue: k_rescue exc_list exc_var then compstmt_stmts opt_rescue { $$ = @builder.unsupported(628) };
 /* upstream parse.y:5827: opt_rescue: none */
-opt_rescue: none { $$ = @builder.unsupported(629) };
+opt_rescue: none { $$ = nil };
 /* upstream parse.y:5831: exc_list: arg_value */
 exc_list: arg_value { $$ = @builder.unsupported(630) };
 /* upstream parse.y:5836: exc_list: mrhs */
@@ -1456,7 +1456,7 @@ exc_var: none { $$ = @builder.unsupported(634) };
 /* upstream parse.y:5851: opt_ensure: k_ensure stmts option_terms */
 opt_ensure: k_ensure stmts option_terms { $$ = @builder.unsupported(635) };
 /* upstream parse.y:5857: opt_ensure: none */
-opt_ensure: none { $$ = @builder.unsupported(636) };
+opt_ensure: none { $$ = nil };
 /* upstream parse.y:5860: literal: numeric */
 literal: numeric { $$ = $1 };
 /* upstream parse.y:5861: literal: symbol */
@@ -1624,15 +1624,15 @@ f_opt_paren_args: f_paren_args { $$ = @builder.unsupported(718) };
 /* upstream parse.y:6214: f_opt_paren_args: f_empty_arg */
 f_opt_paren_args: f_empty_arg { $$ = @builder.unsupported(719) };
 /* upstream parse.y:6220: f_empty_arg: %empty */
-f_empty_arg: %empty { $$ = @builder.unsupported(720) };
+f_empty_arg: %empty { $$ = nil };
 /* upstream parse.y:6228: f_paren_args: '(' f_args rparen */
-f_paren_args: '(' f_args rparen %prec '(' { $$ = @builder.unsupported(721) };
+f_paren_args: '(' f_args rparen %prec '(' { $$ = $2 };
 /* upstream parse.y:6237: f_arglist: f_paren_args */
-f_arglist: f_paren_args { $$ = @builder.unsupported(722) };
+f_arglist: f_paren_args { $$ = $1 };
 /* upstream parse.y:6238: @40: %empty */
-midrule_40: %empty { $$ = @builder.unsupported(723) };
+midrule_40: %empty { $$ = nil };
 /* upstream parse.y:6245: f_arglist: @40 f_args term */
-f_arglist: midrule_40 f_args term { $$ = @builder.unsupported(724) };
+f_arglist: midrule_40 f_args term { $$ = $2 };
 /* upstream parse.y:3020: f_kw_arg_value: f_label arg_value */
 f_kw_arg_value: f_label arg_value { $$ = @builder.unsupported(725) };
 /* upstream parse.y:3026: f_kw_arg_value: f_label */
@@ -1712,9 +1712,9 @@ tail_only_args_args_tail: args_tail { $$ = @builder.unsupported(762) };
 /* upstream parse.y:6357: f_args-list_args_tail_opt_comma: tail-only-args_args_tail */
 f_args_list_args_tail_opt_comma: tail_only_args_args_tail { $$ = @builder.unsupported(763) };
 /* upstream parse.y:6357: f_args-list_args_tail_opt_comma: f_empty_arg */
-f_args_list_args_tail_opt_comma: f_empty_arg { $$ = @builder.unsupported(764) };
+f_args_list_args_tail_opt_comma: f_empty_arg { $$ = [] };
 /* upstream parse.y:6357: f_args: f_args-list_args_tail_opt_comma */
-f_args: f_args_list_args_tail_opt_comma { $$ = @builder.unsupported(765) };
+f_args: f_args_list_args_tail_opt_comma { $$ = $1 };
 /* upstream parse.y:3107: opt_args_tail_largs_tail_none: ',' largs_tail */
 opt_args_tail_largs_tail_none: ',' largs_tail %prec ',' { $$ = @builder.unsupported(766) };
 /* upstream parse.y:3112: opt_args_tail_largs_tail_none: none */

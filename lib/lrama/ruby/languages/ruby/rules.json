@@ -99,13 +99,13 @@
     "id": 17,
     "rule": "$@4: %empty",
     "line": 3263,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 18,
     "rule": "bodystmt: compstmt_stmts lex_ctxt opt_rescue $@4 opt_ensure",
     "line": 3267,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 19,
@@ -471,13 +471,13 @@
     "id": 79,
     "rule": "def_name: fname",
     "line": 3518,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 80,
     "rule": "defn_head: k_def def_name",
     "line": 3529,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 81,
@@ -2325,13 +2325,13 @@
     "id": 388,
     "rule": "$@23: %empty",
     "line": 4665,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 389,
     "rule": "primary: defn_head f_arglist $@23 bodystmt k_end",
     "line": 4670,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 390,
@@ -2439,7 +2439,7 @@
     "id": 407,
     "rule": "k_def: \"'def'\"",
     "line": 4808,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 408,
@@ -3771,7 +3771,7 @@
     "id": 629,
     "rule": "opt_rescue: none",
     "line": 5827,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 630,
@@ -3813,7 +3813,7 @@
     "id": 636,
     "rule": "opt_ensure: none",
     "line": 5857,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 637,
@@ -4317,31 +4317,31 @@
     "id": 720,
     "rule": "f_empty_arg: %empty",
     "line": 6220,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 721,
     "rule": "f_paren_args: '(' f_args rparen",
     "line": 6228,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 722,
     "rule": "f_arglist: f_paren_args",
     "line": 6237,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 723,
     "rule": "@40: %empty",
     "line": 6238,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 724,
     "rule": "f_arglist: @40 f_args term",
     "line": 6245,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 725,
@@ -4581,13 +4581,13 @@
     "id": 764,
     "rule": "f_args-list_args_tail_opt_comma: f_empty_arg",
     "line": 6357,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 765,
     "rule": "f_args: f_args-list_args_tail_opt_comma",
     "line": 6357,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 766,

@@ -203,6 +203,14 @@ module RubyGrammarActions
     421 => ["pass_through", "nil"],
     424 => ["pass_through", "$1"],
     425 => ["ported", "@builder.elsif_node($2, $4, $5)"],
-    426 => ["empty", "nil"], 427 => ["pass_through", "$2"]
+    426 => ["empty", "nil"], 427 => ["pass_through", "$2"],
+    17 => ["empty", "nil"], 18 => ["ported", "@builder.body_nodes($1)"],
+    79 => ["pass_through", "$1"], 80 => ["pass_through", "$2"], 407 => ["empty", "nil"],
+    388 => ["empty", "nil"],
+    720 => ["empty", "nil"], 721 => ["pass_through", "$2"],
+    722 => ["pass_through", "$1"], 723 => ["empty", "nil"], 724 => ["pass_through", "$2"],
+    764 => ["empty", "[]"], 765 => ["pass_through", "$1"],
+    389 => ["ported", "@builder.def_node($1, $2, @builder.body_nodes($4))"],
+    629 => ["empty", "nil"], 636 => ["empty", "nil"]
   }.freeze
 end

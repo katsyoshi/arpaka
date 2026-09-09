@@ -111,6 +111,12 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Call.new(:f, [])]), parse([:tIDENTIFIER, :f], ["(", nil], [")", nil]))
   end
 
+  test "simple method definitions preserve name and body" do
+    expected = AST::Def.new(:foo, [], [literal(1)])
+    tokens = [[:keyword_def, nil], [:tIDENTIFIER, :foo], [";", nil], [:tINTEGER, 1], [";", nil], [:keyword_end, nil]]
+    assert_equal(AST::Program.new([expected]), parse(*tokens))
+  end
+
   test "simple string literals preserve their content" do
     expected = AST::StringLiteral.new("text")
     assert_equal(AST::Program.new([expected]), parse([:tSTRING_BEG, nil], [:tSTRING_CONTENT, "text"], [:tSTRING_END, nil]))
@@ -326,9 +332,7 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
   end
 
   test "unsupported syntax reports its upstream rule" do
-    inputs = [
-      [[:keyword_def, nil], [:tIDENTIFIER, :f], [";", nil], [:keyword_end, nil]]
-    ]
+    inputs = []
     inputs.each do |tokens|
       error = assert_raise(Lrama::Ruby::Languages::Ruby::UnsupportedSyntax) { Lrama::Ruby::Languages::Ruby.parse(tokens) }
       assert_kind_of(String, error.rule)

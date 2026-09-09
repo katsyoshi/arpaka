@@ -69,6 +69,18 @@ module Lrama
             AST::For.new(variable, enumerable, body)
           end
 
+          def def_node(name, arguments, body)
+            AST::Def.new(name.to_sym, (arguments || []).freeze, body || [].freeze)
+          end
+
+          def body_nodes(body)
+            value = body
+            while value.is_a?(Array) && value.length == 1 && value.first.is_a?(Array)
+              value = value.first
+            end
+            value || [].freeze
+          end
+
           def symbol(value)
             AST::Literal.new(value.to_sym)
           end
