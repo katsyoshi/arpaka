@@ -870,9 +870,9 @@ primary: xstring { $$ = $1 };
 /* upstream parse.y:4383: primary: regexp */
 primary: regexp { $$ = $1 };
 /* upstream parse.y:4383: primary: words */
-primary: words { $$ = @builder.unsupported(343) };
+primary: words { $$ = @builder.word_array($1) };
 /* upstream parse.y:4383: primary: qwords */
-primary: qwords { $$ = @builder.unsupported(344) };
+primary: qwords { $$ = @builder.word_array($1, symbols: true) };
 /* upstream parse.y:4383: primary: symbols */
 primary: symbols { $$ = $1 };
 /* upstream parse.y:4383: primary: qsymbols */
@@ -1476,41 +1476,41 @@ xstring: tXSTRING_BEG xstring_contents tSTRING_END %prec tSTRING_END { $$ = @bui
 /* upstream parse.y:5911: regexp: "regexp literal" regexp_contents tREGEXP_END */
 regexp: tREGEXP_BEG regexp_contents tREGEXP_END %prec tREGEXP_END { $$ = @builder.regexp(@builder.join_strings($2)) };
 /* upstream parse.y:5917: nonempty_list_' ': ' ' */
-nonempty_list____: ' ' %prec ' ' { $$ = @builder.unsupported(646) };
+nonempty_list____: ' ' %prec ' ' { $$ = nil };
 /* upstream parse.y:5917: nonempty_list_' ': nonempty_list_' ' ' ' */
-nonempty_list____: nonempty_list____ ' ' %prec ' ' { $$ = @builder.unsupported(647) };
+nonempty_list____: nonempty_list____ ' ' %prec ' ' { $$ = nil };
 /* upstream parse.y:3169: words_tWORDS_BEG_word_list: "word list" nonempty_list_' ' word_list "terminator" */
-words_tWORDS_BEG_word_list: tWORDS_BEG nonempty_list____ word_list tSTRING_END %prec tSTRING_END { $$ = @builder.unsupported(648) };
+words_tWORDS_BEG_word_list: tWORDS_BEG nonempty_list____ word_list tSTRING_END %prec tSTRING_END { $$ = $3 };
 /* upstream parse.y:5917: words: words_tWORDS_BEG_word_list */
-words: words_tWORDS_BEG_word_list { $$ = @builder.unsupported(649) };
+words: words_tWORDS_BEG_word_list { $$ = $1 };
 /* upstream parse.y:5921: word_list: %empty */
-word_list: %empty { $$ = @builder.unsupported(650) };
+word_list: %empty { $$ = [] };
 /* upstream parse.y:5926: word_list: word_list word nonempty_list_' ' */
-word_list: word_list word nonempty_list____ { $$ = @builder.unsupported(651) };
+word_list: word_list word nonempty_list____ { $$ = ($1 + [$2]).freeze };
 /* upstream parse.y:5932: word: string_content */
-word: string_content { $$ = @builder.unsupported(652) };
+word: string_content { $$ = $1 };
 /* upstream parse.y:5935: word: word string_content */
-word: word string_content { $$ = @builder.unsupported(653) };
+word: word string_content { $$ = $1.to_s + $2.to_s };
 /* upstream parse.y:3169: words_tSYMBOLS_BEG_symbol_list: "symbol list" nonempty_list_' ' symbol_list "terminator" */
-words_tSYMBOLS_BEG_symbol_list: tSYMBOLS_BEG nonempty_list____ symbol_list tSTRING_END %prec tSTRING_END { $$ = @builder.unsupported(654) };
+words_tSYMBOLS_BEG_symbol_list: tSYMBOLS_BEG nonempty_list____ symbol_list tSTRING_END %prec tSTRING_END { $$ = $3 };
 /* upstream parse.y:5941: symbols: words_tSYMBOLS_BEG_symbol_list */
-symbols: words_tSYMBOLS_BEG_symbol_list { $$ = @builder.unsupported(655) };
+symbols: words_tSYMBOLS_BEG_symbol_list { $$ = @builder.word_array($1, symbols: true) };
 /* upstream parse.y:5945: symbol_list: %empty */
-symbol_list: %empty { $$ = @builder.unsupported(656) };
+symbol_list: %empty { $$ = [] };
 /* upstream parse.y:5950: symbol_list: symbol_list word nonempty_list_' ' */
-symbol_list: symbol_list word nonempty_list____ { $$ = @builder.unsupported(657) };
+symbol_list: symbol_list word nonempty_list____ { $$ = ($1 + [$2]).freeze };
 /* upstream parse.y:3169: words_tQWORDS_BEG_qword_list: "verbatim word list" nonempty_list_' ' qword_list "terminator" */
-words_tQWORDS_BEG_qword_list: tQWORDS_BEG nonempty_list____ qword_list tSTRING_END %prec tSTRING_END { $$ = @builder.unsupported(658) };
+words_tQWORDS_BEG_qword_list: tQWORDS_BEG nonempty_list____ qword_list tSTRING_END %prec tSTRING_END { $$ = $3 };
 /* upstream parse.y:5956: qwords: words_tQWORDS_BEG_qword_list */
-qwords: words_tQWORDS_BEG_qword_list { $$ = @builder.unsupported(659) };
+qwords: words_tQWORDS_BEG_qword_list { $$ = @builder.word_array($1) };
 /* upstream parse.y:3169: words_tQSYMBOLS_BEG_qsym_list: "verbatim symbol list" nonempty_list_' ' qsym_list "terminator" */
-words_tQSYMBOLS_BEG_qsym_list: tQSYMBOLS_BEG nonempty_list____ qsym_list tSTRING_END %prec tSTRING_END { $$ = @builder.unsupported(660) };
+words_tQSYMBOLS_BEG_qsym_list: tQSYMBOLS_BEG nonempty_list____ qsym_list tSTRING_END %prec tSTRING_END { $$ = $3 };
 /* upstream parse.y:5959: qsymbols: words_tQSYMBOLS_BEG_qsym_list */
-qsymbols: words_tQSYMBOLS_BEG_qsym_list { $$ = @builder.unsupported(661) };
+qsymbols: words_tQSYMBOLS_BEG_qsym_list { $$ = @builder.word_array($1, symbols: true) };
 /* upstream parse.y:5963: qword_list: %empty */
-qword_list: %empty { $$ = @builder.unsupported(662) };
+qword_list: %empty { $$ = [] };
 /* upstream parse.y:5968: qword_list: qword_list "literal content" nonempty_list_' ' */
-qword_list: qword_list tSTRING_CONTENT nonempty_list____ %prec tSTRING_CONTENT { $$ = @builder.unsupported(663) };
+qword_list: qword_list tSTRING_CONTENT nonempty_list____ %prec tSTRING_CONTENT { $$ = ($1 + [$2]).freeze };
 /* upstream parse.y:5975: qsym_list: %empty */
 qsym_list: %empty { $$ = @builder.unsupported(664) };
 /* upstream parse.y:5980: qsym_list: qsym_list "literal content" nonempty_list_' ' */

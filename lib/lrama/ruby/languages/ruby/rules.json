@@ -2055,13 +2055,13 @@
     "id": 343,
     "rule": "primary: words",
     "line": 4383,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 344,
     "rule": "primary: qwords",
     "line": 4383,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 345,
@@ -3873,109 +3873,109 @@
     "id": 646,
     "rule": "nonempty_list_' ': ' '",
     "line": 5917,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 647,
     "rule": "nonempty_list_' ': nonempty_list_' ' ' '",
     "line": 5917,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 648,
     "rule": "words_tWORDS_BEG_word_list: \"word list\" nonempty_list_' ' word_list \"terminator\"",
     "line": 3169,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 649,
     "rule": "words: words_tWORDS_BEG_word_list",
     "line": 5917,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 650,
     "rule": "word_list: %empty",
     "line": 5921,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 651,
     "rule": "word_list: word_list word nonempty_list_' '",
     "line": 5926,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 652,
     "rule": "word: string_content",
     "line": 5932,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 653,
     "rule": "word: word string_content",
     "line": 5935,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 654,
     "rule": "words_tSYMBOLS_BEG_symbol_list: \"symbol list\" nonempty_list_' ' symbol_list \"terminator\"",
     "line": 3169,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 655,
     "rule": "symbols: words_tSYMBOLS_BEG_symbol_list",
     "line": 5941,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 656,
     "rule": "symbol_list: %empty",
     "line": 5945,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 657,
     "rule": "symbol_list: symbol_list word nonempty_list_' '",
     "line": 5950,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 658,
     "rule": "words_tQWORDS_BEG_qword_list: \"verbatim word list\" nonempty_list_' ' qword_list \"terminator\"",
     "line": 3169,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 659,
     "rule": "qwords: words_tQWORDS_BEG_qword_list",
     "line": 5956,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 660,
     "rule": "words_tQSYMBOLS_BEG_qsym_list: \"verbatim symbol list\" nonempty_list_' ' qsym_list \"terminator\"",
     "line": 3169,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 661,
     "rule": "qsymbols: words_tQSYMBOLS_BEG_qsym_list",
     "line": 5959,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 662,
     "rule": "qword_list: %empty",
     "line": 5963,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 663,
     "rule": "qword_list: qword_list \"literal content\" nonempty_list_' '",
     "line": 5968,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 664,

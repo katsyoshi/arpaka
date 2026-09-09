@@ -168,6 +168,11 @@ module Lrama
             AST::ArrayLiteral.new(elements.freeze)
           end
 
+          def word_array(elements, symbols: false)
+            values = elements.map { |value| symbols ? value.to_sym : AST::StringLiteral.new(value.to_s) }
+            AST::ArrayLiteral.new(values.freeze)
+          end
+
           def hash(pairs)
             AST::HashLiteral.new(pairs.freeze)
           end
