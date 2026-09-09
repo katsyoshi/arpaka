@@ -522,21 +522,21 @@ op: tCMP %prec tCMP { $$ = @builder.operator("<=>") };
 /* upstream parse.y:3898: op: "==" */
 op: tEQ %prec tEQ { $$ = @builder.operator("==") };
 /* upstream parse.y:3899: op: "===" */
-op: tEQQ %prec tEQQ { $$ = @builder.unsupported(169) };
+op: tEQQ %prec tEQQ { $$ = @builder.operator("===") };
 /* upstream parse.y:3900: op: "=~" */
-op: tMATCH %prec tMATCH { $$ = @builder.unsupported(170) };
+op: tMATCH %prec tMATCH { $$ = @builder.operator("=~") };
 /* upstream parse.y:3901: op: "!~" */
-op: tNMATCH %prec tNMATCH { $$ = @builder.unsupported(171) };
+op: tNMATCH %prec tNMATCH { $$ = @builder.operator("!~") };
 /* upstream parse.y:3902: op: '>' */
-op: '>' %prec '>' { $$ = @builder.unsupported(172) };
+op: '>' %prec '>' { $$ = @builder.operator(">") };
 /* upstream parse.y:3903: op: ">=" */
-op: tGEQ %prec tGEQ { $$ = @builder.unsupported(173) };
+op: tGEQ %prec tGEQ { $$ = @builder.operator(">=") };
 /* upstream parse.y:3904: op: '<' */
-op: '<' %prec '<' { $$ = @builder.unsupported(174) };
+op: '<' %prec '<' { $$ = @builder.operator("<") };
 /* upstream parse.y:3905: op: "<=" */
-op: tLEQ %prec tLEQ { $$ = @builder.unsupported(175) };
+op: tLEQ %prec tLEQ { $$ = @builder.operator("<=") };
 /* upstream parse.y:3906: op: "!=" */
-op: tNEQ %prec tNEQ { $$ = @builder.unsupported(176) };
+op: tNEQ %prec tNEQ { $$ = @builder.operator("!=") };
 /* upstream parse.y:3907: op: "<<" */
 op: tLSHFT %prec tLSHFT { $$ = @builder.unsupported(177) };
 /* upstream parse.y:3908: op: ">>" */
