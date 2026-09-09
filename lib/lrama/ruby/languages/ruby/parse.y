@@ -554,23 +554,23 @@ op: '/' %prec '/' { $$ = @builder.operator("/") };
 /* upstream parse.y:3914: op: '%' */
 op: '%' %prec '%' { $$ = @builder.operator("%") };
 /* upstream parse.y:3915: op: "**" */
-op: tPOW %prec tPOW { $$ = @builder.unsupported(185) };
+op: tPOW %prec tPOW { $$ = @builder.operator("**") };
 /* upstream parse.y:3916: op: "**arg" */
-op: tDSTAR %prec tDSTAR { $$ = @builder.unsupported(186) };
+op: tDSTAR %prec tDSTAR { $$ = @builder.operator("**") };
 /* upstream parse.y:3917: op: '!' */
-op: '!' %prec '!' { $$ = @builder.unsupported(187) };
+op: '!' %prec '!' { $$ = @builder.operator("!") };
 /* upstream parse.y:3918: op: '~' */
-op: '~' %prec '~' { $$ = @builder.unsupported(188) };
+op: '~' %prec '~' { $$ = @builder.operator("~") };
 /* upstream parse.y:3919: op: "unary+" */
-op: tUPLUS %prec tUPLUS { $$ = @builder.unsupported(189) };
+op: tUPLUS %prec tUPLUS { $$ = @builder.operator("+@") };
 /* upstream parse.y:3920: op: "unary-" */
-op: tUMINUS %prec tUMINUS { $$ = @builder.unsupported(190) };
+op: tUMINUS %prec tUMINUS { $$ = @builder.operator("-@") };
 /* upstream parse.y:3921: op: "[]" */
-op: tAREF %prec tAREF { $$ = @builder.unsupported(191) };
+op: tAREF %prec tAREF { $$ = @builder.operator("[]") };
 /* upstream parse.y:3922: op: "[]=" */
-op: tASET %prec tASET { $$ = @builder.unsupported(192) };
+op: tASET %prec tASET { $$ = @builder.operator("[]=") };
 /* upstream parse.y:3923: op: '`' */
-op: '`' %prec '`' { $$ = @builder.unsupported(193) };
+op: '`' %prec '`' { $$ = @builder.operator("`") };
 /* upstream parse.y:3926: reswords: "'__LINE__'" */
 reswords: keyword__LINE__ %prec keyword__LINE__ { $$ = @builder.unsupported(194) };
 /* upstream parse.y:3926: reswords: "'__FILE__'" */

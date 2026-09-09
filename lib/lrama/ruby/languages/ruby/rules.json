@@ -1107,55 +1107,55 @@
     "id": 185,
     "rule": "op: \"**\"",
     "line": 3915,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 186,
     "rule": "op: \"**arg\"",
     "line": 3916,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 187,
     "rule": "op: '!'",
     "line": 3917,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 188,
     "rule": "op: '~'",
     "line": 3918,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 189,
     "rule": "op: \"unary+\"",
     "line": 3919,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 190,
     "rule": "op: \"unary-\"",
     "line": 3920,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 191,
     "rule": "op: \"[]\"",
     "line": 3921,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 192,
     "rule": "op: \"[]=\"",
     "line": 3922,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 193,
     "rule": "op: '`'",
     "line": 3923,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 194,
