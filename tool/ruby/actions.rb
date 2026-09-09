@@ -6,6 +6,9 @@ module RubyGrammarActions
   ACTIONS = {
     1 => ["empty", "nil"], 2 => ["empty", "nil"], 3 => ["empty", "nil"],
     4 => ["pass_through", "$1"], 5 => ["ported", "@builder.program($2)"],
+    11 => ["empty", "nil"], 14 => ["empty", "nil"], 15 => ["empty", "nil"],
+    23 => ["empty", "nil"], 27 => ["empty", "nil"], 39 => ["pass_through", "$1"],
+    42 => ["pass_through", "$1"],
     83 => ["pass_through", "$1"], 84 => ["pass_through", "$1"],
     86 => ["empty", "nil"], 87 => ["empty", "nil"],
     6 => ["ported", "[].freeze"], 7 => ["ported", "[$1].freeze"],
