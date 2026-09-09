@@ -33,6 +33,10 @@ module Lrama
             AST::Literal.new(value)
           end
 
+          def reserved_word(value)
+            value.to_sym
+          end
+
           def binary(operator, left, right)
             AST::Binary.new(operator, left, right)
           end

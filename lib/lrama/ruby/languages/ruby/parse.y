@@ -572,87 +572,87 @@ op: tASET %prec tASET { $$ = @builder.operator("[]=") };
 /* upstream parse.y:3923: op: '`' */
 op: '`' %prec '`' { $$ = @builder.operator("`") };
 /* upstream parse.y:3926: reswords: "'__LINE__'" */
-reswords: keyword__LINE__ %prec keyword__LINE__ { $$ = @builder.unsupported(194) };
+reswords: keyword__LINE__ %prec keyword__LINE__ { $$ = @builder.reserved_word("__LINE__") };
 /* upstream parse.y:3926: reswords: "'__FILE__'" */
-reswords: keyword__FILE__ %prec keyword__FILE__ { $$ = @builder.unsupported(195) };
+reswords: keyword__FILE__ %prec keyword__FILE__ { $$ = @builder.reserved_word("__FILE__") };
 /* upstream parse.y:3926: reswords: "'__ENCODING__'" */
-reswords: keyword__ENCODING__ %prec keyword__ENCODING__ { $$ = @builder.unsupported(196) };
+reswords: keyword__ENCODING__ %prec keyword__ENCODING__ { $$ = @builder.reserved_word("__ENCODING__") };
 /* upstream parse.y:3927: reswords: "'BEGIN'" */
-reswords: keyword_BEGIN %prec keyword_BEGIN { $$ = @builder.unsupported(197) };
+reswords: keyword_BEGIN %prec keyword_BEGIN { $$ = @builder.reserved_word("BEGIN") };
 /* upstream parse.y:3927: reswords: "'END'" */
-reswords: keyword_END %prec keyword_END { $$ = @builder.unsupported(198) };
+reswords: keyword_END %prec keyword_END { $$ = @builder.reserved_word("END") };
 /* upstream parse.y:3928: reswords: "'alias'" */
-reswords: keyword_alias %prec keyword_alias { $$ = @builder.unsupported(199) };
+reswords: keyword_alias %prec keyword_alias { $$ = @builder.reserved_word("alias") };
 /* upstream parse.y:3928: reswords: "'and'" */
-reswords: keyword_and %prec keyword_and { $$ = @builder.unsupported(200) };
+reswords: keyword_and %prec keyword_and { $$ = @builder.reserved_word("and") };
 /* upstream parse.y:3928: reswords: "'begin'" */
-reswords: keyword_begin %prec keyword_begin { $$ = @builder.unsupported(201) };
+reswords: keyword_begin %prec keyword_begin { $$ = @builder.reserved_word("begin") };
 /* upstream parse.y:3929: reswords: "'break'" */
-reswords: keyword_break %prec keyword_break { $$ = @builder.unsupported(202) };
+reswords: keyword_break %prec keyword_break { $$ = @builder.reserved_word("break") };
 /* upstream parse.y:3929: reswords: "'case'" */
-reswords: keyword_case %prec keyword_case { $$ = @builder.unsupported(203) };
+reswords: keyword_case %prec keyword_case { $$ = @builder.reserved_word("case") };
 /* upstream parse.y:3929: reswords: "'class'" */
-reswords: keyword_class %prec keyword_class { $$ = @builder.unsupported(204) };
+reswords: keyword_class %prec keyword_class { $$ = @builder.reserved_word("class") };
 /* upstream parse.y:3929: reswords: "'def'" */
-reswords: keyword_def %prec keyword_def { $$ = @builder.unsupported(205) };
+reswords: keyword_def %prec keyword_def { $$ = @builder.reserved_word("def") };
 /* upstream parse.y:3930: reswords: "'defined?'" */
-reswords: keyword_defined %prec keyword_defined { $$ = @builder.unsupported(206) };
+reswords: keyword_defined %prec keyword_defined { $$ = @builder.reserved_word("defined?") };
 /* upstream parse.y:3930: reswords: "'do'" */
-reswords: keyword_do %prec keyword_do { $$ = @builder.unsupported(207) };
+reswords: keyword_do %prec keyword_do { $$ = @builder.reserved_word("do") };
 /* upstream parse.y:3930: reswords: "'else'" */
-reswords: keyword_else %prec keyword_else { $$ = @builder.unsupported(208) };
+reswords: keyword_else %prec keyword_else { $$ = @builder.reserved_word("else") };
 /* upstream parse.y:3930: reswords: "'elsif'" */
-reswords: keyword_elsif %prec keyword_elsif { $$ = @builder.unsupported(209) };
+reswords: keyword_elsif %prec keyword_elsif { $$ = @builder.reserved_word("elsif") };
 /* upstream parse.y:3931: reswords: "'end'" */
-reswords: keyword_end %prec keyword_end { $$ = @builder.unsupported(210) };
+reswords: keyword_end %prec keyword_end { $$ = @builder.reserved_word("end") };
 /* upstream parse.y:3931: reswords: "'ensure'" */
-reswords: keyword_ensure %prec keyword_ensure { $$ = @builder.unsupported(211) };
+reswords: keyword_ensure %prec keyword_ensure { $$ = @builder.reserved_word("ensure") };
 /* upstream parse.y:3931: reswords: "'false'" */
-reswords: keyword_false %prec keyword_false { $$ = @builder.unsupported(212) };
+reswords: keyword_false %prec keyword_false { $$ = @builder.reserved_word("false") };
 /* upstream parse.y:3932: reswords: "'for'" */
-reswords: keyword_for %prec keyword_for { $$ = @builder.unsupported(213) };
+reswords: keyword_for %prec keyword_for { $$ = @builder.reserved_word("for") };
 /* upstream parse.y:3932: reswords: "'in'" */
-reswords: keyword_in %prec keyword_in { $$ = @builder.unsupported(214) };
+reswords: keyword_in %prec keyword_in { $$ = @builder.reserved_word("in") };
 /* upstream parse.y:3932: reswords: "'module'" */
-reswords: keyword_module %prec keyword_module { $$ = @builder.unsupported(215) };
+reswords: keyword_module %prec keyword_module { $$ = @builder.reserved_word("module") };
 /* upstream parse.y:3932: reswords: "'next'" */
-reswords: keyword_next %prec keyword_next { $$ = @builder.unsupported(216) };
+reswords: keyword_next %prec keyword_next { $$ = @builder.reserved_word("next") };
 /* upstream parse.y:3933: reswords: "'nil'" */
-reswords: keyword_nil %prec keyword_nil { $$ = @builder.unsupported(217) };
+reswords: keyword_nil %prec keyword_nil { $$ = @builder.reserved_word("nil") };
 /* upstream parse.y:3933: reswords: "'not'" */
-reswords: keyword_not %prec keyword_not { $$ = @builder.unsupported(218) };
+reswords: keyword_not %prec keyword_not { $$ = @builder.reserved_word("not") };
 /* upstream parse.y:3933: reswords: "'or'" */
-reswords: keyword_or %prec keyword_or { $$ = @builder.unsupported(219) };
+reswords: keyword_or %prec keyword_or { $$ = @builder.reserved_word("or") };
 /* upstream parse.y:3933: reswords: "'redo'" */
-reswords: keyword_redo %prec keyword_redo { $$ = @builder.unsupported(220) };
+reswords: keyword_redo %prec keyword_redo { $$ = @builder.reserved_word("redo") };
 /* upstream parse.y:3934: reswords: "'rescue'" */
-reswords: keyword_rescue %prec keyword_rescue { $$ = @builder.unsupported(221) };
+reswords: keyword_rescue %prec keyword_rescue { $$ = @builder.reserved_word("rescue") };
 /* upstream parse.y:3934: reswords: "'retry'" */
-reswords: keyword_retry %prec keyword_retry { $$ = @builder.unsupported(222) };
+reswords: keyword_retry %prec keyword_retry { $$ = @builder.reserved_word("retry") };
 /* upstream parse.y:3934: reswords: "'return'" */
-reswords: keyword_return %prec keyword_return { $$ = @builder.unsupported(223) };
+reswords: keyword_return %prec keyword_return { $$ = @builder.reserved_word("return") };
 /* upstream parse.y:3934: reswords: "'self'" */
-reswords: keyword_self %prec keyword_self { $$ = @builder.unsupported(224) };
+reswords: keyword_self %prec keyword_self { $$ = @builder.reserved_word("self") };
 /* upstream parse.y:3935: reswords: "'super'" */
-reswords: keyword_super %prec keyword_super { $$ = @builder.unsupported(225) };
+reswords: keyword_super %prec keyword_super { $$ = @builder.reserved_word("super") };
 /* upstream parse.y:3935: reswords: "'then'" */
-reswords: keyword_then %prec keyword_then { $$ = @builder.unsupported(226) };
+reswords: keyword_then %prec keyword_then { $$ = @builder.reserved_word("then") };
 /* upstream parse.y:3935: reswords: "'true'" */
-reswords: keyword_true %prec keyword_true { $$ = @builder.unsupported(227) };
+reswords: keyword_true %prec keyword_true { $$ = @builder.reserved_word("true") };
 /* upstream parse.y:3935: reswords: "'undef'" */
-reswords: keyword_undef %prec keyword_undef { $$ = @builder.unsupported(228) };
+reswords: keyword_undef %prec keyword_undef { $$ = @builder.reserved_word("undef") };
 /* upstream parse.y:3936: reswords: "'when'" */
-reswords: keyword_when %prec keyword_when { $$ = @builder.unsupported(229) };
+reswords: keyword_when %prec keyword_when { $$ = @builder.reserved_word("when") };
 /* upstream parse.y:3936: reswords: "'yield'" */
-reswords: keyword_yield %prec keyword_yield { $$ = @builder.unsupported(230) };
+reswords: keyword_yield %prec keyword_yield { $$ = @builder.reserved_word("yield") };
 /* upstream parse.y:3936: reswords: "'if'" */
-reswords: keyword_if %prec keyword_if { $$ = @builder.unsupported(231) };
+reswords: keyword_if %prec keyword_if { $$ = @builder.reserved_word("if") };
 /* upstream parse.y:3936: reswords: "'unless'" */
-reswords: keyword_unless %prec keyword_unless { $$ = @builder.unsupported(232) };
+reswords: keyword_unless %prec keyword_unless { $$ = @builder.reserved_word("unless") };
 /* upstream parse.y:3937: reswords: "'while'" */
-reswords: keyword_while %prec keyword_while { $$ = @builder.unsupported(233) };
+reswords: keyword_while %prec keyword_while { $$ = @builder.reserved_word("while") };
 /* upstream parse.y:3937: reswords: "'until'" */
-reswords: keyword_until %prec keyword_until { $$ = @builder.unsupported(234) };
+reswords: keyword_until %prec keyword_until { $$ = @builder.reserved_word("until") };
 /* upstream parse.y:2926: asgn_arg_rhs: lhs '=' lex_ctxt arg_rhs */
 asgn_arg_rhs: lhs '=' lex_ctxt arg_rhs %prec '=' { $$ = @builder.assign($1, $4) };
 /* upstream parse.y:3940: arg: asgn_arg_rhs */

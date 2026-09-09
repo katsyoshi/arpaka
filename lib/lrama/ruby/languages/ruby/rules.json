@@ -1161,247 +1161,247 @@
     "id": 194,
     "rule": "reswords: \"'__LINE__'\"",
     "line": 3926,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 195,
     "rule": "reswords: \"'__FILE__'\"",
     "line": 3926,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 196,
     "rule": "reswords: \"'__ENCODING__'\"",
     "line": 3926,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 197,
     "rule": "reswords: \"'BEGIN'\"",
     "line": 3927,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 198,
     "rule": "reswords: \"'END'\"",
     "line": 3927,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 199,
     "rule": "reswords: \"'alias'\"",
     "line": 3928,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 200,
     "rule": "reswords: \"'and'\"",
     "line": 3928,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 201,
     "rule": "reswords: \"'begin'\"",
     "line": 3928,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 202,
     "rule": "reswords: \"'break'\"",
     "line": 3929,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 203,
     "rule": "reswords: \"'case'\"",
     "line": 3929,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 204,
     "rule": "reswords: \"'class'\"",
     "line": 3929,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 205,
     "rule": "reswords: \"'def'\"",
     "line": 3929,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 206,
     "rule": "reswords: \"'defined?'\"",
     "line": 3930,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 207,
     "rule": "reswords: \"'do'\"",
     "line": 3930,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 208,
     "rule": "reswords: \"'else'\"",
     "line": 3930,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 209,
     "rule": "reswords: \"'elsif'\"",
     "line": 3930,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 210,
     "rule": "reswords: \"'end'\"",
     "line": 3931,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 211,
     "rule": "reswords: \"'ensure'\"",
     "line": 3931,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 212,
     "rule": "reswords: \"'false'\"",
     "line": 3931,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 213,
     "rule": "reswords: \"'for'\"",
     "line": 3932,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 214,
     "rule": "reswords: \"'in'\"",
     "line": 3932,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 215,
     "rule": "reswords: \"'module'\"",
     "line": 3932,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 216,
     "rule": "reswords: \"'next'\"",
     "line": 3932,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 217,
     "rule": "reswords: \"'nil'\"",
     "line": 3933,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 218,
     "rule": "reswords: \"'not'\"",
     "line": 3933,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 219,
     "rule": "reswords: \"'or'\"",
     "line": 3933,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 220,
     "rule": "reswords: \"'redo'\"",
     "line": 3933,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 221,
     "rule": "reswords: \"'rescue'\"",
     "line": 3934,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 222,
     "rule": "reswords: \"'retry'\"",
     "line": 3934,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 223,
     "rule": "reswords: \"'return'\"",
     "line": 3934,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 224,
     "rule": "reswords: \"'self'\"",
     "line": 3934,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 225,
     "rule": "reswords: \"'super'\"",
     "line": 3935,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 226,
     "rule": "reswords: \"'then'\"",
     "line": 3935,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 227,
     "rule": "reswords: \"'true'\"",
     "line": 3935,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 228,
     "rule": "reswords: \"'undef'\"",
     "line": 3935,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 229,
     "rule": "reswords: \"'when'\"",
     "line": 3936,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 230,
     "rule": "reswords: \"'yield'\"",
     "line": 3936,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 231,
     "rule": "reswords: \"'if'\"",
     "line": 3936,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 232,
     "rule": "reswords: \"'unless'\"",
     "line": 3936,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 233,
     "rule": "reswords: \"'while'\"",
     "line": 3937,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 234,
     "rule": "reswords: \"'until'\"",
     "line": 3937,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 235,
