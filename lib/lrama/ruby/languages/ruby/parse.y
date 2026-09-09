@@ -396,7 +396,7 @@ command: primary_value tCOLON2 operation2 command_args cmd_brace_block %prec tCO
 /* upstream parse.y:3632: command: primary_value "::" "constant" '{' brace_body '}' */
 command: primary_value tCOLON2 tCONSTANT '{' brace_body '}' %prec '}' { $$ = @builder.unsupported(105) };
 /* upstream parse.y:3638: command: "'super'" command_args */
-command: keyword_super command_args %prec keyword_super { $$ = @builder.unsupported(106) };
+command: keyword_super command_args %prec keyword_super { $$ = @builder.call(:super, $2 || []) };
 /* upstream parse.y:3644: command: k_yield command_args */
 command: k_yield command_args { $$ = @builder.call(:yield, $2 || []) };
 /* upstream parse.y:3650: command: k_return call_args */

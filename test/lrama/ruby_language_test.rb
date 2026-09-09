@@ -217,6 +217,10 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Call.new(:yield, [literal(1)])]), parse([:keyword_yield, nil], [:tINTEGER, 1]))
   end
 
+  test "super with an argument preserves the argument" do
+    assert_equal(AST::Program.new([AST::Call.new(:super, [literal(1)])]), parse([:keyword_super, nil], [:tINTEGER, 1]))
+  end
+
   test "return with a value becomes a call node" do
     assert_equal(AST::Program.new([AST::Call.new(:return, [literal(1)])]), parse([:keyword_return, nil], [:tINTEGER, 1]))
   end

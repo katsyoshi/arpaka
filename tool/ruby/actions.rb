@@ -20,6 +20,7 @@ module RubyGrammarActions
     71 => ["ported", "@builder.binary(:or, $1, $3)"],
     108 => ["ported", "@builder.call(:return, $2 || [])"],
     107 => ["ported", "@builder.call(:yield, $2 || [])"],
+    106 => ["ported", "@builder.call(:super, $2 || [])"],
     33 => ["ported", "@builder.if_node($3, [$1], nil)"],
     34 => ["ported", "@builder.unless_node($3, [$1], nil)"],
     35 => ["ported", "@builder.loop(:while, $3, [$1])"],

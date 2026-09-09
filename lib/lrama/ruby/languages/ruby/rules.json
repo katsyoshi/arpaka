@@ -633,7 +633,7 @@
     "id": 106,
     "rule": "command: \"'super'\" command_args",
     "line": 3638,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 107,
