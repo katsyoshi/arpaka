@@ -969,7 +969,7 @@
     "id": 162,
     "rule": "$@12: %empty",
     "line": 3886,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 163,
@@ -981,31 +981,31 @@
     "id": 164,
     "rule": "op: '|'",
     "line": 3894,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 165,
     "rule": "op: '^'",
     "line": 3895,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 166,
     "rule": "op: '&'",
     "line": 3896,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 167,
     "rule": "op: \"<=>\"",
     "line": 3897,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 168,
     "rule": "op: \"==\"",
     "line": 3898,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 169,

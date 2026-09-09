@@ -508,19 +508,19 @@ fitem: symbol { $$ = $1 };
 /* upstream parse.y:3882: undef_list: fitem */
 undef_list: fitem { $$ = $1 };
 /* upstream parse.y:3886: $@12: %empty */
-midrule_12: %empty { $$ = @builder.unsupported(162) };
+midrule_12: %empty { $$ = nil };
 /* upstream parse.y:3887: undef_list: undef_list ',' $@12 fitem */
 undef_list: undef_list ',' midrule_12 fitem %prec ',' { $$ = @builder.unsupported(163) };
 /* upstream parse.y:3894: op: '|' */
-op: '|' %prec '|' { $$ = @builder.unsupported(164) };
+op: '|' %prec '|' { $$ = @builder.operator("|") };
 /* upstream parse.y:3895: op: '^' */
-op: '^' %prec '^' { $$ = @builder.unsupported(165) };
+op: '^' %prec '^' { $$ = @builder.operator("^") };
 /* upstream parse.y:3896: op: '&' */
-op: '&' %prec '&' { $$ = @builder.unsupported(166) };
+op: '&' %prec '&' { $$ = @builder.operator("&") };
 /* upstream parse.y:3897: op: "<=>" */
-op: tCMP %prec tCMP { $$ = @builder.unsupported(167) };
+op: tCMP %prec tCMP { $$ = @builder.operator("<=>") };
 /* upstream parse.y:3898: op: "==" */
-op: tEQ %prec tEQ { $$ = @builder.unsupported(168) };
+op: tEQ %prec tEQ { $$ = @builder.operator("==") };
 /* upstream parse.y:3899: op: "===" */
 op: tEQQ %prec tEQQ { $$ = @builder.unsupported(169) };
 /* upstream parse.y:3900: op: "=~" */
