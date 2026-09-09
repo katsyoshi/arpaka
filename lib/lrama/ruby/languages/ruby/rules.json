@@ -63,7 +63,7 @@
     "id": 11,
     "rule": "block_open: '{'",
     "line": 3231,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 12,
@@ -81,13 +81,13 @@
     "id": 14,
     "rule": "$@2: %empty",
     "line": 3247,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 15,
     "rule": "$@3: %empty",
     "line": 3252,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 16,
@@ -135,7 +135,7 @@
     "id": 23,
     "rule": "$@5: %empty",
     "line": 3292,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 24,
@@ -159,7 +159,7 @@
     "id": 27,
     "rule": "$@6: %empty",
     "line": 3313,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 28,
@@ -231,7 +231,7 @@
     "id": 39,
     "rule": "stmt: command_asgn",
     "line": 3402,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 40,
@@ -249,7 +249,7 @@
     "id": 42,
     "rule": "stmt: asgn_mrhs",
     "line": 3408,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 43,

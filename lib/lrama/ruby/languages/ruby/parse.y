@@ -206,15 +206,15 @@ top_stmt: stmt { $$ = $1 };
 /* upstream parse.y:3225: top_stmt: "'BEGIN'" begin_block */
 top_stmt: keyword_BEGIN begin_block %prec keyword_BEGIN { $$ = @builder.unsupported(10) };
 /* upstream parse.y:3231: block_open: '{' */
-block_open: '{' %prec '{' { $$ = @builder.unsupported(11) };
+block_open: '{' %prec '{' { $$ = nil };
 /* upstream parse.y:3234: begin_block: block_open compstmt_top_stmts '}' */
 begin_block: block_open compstmt_top_stmts '}' %prec '}' { $$ = @builder.unsupported(12) };
 /* upstream parse.y:2991: compstmt_stmts: stmts option_terms */
 compstmt_stmts: stmts option_terms { $$ = $1 };
 /* upstream parse.y:3247: $@2: %empty */
-midrule_2: %empty { $$ = @builder.unsupported(14) };
+midrule_2: %empty { $$ = nil };
 /* upstream parse.y:3252: $@3: %empty */
-midrule_3: %empty { $$ = @builder.unsupported(15) };
+midrule_3: %empty { $$ = nil };
 /* upstream parse.y:3256: bodystmt: compstmt_stmts lex_ctxt opt_rescue k_else $@2 compstmt_stmts $@3 opt_ensure */
 bodystmt: compstmt_stmts lex_ctxt opt_rescue k_else midrule_2 compstmt_stmts midrule_3 opt_ensure { $$ = @builder.unsupported(16) };
 /* upstream parse.y:3263: $@4: %empty */
@@ -230,7 +230,7 @@ stmts: stmts terms stmt_or_begin { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:3290: stmt_or_begin: stmt */
 stmt_or_begin: stmt { $$ = $1 };
 /* upstream parse.y:3292: $@5: %empty */
-midrule_5: %empty { $$ = @builder.unsupported(23) };
+midrule_5: %empty { $$ = nil };
 /* upstream parse.y:3296: stmt_or_begin: "'BEGIN'" $@5 begin_block */
 stmt_or_begin: keyword_BEGIN midrule_5 begin_block %prec keyword_BEGIN { $$ = @builder.unsupported(24) };
 /* upstream parse.y:3301: allow_exits: %empty */
@@ -238,7 +238,7 @@ allow_exits: %empty { $$ = nil };
 /* upstream parse.y:3304: k_END: "'END'" lex_ctxt */
 k_END: keyword_END lex_ctxt %prec keyword_END { $$ = @builder.unsupported(26) };
 /* upstream parse.y:3313: $@6: %empty */
-midrule_6: %empty { $$ = @builder.unsupported(27) };
+midrule_6: %empty { $$ = nil };
 /* upstream parse.y:3314: stmt: "'alias'" fitem $@6 fitem */
 stmt: keyword_alias fitem midrule_6 fitem %prec keyword_alias { $$ = @builder.unsupported(28) };
 /* upstream parse.y:3319: stmt: "'alias'" "global variable" "global variable" */
@@ -262,13 +262,13 @@ stmt: stmt modifier_rescue after_rescue stmt %prec modifier_rescue { $$ = @build
 /* upstream parse.y:3391: stmt: k_END block_open compstmt_stmts '}' */
 stmt: k_END block_open compstmt_stmts '}' %prec '}' { $$ = @builder.unsupported(38) };
 /* upstream parse.y:3402: stmt: command_asgn */
-stmt: command_asgn { $$ = @builder.unsupported(39) };
+stmt: command_asgn { $$ = $1 };
 /* upstream parse.y:3404: stmt: mlhs '=' lex_ctxt command_call_value */
 stmt: mlhs '=' lex_ctxt command_call_value %prec '=' { $$ = @builder.unsupported(40) };
 /* upstream parse.y:2926: asgn_mrhs: lhs '=' lex_ctxt mrhs */
 asgn_mrhs: lhs '=' lex_ctxt mrhs %prec '=' { $$ = @builder.unsupported(41) };
 /* upstream parse.y:3408: stmt: asgn_mrhs */
-stmt: asgn_mrhs { $$ = @builder.unsupported(42) };
+stmt: asgn_mrhs { $$ = $1 };
 /* upstream parse.y:3411: stmt: mlhs '=' lex_ctxt mrhs_arg "'rescue' modifier" after_rescue stmt */
 stmt: mlhs '=' lex_ctxt mrhs_arg modifier_rescue after_rescue stmt %prec modifier_rescue { $$ = @builder.unsupported(43) };
 /* upstream parse.y:3421: stmt: mlhs '=' lex_ctxt mrhs_arg */
