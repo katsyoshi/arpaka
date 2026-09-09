@@ -121,6 +121,11 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse([:tREGEXP_BEG, nil], [:tSTRING_CONTENT, "text"], [:tREGEXP_END, nil]))
   end
 
+  test "simple xstring literals preserve their content" do
+    expected = AST::XStringLiteral.new("echo")
+    assert_equal(AST::Program.new([expected]), parse([:tXSTRING_BEG, nil], [:tSTRING_CONTENT, "echo"], [:tSTRING_END, nil]))
+  end
+
   test "simple symbol literals preserve their symbol value" do
     assert_equal(AST::Program.new([literal(:foo)]), parse([:tSYMBEG, nil], [:tIDENTIFIER, :foo]))
   end

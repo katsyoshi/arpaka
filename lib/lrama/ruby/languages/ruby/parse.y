@@ -866,7 +866,7 @@ primary: literal { $$ = $1 };
 /* upstream parse.y:4383: primary: strings */
 primary: strings { $$ = $1 };
 /* upstream parse.y:4383: primary: xstring */
-primary: xstring { $$ = @builder.unsupported(341) };
+primary: xstring { $$ = $1 };
 /* upstream parse.y:4383: primary: regexp */
 primary: regexp { $$ = $1 };
 /* upstream parse.y:4383: primary: words */
@@ -1472,7 +1472,7 @@ string: string string1 { $$ = @builder.concat_strings($1, $2) };
 /* upstream parse.y:5886: string1: "string literal" string_contents "terminator" */
 string1: tSTRING_BEG string_contents tSTRING_END %prec tSTRING_END { $$ = @builder.string(@builder.join_strings($2)) };
 /* upstream parse.y:5899: xstring: "backtick literal" xstring_contents "terminator" */
-xstring: tXSTRING_BEG xstring_contents tSTRING_END %prec tSTRING_END { $$ = @builder.unsupported(644) };
+xstring: tXSTRING_BEG xstring_contents tSTRING_END %prec tSTRING_END { $$ = @builder.xstring(@builder.join_strings($2)) };
 /* upstream parse.y:5911: regexp: "regexp literal" regexp_contents tREGEXP_END */
 regexp: tREGEXP_BEG regexp_contents tREGEXP_END %prec tREGEXP_END { $$ = @builder.regexp(@builder.join_strings($2)) };
 /* upstream parse.y:5917: nonempty_list_' ': ' ' */
@@ -1520,9 +1520,9 @@ string_contents: %empty { $$ = [] };
 /* upstream parse.y:5992: string_contents: string_contents string_content */
 string_contents: string_contents string_content { $$ = ($1 + [$2]).freeze };
 /* upstream parse.y:5999: xstring_contents: %empty */
-xstring_contents: %empty { $$ = @builder.unsupported(668) };
+xstring_contents: %empty { $$ = [] };
 /* upstream parse.y:6004: xstring_contents: xstring_contents string_content */
-xstring_contents: xstring_contents string_content { $$ = @builder.unsupported(669) };
+xstring_contents: xstring_contents string_content { $$ = ($1 + [$2]).freeze };
 /* upstream parse.y:6011: regexp_contents: %empty */
 regexp_contents: %empty { $$ = [] };
 /* upstream parse.y:6016: regexp_contents: regexp_contents string_content */

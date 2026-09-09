@@ -26,6 +26,7 @@ module Lrama
           Variable = Data.define(:kind, :name)
           Rescue = Data.define(:expression, :fallback)
           RegexpLiteral = Data.define(:value)
+          XStringLiteral = Data.define(:value)
           When = Data.define(:patterns, :body)
           Case = Data.define(:expression, :whens, :else_body)
         end

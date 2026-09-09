@@ -2043,7 +2043,7 @@
     "id": 341,
     "rule": "primary: xstring",
     "line": 4383,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 342,
@@ -3861,7 +3861,7 @@
     "id": 644,
     "rule": "xstring: \"backtick literal\" xstring_contents \"terminator\"",
     "line": 5899,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 645,
@@ -4005,13 +4005,13 @@
     "id": 668,
     "rule": "xstring_contents: %empty",
     "line": 5999,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 669,
     "rule": "xstring_contents: xstring_contents string_content",
     "line": 6004,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 670,

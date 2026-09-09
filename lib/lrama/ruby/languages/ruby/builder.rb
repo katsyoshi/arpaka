@@ -61,6 +61,10 @@ module Lrama
             AST::RegexpLiteral.new(value.to_s)
           end
 
+          def xstring(value)
+            AST::XStringLiteral.new(value.to_s)
+          end
+
           def symbol(value)
             AST::Literal.new(value.to_sym)
           end
