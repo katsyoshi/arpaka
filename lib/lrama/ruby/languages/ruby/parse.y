@@ -538,21 +538,21 @@ op: tLEQ %prec tLEQ { $$ = @builder.operator("<=") };
 /* upstream parse.y:3906: op: "!=" */
 op: tNEQ %prec tNEQ { $$ = @builder.operator("!=") };
 /* upstream parse.y:3907: op: "<<" */
-op: tLSHFT %prec tLSHFT { $$ = @builder.unsupported(177) };
+op: tLSHFT %prec tLSHFT { $$ = @builder.operator("<<") };
 /* upstream parse.y:3908: op: ">>" */
-op: tRSHFT %prec tRSHFT { $$ = @builder.unsupported(178) };
+op: tRSHFT %prec tRSHFT { $$ = @builder.operator(">>") };
 /* upstream parse.y:3909: op: '+' */
-op: '+' %prec '+' { $$ = @builder.unsupported(179) };
+op: '+' %prec '+' { $$ = @builder.operator("+") };
 /* upstream parse.y:3910: op: '-' */
-op: '-' %prec '-' { $$ = @builder.unsupported(180) };
+op: '-' %prec '-' { $$ = @builder.operator("-") };
 /* upstream parse.y:3911: op: '*' */
-op: '*' %prec '*' { $$ = @builder.unsupported(181) };
+op: '*' %prec '*' { $$ = @builder.operator("*") };
 /* upstream parse.y:3912: op: "*" */
-op: tSTAR %prec tSTAR { $$ = @builder.unsupported(182) };
+op: tSTAR %prec tSTAR { $$ = @builder.operator("*") };
 /* upstream parse.y:3913: op: '/' */
-op: '/' %prec '/' { $$ = @builder.unsupported(183) };
+op: '/' %prec '/' { $$ = @builder.operator("/") };
 /* upstream parse.y:3914: op: '%' */
-op: '%' %prec '%' { $$ = @builder.unsupported(184) };
+op: '%' %prec '%' { $$ = @builder.operator("%") };
 /* upstream parse.y:3915: op: "**" */
 op: tPOW %prec tPOW { $$ = @builder.unsupported(185) };
 /* upstream parse.y:3916: op: "**arg" */

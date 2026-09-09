@@ -1059,49 +1059,49 @@
     "id": 177,
     "rule": "op: \"<<\"",
     "line": 3907,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 178,
     "rule": "op: \">>\"",
     "line": 3908,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 179,
     "rule": "op: '+'",
     "line": 3909,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 180,
     "rule": "op: '-'",
     "line": 3910,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 181,
     "rule": "op: '*'",
     "line": 3911,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 182,
     "rule": "op: \"*\"",
     "line": 3912,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 183,
     "rule": "op: '/'",
     "line": 3913,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 184,
     "rule": "op: '%'",
     "line": 3914,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 185,
