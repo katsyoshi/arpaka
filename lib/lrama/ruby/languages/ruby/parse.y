@@ -876,7 +876,7 @@ primary: qwords { $$ = @builder.word_array($1, symbols: true) };
 /* upstream parse.y:4383: primary: symbols */
 primary: symbols { $$ = $1 };
 /* upstream parse.y:4383: primary: qsymbols */
-primary: qsymbols { $$ = @builder.unsupported(346) };
+primary: qsymbols { $$ = $1 };
 /* upstream parse.y:4384: primary: var_ref */
 primary: var_ref { $$ = $1 };
 /* upstream parse.y:4385: primary: backref */
@@ -1418,9 +1418,9 @@ p_primitive: words { $$ = @builder.unsupported(615) };
 /* upstream parse.y:5746: p_primitive: qwords */
 p_primitive: qwords { $$ = @builder.unsupported(616) };
 /* upstream parse.y:5746: p_primitive: symbols */
-p_primitive: symbols { $$ = @builder.unsupported(617) };
+p_primitive: symbols { $$ = $1 };
 /* upstream parse.y:5746: p_primitive: qsymbols */
-p_primitive: qsymbols { $$ = @builder.unsupported(618) };
+p_primitive: qsymbols { $$ = $1 };
 /* upstream parse.y:5748: p_primitive: keyword_variable */
 p_primitive: keyword_variable { $$ = @builder.unsupported(619) };
 /* upstream parse.y:5752: p_primitive: lambda */

@@ -2073,7 +2073,7 @@
     "id": 346,
     "rule": "primary: qsymbols",
     "line": 4383,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 347,
@@ -3699,13 +3699,13 @@
     "id": 617,
     "rule": "p_primitive: symbols",
     "line": 5746,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 618,
     "rule": "p_primitive: qsymbols",
     "line": 5746,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 619,
