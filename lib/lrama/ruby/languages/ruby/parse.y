@@ -328,7 +328,7 @@ expr: expr keyword_and expr %prec keyword_and { $$ = @builder.binary(:and, $1, $
 /* upstream parse.y:3470: expr: expr "'or'" expr */
 expr: expr keyword_or expr %prec keyword_or { $$ = @builder.binary(:or, $1, $3) };
 /* upstream parse.y:3475: expr: "'not'" option_'\n' expr */
-expr: keyword_not option_newline expr %prec keyword_not { $$ = @builder.unsupported(72) };
+expr: keyword_not option_newline expr %prec keyword_not { $$ = @builder.unary(:"!", $3) };
 /* upstream parse.y:3480: expr: '!' command_call */
 expr: '!' command_call %prec '!' { $$ = @builder.unsupported(73) };
 /* upstream parse.y:3485: $@7: %empty */
@@ -758,7 +758,7 @@ endless_arg: arg %prec modifier_rescue { $$ = @builder.unsupported(285) };
 /* upstream parse.y:4087: endless_arg: endless_arg "'rescue' modifier" after_rescue arg */
 endless_arg: endless_arg modifier_rescue after_rescue arg %prec modifier_rescue { $$ = @builder.unsupported(286) };
 /* upstream parse.y:4093: endless_arg: "'not'" option_'\n' endless_arg */
-endless_arg: keyword_not option_newline endless_arg %prec keyword_not { $$ = @builder.unsupported(287) };
+endless_arg: keyword_not option_newline endless_arg %prec keyword_not { $$ = @builder.unary(:"!", $3) };
 /* upstream parse.y:4099: relop: '>' */
 relop: '>' %prec '>' { $$ = @builder.operator(">") };
 /* upstream parse.y:4100: relop: '<' */

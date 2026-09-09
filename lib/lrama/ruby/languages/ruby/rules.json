@@ -429,7 +429,7 @@
     "id": 72,
     "rule": "expr: \"'not'\" option_'\\n' expr",
     "line": 3475,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 73,
@@ -1719,7 +1719,7 @@
     "id": 287,
     "rule": "endless_arg: \"'not'\" option_'\\n' endless_arg",
     "line": 4093,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 288,

@@ -209,6 +209,10 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse([:keyword_not, nil], ["(", nil], [:keyword_true, nil], [")", nil]))
   end
 
+  test "unparenthesized not becomes a logical negation" do
+    assert_equal(AST::Program.new([AST::Unary.new(:"!", literal(true))]), parse([:keyword_not, nil], [:keyword_true, nil]))
+  end
+
   test "keyword and and or build binary ASTs" do
     assert_equal(AST::Program.new([AST::Binary.new(:and, literal(true), literal(false))]), parse([:keyword_true, nil], [:keyword_and, nil], [:keyword_false, nil]))
     assert_equal(AST::Program.new([AST::Binary.new(:or, literal(true), literal(false))]), parse([:keyword_true, nil], [:keyword_or, nil], [:keyword_false, nil]))

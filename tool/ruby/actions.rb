@@ -17,6 +17,8 @@ module RubyGrammarActions
     63 => ["empty", "nil"], 64 => ["pass_through", "nil"],
     70 => ["ported", "@builder.binary(:and, $1, $3)"],
     69 => ["pass_through", "$1"],
+    72 => ["ported", "@builder.unary(:\"!\", $3)"],
+    287 => ["ported", "@builder.unary(:\"!\", $3)"],
     71 => ["ported", "@builder.binary(:or, $1, $3)"],
     108 => ["ported", "@builder.call(:return, $2 || [])"],
     107 => ["ported", "@builder.call(:yield, $2 || [])"],
