@@ -1406,17 +1406,17 @@ p_value: p_expr_ref { $$ = @builder.unsupported(609) };
 /* upstream parse.y:5743: p_value: p_const */
 p_value: p_const { $$ = @builder.unsupported(610) };
 /* upstream parse.y:5746: p_primitive: literal */
-p_primitive: literal { $$ = @builder.unsupported(611) };
+p_primitive: literal { $$ = $1 };
 /* upstream parse.y:5746: p_primitive: strings */
-p_primitive: strings { $$ = @builder.unsupported(612) };
+p_primitive: strings { $$ = $1 };
 /* upstream parse.y:5746: p_primitive: xstring */
-p_primitive: xstring { $$ = @builder.unsupported(613) };
+p_primitive: xstring { $$ = $1 };
 /* upstream parse.y:5746: p_primitive: regexp */
-p_primitive: regexp { $$ = @builder.unsupported(614) };
+p_primitive: regexp { $$ = $1 };
 /* upstream parse.y:5746: p_primitive: words */
-p_primitive: words { $$ = @builder.unsupported(615) };
+p_primitive: words { $$ = $1 };
 /* upstream parse.y:5746: p_primitive: qwords */
-p_primitive: qwords { $$ = @builder.unsupported(616) };
+p_primitive: qwords { $$ = $1 };
 /* upstream parse.y:5746: p_primitive: symbols */
 p_primitive: symbols { $$ = $1 };
 /* upstream parse.y:5746: p_primitive: qsymbols */

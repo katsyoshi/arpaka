@@ -3663,37 +3663,37 @@
     "id": 611,
     "rule": "p_primitive: literal",
     "line": 5746,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 612,
     "rule": "p_primitive: strings",
     "line": 5746,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 613,
     "rule": "p_primitive: xstring",
     "line": 5746,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 614,
     "rule": "p_primitive: regexp",
     "line": 5746,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 615,
     "rule": "p_primitive: words",
     "line": 5746,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 616,
     "rule": "p_primitive: qwords",
     "line": 5746,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 617,
