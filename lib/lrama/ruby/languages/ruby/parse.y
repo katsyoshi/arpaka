@@ -480,7 +480,7 @@ lhs: primary_value tCOLON2 tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported
 /* upstream parse.y:3824: lhs: ":: at EXPR_BEG" "constant" */
 lhs: tCOLON3 tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(147) };
 /* upstream parse.y:3829: lhs: backref */
-lhs: backref { $$ = @builder.unsupported(148) };
+lhs: backref { $$ = $1 };
 /* upstream parse.y:3837: cname: "local variable or method" */
 cname: tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:3844: cname: "constant" */
@@ -494,19 +494,19 @@ cpath: primary_value tCOLON2 cname %prec tCOLON2 { $$ = $2 };
 /* upstream parse.y:3864: fname: "local variable or method" */
 fname: tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:3864: fname: "constant" */
-fname: tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(155) };
+fname: tCONSTANT %prec tCONSTANT { $$ = $1 };
 /* upstream parse.y:3864: fname: "method" */
-fname: tFID %prec tFID { $$ = @builder.unsupported(156) };
+fname: tFID %prec tFID { $$ = $1 };
 /* upstream parse.y:3866: fname: op */
-fname: op { $$ = @builder.unsupported(157) };
+fname: op { $$ = $1 };
 /* upstream parse.y:3870: fname: reswords */
-fname: reswords { $$ = @builder.unsupported(158) };
+fname: reswords { $$ = $1 };
 /* upstream parse.y:3874: fitem: fname */
-fitem: fname { $$ = @builder.unsupported(159) };
+fitem: fname { $$ = $1 };
 /* upstream parse.y:3878: fitem: symbol */
-fitem: symbol { $$ = @builder.unsupported(160) };
+fitem: symbol { $$ = $1 };
 /* upstream parse.y:3882: undef_list: fitem */
-undef_list: fitem { $$ = @builder.unsupported(161) };
+undef_list: fitem { $$ = $1 };
 /* upstream parse.y:3886: $@12: %empty */
 midrule_12: %empty { $$ = @builder.unsupported(162) };
 /* upstream parse.y:3887: undef_list: undef_list ',' $@12 fitem */

@@ -885,7 +885,7 @@
     "id": 148,
     "rule": "lhs: backref",
     "line": 3829,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 149,
@@ -927,43 +927,43 @@
     "id": 155,
     "rule": "fname: \"constant\"",
     "line": 3864,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 156,
     "rule": "fname: \"method\"",
     "line": 3864,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 157,
     "rule": "fname: op",
     "line": 3866,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 158,
     "rule": "fname: reswords",
     "line": 3870,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 159,
     "rule": "fitem: fname",
     "line": 3874,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 160,
     "rule": "fitem: symbol",
     "line": 3878,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 161,
     "rule": "undef_list: fitem",
     "line": 3882,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 162,
