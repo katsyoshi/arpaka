@@ -639,7 +639,7 @@
     "id": 107,
     "rule": "command: k_yield command_args",
     "line": 3644,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 108,
@@ -1929,13 +1929,13 @@
     "id": 322,
     "rule": "$@13: %empty",
     "line": 4249,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 323,
     "rule": "command_args: $@13 call_args",
     "line": 4267,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 324,

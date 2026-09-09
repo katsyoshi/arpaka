@@ -213,6 +213,10 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Call.new(:defined, [literal(true)])]), parse([:keyword_defined, nil], [:keyword_true, nil]))
   end
 
+  test "yield with an argument preserves the argument" do
+    assert_equal(AST::Program.new([AST::Call.new(:yield, [literal(1)])]), parse([:keyword_yield, nil], [:tINTEGER, 1]))
+  end
+
   test "return with a value becomes a call node" do
     assert_equal(AST::Program.new([AST::Call.new(:return, [literal(1)])]), parse([:keyword_return, nil], [:tINTEGER, 1]))
   end

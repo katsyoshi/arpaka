@@ -398,7 +398,7 @@ command: primary_value tCOLON2 tCONSTANT '{' brace_body '}' %prec '}' { $$ = @bu
 /* upstream parse.y:3638: command: "'super'" command_args */
 command: keyword_super command_args %prec keyword_super { $$ = @builder.unsupported(106) };
 /* upstream parse.y:3644: command: k_yield command_args */
-command: k_yield command_args { $$ = @builder.unsupported(107) };
+command: k_yield command_args { $$ = @builder.call(:yield, $2 || []) };
 /* upstream parse.y:3650: command: k_return call_args */
 command: k_return call_args { $$ = @builder.call(:return, $2 || []) };
 /* upstream parse.y:3655: command: "'break'" call_args */
@@ -828,9 +828,9 @@ call_args: args ',' assocs opt_block_arg %prec ',' { $$ = @builder.unsupported(3
 /* upstream parse.y:4245: call_args: block_arg */
 call_args: block_arg { $$ = @builder.unsupported(321) };
 /* upstream parse.y:4249: $@13: %empty */
-midrule_13: %empty { $$ = @builder.unsupported(322) };
+midrule_13: %empty { $$ = nil };
 /* upstream parse.y:4267: command_args: $@13 call_args */
-command_args: midrule_13 call_args { $$ = @builder.unsupported(323) };
+command_args: midrule_13 call_args { $$ = $2 };
 /* upstream parse.y:4288: block_arg: "&" arg_value */
 block_arg: tAMPER arg_value %prec tAMPER { $$ = @builder.unsupported(324) };
 /* upstream parse.y:4293: block_arg: "&" */
