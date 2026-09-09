@@ -2211,7 +2211,7 @@
     "id": 369,
     "rule": "primary: lambda",
     "line": 4486,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 370,
@@ -2955,19 +2955,19 @@
     "id": 493,
     "rule": "@26: %empty",
     "line": 5086,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 494,
     "rule": "$@27: %empty",
     "line": 5092,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 495,
     "rule": "lambda: \"->\" @26 max_numparam numparam it_id allow_exits f_larglist $@27 lambda_body",
     "line": 5096,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 496,
@@ -2985,19 +2985,19 @@
     "id": 498,
     "rule": "lambda_body: tLAMBEG compstmt_stmts '}'",
     "line": 5136,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 499,
     "rule": "$@28: %empty",
     "line": 5142,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 500,
     "rule": "lambda_body: \"'do' for lambda\" $@28 bodystmt k_end",
     "line": 5146,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 501,
@@ -3717,7 +3717,7 @@
     "id": 620,
     "rule": "p_primitive: lambda",
     "line": 5752,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 621,

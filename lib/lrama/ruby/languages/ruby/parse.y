@@ -922,7 +922,7 @@ primary: method_call { $$ = $1 };
 /* upstream parse.y:4481: primary: method_call brace_block */
 primary: method_call brace_block { $$ = @builder.unsupported(368) };
 /* upstream parse.y:4486: primary: lambda */
-primary: lambda { $$ = @builder.unsupported(369) };
+primary: lambda { $$ = $1 };
 /* upstream parse.y:4491: primary: k_if expr_value then compstmt_stmts if_tail k_end */
 primary: k_if expr_value then compstmt_stmts if_tail k_end { $$ = @builder.if_node($2, $4, $5) };
 /* upstream parse.y:4503: primary: k_unless expr_value then compstmt_stmts opt_else k_end */
@@ -1170,21 +1170,21 @@ numparam: %empty { $$ = @builder.unsupported(491) };
 /* upstream parse.y:5079: it_id: %empty */
 it_id: %empty { $$ = @builder.unsupported(492) };
 /* upstream parse.y:5086: @26: %empty */
-midrule_26: %empty { $$ = @builder.unsupported(493) };
+midrule_26: %empty { $$ = nil };
 /* upstream parse.y:5092: $@27: %empty */
-midrule_27: %empty { $$ = @builder.unsupported(494) };
+midrule_27: %empty { $$ = nil };
 /* upstream parse.y:5096: lambda: "->" @26 max_numparam numparam it_id allow_exits f_larglist $@27 lambda_body */
-lambda: tLAMBDA midrule_26 max_numparam numparam it_id allow_exits f_larglist midrule_27 lambda_body %prec tLAMBDA { $$ = @builder.unsupported(495) };
+lambda: tLAMBDA midrule_26 max_numparam numparam it_id allow_exits f_larglist midrule_27 lambda_body %prec tLAMBDA { $$ = @builder.lambda_node($7, $8) };
 /* upstream parse.y:5120: f_larglist: '(' f_largs opt_bv_decl ')' */
 f_larglist: '(' f_largs opt_bv_decl ')' %prec ')' { $$ = $2 };
 /* upstream parse.y:5127: f_larglist: f_largs */
 f_larglist: f_largs { $$ = @builder.unsupported(497) };
 /* upstream parse.y:5136: lambda_body: tLAMBEG compstmt_stmts '}' */
-lambda_body: tLAMBEG compstmt_stmts '}' %prec '}' { $$ = @builder.unsupported(498) };
+lambda_body: tLAMBEG compstmt_stmts '}' %prec '}' { $$ = $2 };
 /* upstream parse.y:5142: $@28: %empty */
-midrule_28: %empty { $$ = @builder.unsupported(499) };
+midrule_28: %empty { $$ = nil };
 /* upstream parse.y:5146: lambda_body: "'do' for lambda" $@28 bodystmt k_end */
-lambda_body: keyword_do_LAMBDA midrule_28 bodystmt k_end %prec keyword_do_LAMBDA { $$ = @builder.unsupported(500) };
+lambda_body: keyword_do_LAMBDA midrule_28 bodystmt k_end %prec keyword_do_LAMBDA { $$ = $3 };
 /* upstream parse.y:5153: do_block: k_do_block do_body k_end */
 do_block: k_do_block do_body k_end { $$ = @builder.unsupported(501) };
 /* upstream parse.y:5161: block_call: command do_block */
@@ -1424,7 +1424,7 @@ p_primitive: qsymbols { $$ = $1 };
 /* upstream parse.y:5748: p_primitive: keyword_variable */
 p_primitive: keyword_variable { $$ = @builder.unsupported(619) };
 /* upstream parse.y:5752: p_primitive: lambda */
-p_primitive: lambda { $$ = @builder.unsupported(620) };
+p_primitive: lambda { $$ = $1 };
 /* upstream parse.y:5756: p_variable: "local variable or method" */
 p_variable: tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(621) };
 /* upstream parse.y:5764: p_var_ref: '^' "local variable or method" */

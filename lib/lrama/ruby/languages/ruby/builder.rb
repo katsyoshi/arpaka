@@ -146,6 +146,10 @@ module Lrama
             [when_node] + (rest.nil? ? [] : case_clauses(rest))
           end
 
+          def lambda_node(arguments, body)
+            AST::Lambda.new((arguments || []).freeze, body_nodes(body))
+          end
+
           def unary(operator, operand)
             AST::Unary.new(operator, operand)
           end

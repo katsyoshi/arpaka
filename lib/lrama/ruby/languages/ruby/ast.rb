@@ -33,6 +33,7 @@ module Lrama
           ModuleDef = Data.define(:name, :body)
           When = Data.define(:patterns, :body)
           Case = Data.define(:expression, :whens, :else_body)
+          Lambda = Data.define(:arguments, :body)
         end
       end
     end
