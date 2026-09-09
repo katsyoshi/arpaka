@@ -2049,7 +2049,7 @@
     "id": 342,
     "rule": "primary: regexp",
     "line": 4383,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 343,
@@ -3867,7 +3867,7 @@
     "id": 645,
     "rule": "regexp: \"regexp literal\" regexp_contents tREGEXP_END",
     "line": 5911,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 646,
@@ -4017,13 +4017,13 @@
     "id": 670,
     "rule": "regexp_contents: %empty",
     "line": 6011,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 671,
     "rule": "regexp_contents: regexp_contents string_content",
     "line": 6016,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 672,
