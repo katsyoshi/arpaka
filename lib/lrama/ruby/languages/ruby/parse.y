@@ -942,11 +942,11 @@ primary: k_case option_terms midrule_17 case_body k_end { $$ = @builder.case_nod
 /* upstream parse.y:4556: primary: k_case expr_value option_terms p_case_body k_end */
 primary: k_case expr_value option_terms p_case_body k_end { $$ = @builder.unsupported(378) };
 /* upstream parse.y:4561: $@18: %empty */
-midrule_18: %empty { $$ = @builder.unsupported(379) };
+midrule_18: %empty { $$ = nil };
 /* upstream parse.y:4561: $@19: %empty */
-midrule_19: %empty { $$ = @builder.unsupported(380) };
+midrule_19: %empty { $$ = nil };
 /* upstream parse.y:4564: primary: k_for for_var "'in'" $@18 expr_value do $@19 compstmt_stmts k_end */
-primary: k_for for_var keyword_in midrule_18 expr_value do midrule_19 compstmt_stmts k_end %prec keyword_in { $$ = @builder.unsupported(381) };
+primary: k_for for_var keyword_in midrule_18 expr_value do midrule_19 compstmt_stmts k_end %prec keyword_in { $$ = @builder.for_node($2, $5, $8) };
 /* upstream parse.y:4606: $@20: %empty */
 midrule_20: %empty { $$ = @builder.unsupported(382) };
 /* upstream parse.y:4611: primary: k_class cpath superclass $@20 bodystmt k_end */
@@ -992,7 +992,7 @@ k_until: keyword_until allow_exits %prec keyword_until { $$ = nil };
 /* upstream parse.y:4775: k_case: "'case'" */
 k_case: keyword_case %prec keyword_case { $$ = nil };
 /* upstream parse.y:4782: k_for: "'for'" allow_exits */
-k_for: keyword_for allow_exits %prec keyword_for { $$ = @builder.unsupported(404) };
+k_for: keyword_for allow_exits %prec keyword_for { $$ = nil };
 /* upstream parse.y:4790: k_class: "'class'" */
 k_class: keyword_class %prec keyword_class { $$ = @builder.unsupported(405) };
 /* upstream parse.y:4799: k_module: "'module'" */
@@ -1040,7 +1040,7 @@ opt_else: none { $$ = nil };
 /* upstream parse.y:4919: opt_else: k_else compstmt_stmts */
 opt_else: k_else compstmt_stmts { $$ = $2 };
 /* upstream parse.y:4925: for_var: lhs */
-for_var: lhs { $$ = @builder.unsupported(428) };
+for_var: lhs { $$ = $1 };
 /* upstream parse.y:4926: for_var: mlhs */
 for_var: mlhs { $$ = @builder.unsupported(429) };
 /* upstream parse.y:4930: f_marg: f_norm_arg */

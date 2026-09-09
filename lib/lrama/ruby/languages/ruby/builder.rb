@@ -65,6 +65,10 @@ module Lrama
             AST::XStringLiteral.new(value.to_s)
           end
 
+          def for_node(variable, enumerable, body)
+            AST::For.new(variable, enumerable, body)
+          end
+
           def symbol(value)
             AST::Literal.new(value.to_sym)
           end

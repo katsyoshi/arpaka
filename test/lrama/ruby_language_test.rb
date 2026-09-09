@@ -126,6 +126,13 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse([:tXSTRING_BEG, nil], [:tSTRING_CONTENT, "echo"], [:tSTRING_END, nil]))
   end
 
+  test "simple for loops preserve variable, enumerable and body" do
+    variable = :i
+    enumerable = AST::ArrayLiteral.new([literal(1)])
+    expected = AST::For.new(variable, enumerable, [literal(2)])
+    assert_equal(AST::Program.new([expected]), parse([:keyword_for, nil], [:tIDENTIFIER, :i], [:keyword_in, nil], [:tLBRACK, nil], [:tINTEGER, 1], ["]", nil], [:keyword_do_cond, nil], [:tINTEGER, 2], [:keyword_end, nil]))
+  end
+
   test "simple symbol literals preserve their symbol value" do
     assert_equal(AST::Program.new([literal(:foo)]), parse([:tSYMBEG, nil], [:tIDENTIFIER, :foo]))
   end

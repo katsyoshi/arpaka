@@ -2271,19 +2271,19 @@
     "id": 379,
     "rule": "$@18: %empty",
     "line": 4561,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 380,
     "rule": "$@19: %empty",
     "line": 4561,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 381,
     "rule": "primary: k_for for_var \"'in'\" $@18 expr_value do $@19 compstmt_stmts k_end",
     "line": 4564,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 382,
@@ -2421,7 +2421,7 @@
     "id": 404,
     "rule": "k_for: \"'for'\" allow_exits",
     "line": 4782,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 405,
@@ -2565,7 +2565,7 @@
     "id": 428,
     "rule": "for_var: lhs",
     "line": 4925,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 429,
