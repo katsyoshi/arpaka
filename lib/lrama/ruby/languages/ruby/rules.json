@@ -2445,7 +2445,7 @@
     "id": 408,
     "rule": "k_do: \"'do'\"",
     "line": 4816,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 409,
@@ -2463,7 +2463,7 @@
     "id": 411,
     "rule": "k_ensure: \"'ensure'\"",
     "line": 4838,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 412,

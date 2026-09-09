@@ -1000,13 +1000,13 @@ k_module: keyword_module %prec keyword_module { $$ = nil };
 /* upstream parse.y:4808: k_def: "'def'" */
 k_def: keyword_def %prec keyword_def { $$ = nil };
 /* upstream parse.y:4816: k_do: "'do'" */
-k_do: keyword_do %prec keyword_do { $$ = @builder.unsupported(408) };
+k_do: keyword_do %prec keyword_do { $$ = nil };
 /* upstream parse.y:4823: k_do_block: "'do' for block" */
 k_do_block: keyword_do_block %prec keyword_do_block { $$ = @builder.unsupported(409) };
 /* upstream parse.y:4830: k_rescue: "'rescue'" */
 k_rescue: keyword_rescue %prec keyword_rescue { $$ = nil };
 /* upstream parse.y:4838: k_ensure: "'ensure'" */
-k_ensure: keyword_ensure %prec keyword_ensure { $$ = @builder.unsupported(411) };
+k_ensure: keyword_ensure %prec keyword_ensure { $$ = nil };
 /* upstream parse.y:4845: k_when: "'when'" */
 k_when: keyword_when %prec keyword_when { $$ = nil };
 /* upstream parse.y:4851: k_else: "'else'" */
