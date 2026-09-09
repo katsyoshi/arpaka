@@ -32,7 +32,7 @@ module Lrama
         end
 
         module AST
-          type node = Literal | Binary | Unary | If | LocalRead | LocalWrite | BareCall | ArrayLiteral | HashLiteral | RangeLiteral | Ternary | Call | StringLiteral | RegexpLiteral | XStringLiteral | Index | Loop | Control | Variable | Rescue | Case | When | For | Def
+          type node = Literal | Binary | Unary | If | LocalRead | LocalWrite | BareCall | ArrayLiteral | HashLiteral | RangeLiteral | Ternary | Call | StringLiteral | RegexpLiteral | XStringLiteral | Index | Loop | Control | Variable | Rescue | Case | When | For | Def | ClassDef | ModuleDef
           type hash_pair = Pair
 
           class Program < ::Data
@@ -163,6 +163,21 @@ module Lrama
             attr_reader body: Array[node]
             def self.new: (Symbol name, Array[untyped] arguments, Array[node] body) -> instance
                         | (name: Symbol, arguments: Array[untyped], body: Array[node]) -> instance
+          end
+
+          class ClassDef < ::Data
+            attr_reader name: Symbol
+            attr_reader superclass: node?
+            attr_reader body: Array[node]
+            def self.new: (Symbol name, node? superclass, Array[node] body) -> instance
+                        | (name: Symbol, superclass: node?, body: Array[node]) -> instance
+          end
+
+          class ModuleDef < ::Data
+            attr_reader name: Symbol
+            attr_reader body: Array[node]
+            def self.new: (Symbol name, Array[node] body) -> instance
+                        | (name: Symbol, body: Array[node]) -> instance
           end
 
           class Index < ::Data

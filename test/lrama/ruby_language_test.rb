@@ -117,6 +117,13 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse(*tokens))
   end
 
+  test "class and module definitions preserve name and body" do
+    class_tokens = [[:keyword_class, nil], [:tCONSTANT, :Foo], [";", nil], [:tINTEGER, 1], [";", nil], [:keyword_end, nil]]
+    module_tokens = [[:keyword_module, nil], [:tCONSTANT, :Bar], [";", nil], [:tINTEGER, 2], [";", nil], [:keyword_end, nil]]
+    assert_equal(AST::Program.new([AST::ClassDef.new(:Foo, nil, [literal(1)])]), parse(*class_tokens))
+    assert_equal(AST::Program.new([AST::ModuleDef.new(:Bar, [literal(2)])]), parse(*module_tokens))
+  end
+
   test "simple string literals preserve their content" do
     expected = AST::StringLiteral.new("text")
     assert_equal(AST::Program.new([expected]), parse([:tSTRING_BEG, nil], [:tSTRING_CONTENT, "text"], [:tSTRING_END, nil]))

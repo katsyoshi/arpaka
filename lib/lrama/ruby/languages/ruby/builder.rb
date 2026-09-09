@@ -73,6 +73,14 @@ module Lrama
             AST::Def.new(name.to_sym, (arguments || []).freeze, body || [].freeze)
           end
 
+          def class_node(name, superclass, body)
+            AST::ClassDef.new(name.to_sym, superclass, body_nodes(body))
+          end
+
+          def module_node(name, body)
+            AST::ModuleDef.new(name.to_sym, body_nodes(body))
+          end
+
           def body_nodes(body)
             value = body
             while value.is_a?(Array) && value.length == 1 && value.first.is_a?(Array)

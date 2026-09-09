@@ -29,6 +29,8 @@ module Lrama
           XStringLiteral = Data.define(:value)
           For = Data.define(:variable, :enumerable, :body)
           Def = Data.define(:name, :arguments, :body)
+          ClassDef = Data.define(:name, :superclass, :body)
+          ModuleDef = Data.define(:name, :body)
           When = Data.define(:patterns, :body)
           Case = Data.define(:expression, :whens, :else_body)
         end

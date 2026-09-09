@@ -482,15 +482,15 @@ lhs: tCOLON3 tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(147) };
 /* upstream parse.y:3829: lhs: backref */
 lhs: backref { $$ = @builder.unsupported(148) };
 /* upstream parse.y:3837: cname: "local variable or method" */
-cname: tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(149) };
+cname: tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:3844: cname: "constant" */
-cname: tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(150) };
+cname: tCONSTANT %prec tCONSTANT { $$ = $1 };
 /* upstream parse.y:3848: cpath: ":: at EXPR_BEG" cname */
-cpath: tCOLON3 cname %prec tCOLON3 { $$ = @builder.unsupported(151) };
+cpath: tCOLON3 cname %prec tCOLON3 { $$ = $2 };
 /* upstream parse.y:3853: cpath: cname */
-cpath: cname { $$ = @builder.unsupported(152) };
+cpath: cname { $$ = $1 };
 /* upstream parse.y:3858: cpath: primary_value "::" cname */
-cpath: primary_value tCOLON2 cname %prec tCOLON2 { $$ = @builder.unsupported(153) };
+cpath: primary_value tCOLON2 cname %prec tCOLON2 { $$ = $2 };
 /* upstream parse.y:3864: fname: "local variable or method" */
 fname: tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:3864: fname: "constant" */
@@ -948,17 +948,17 @@ midrule_19: %empty { $$ = nil };
 /* upstream parse.y:4564: primary: k_for for_var "'in'" $@18 expr_value do $@19 compstmt_stmts k_end */
 primary: k_for for_var keyword_in midrule_18 expr_value do midrule_19 compstmt_stmts k_end %prec keyword_in { $$ = @builder.for_node($2, $5, $8) };
 /* upstream parse.y:4606: $@20: %empty */
-midrule_20: %empty { $$ = @builder.unsupported(382) };
+midrule_20: %empty { $$ = nil };
 /* upstream parse.y:4611: primary: k_class cpath superclass $@20 bodystmt k_end */
-primary: k_class cpath superclass midrule_20 bodystmt k_end { $$ = @builder.unsupported(383) };
+primary: k_class cpath superclass midrule_20 bodystmt k_end { $$ = @builder.class_node($2, $3, $5) };
 /* upstream parse.y:4628: $@21: %empty */
-midrule_21: %empty { $$ = @builder.unsupported(384) };
+midrule_21: %empty { $$ = nil };
 /* upstream parse.y:4634: primary: k_class "<<" expr_value $@21 term bodystmt k_end */
 primary: k_class tLSHFT expr_value midrule_21 term bodystmt k_end %prec tLSHFT { $$ = @builder.unsupported(385) };
 /* upstream parse.y:4647: $@22: %empty */
-midrule_22: %empty { $$ = @builder.unsupported(386) };
+midrule_22: %empty { $$ = nil };
 /* upstream parse.y:4652: primary: k_module cpath $@22 bodystmt k_end */
-primary: k_module cpath midrule_22 bodystmt k_end { $$ = @builder.unsupported(387) };
+primary: k_module cpath midrule_22 bodystmt k_end { $$ = @builder.module_node($2, $4) };
 /* upstream parse.y:4665: $@23: %empty */
 midrule_23: %empty { $$ = nil };
 /* upstream parse.y:4670: primary: defn_head f_arglist $@23 bodystmt k_end */
@@ -994,9 +994,9 @@ k_case: keyword_case %prec keyword_case { $$ = nil };
 /* upstream parse.y:4782: k_for: "'for'" allow_exits */
 k_for: keyword_for allow_exits %prec keyword_for { $$ = nil };
 /* upstream parse.y:4790: k_class: "'class'" */
-k_class: keyword_class %prec keyword_class { $$ = @builder.unsupported(405) };
+k_class: keyword_class %prec keyword_class { $$ = nil };
 /* upstream parse.y:4799: k_module: "'module'" */
-k_module: keyword_module %prec keyword_module { $$ = @builder.unsupported(406) };
+k_module: keyword_module %prec keyword_module { $$ = nil };
 /* upstream parse.y:4808: k_def: "'def'" */
 k_def: keyword_def %prec keyword_def { $$ = nil };
 /* upstream parse.y:4816: k_do: "'do'" */
@@ -1616,9 +1616,9 @@ backref: tBACK_REF %prec tBACK_REF { $$ = @builder.variable(:backref, $1) };
 /* upstream parse.y:6200: $@39: %empty */
 midrule_39: %empty { $$ = @builder.unsupported(715) };
 /* upstream parse.y:6205: superclass: '<' $@39 expr_value term */
-superclass: '<' midrule_39 expr_value term %prec '<' { $$ = @builder.unsupported(716) };
+superclass: '<' midrule_39 expr_value term %prec '<' { $$ = $3 };
 /* upstream parse.y:6209: superclass: none */
-superclass: none { $$ = @builder.unsupported(717) };
+superclass: none { $$ = nil };
 /* upstream parse.y:6212: f_opt_paren_args: f_paren_args */
 f_opt_paren_args: f_paren_args { $$ = @builder.unsupported(718) };
 /* upstream parse.y:6214: f_opt_paren_args: f_empty_arg */

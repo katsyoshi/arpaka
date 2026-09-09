@@ -891,31 +891,31 @@
     "id": 149,
     "rule": "cname: \"local variable or method\"",
     "line": 3837,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 150,
     "rule": "cname: \"constant\"",
     "line": 3844,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 151,
     "rule": "cpath: \":: at EXPR_BEG\" cname",
     "line": 3848,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 152,
     "rule": "cpath: cname",
     "line": 3853,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 153,
     "rule": "cpath: primary_value \"::\" cname",
     "line": 3858,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 154,
@@ -2289,19 +2289,19 @@
     "id": 382,
     "rule": "$@20: %empty",
     "line": 4606,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 383,
     "rule": "primary: k_class cpath superclass $@20 bodystmt k_end",
     "line": 4611,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 384,
     "rule": "$@21: %empty",
     "line": 4628,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 385,
@@ -2313,13 +2313,13 @@
     "id": 386,
     "rule": "$@22: %empty",
     "line": 4647,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 387,
     "rule": "primary: k_module cpath $@22 bodystmt k_end",
     "line": 4652,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 388,
@@ -2427,13 +2427,13 @@
     "id": 405,
     "rule": "k_class: \"'class'\"",
     "line": 4790,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 406,
     "rule": "k_module: \"'module'\"",
     "line": 4799,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 407,
@@ -4293,13 +4293,13 @@
     "id": 716,
     "rule": "superclass: '<' $@39 expr_value term",
     "line": 6205,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 717,
     "rule": "superclass: none",
     "line": 6209,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 718,
