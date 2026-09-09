@@ -285,7 +285,7 @@
     "id": 48,
     "rule": "command_asgn: asgn_command_rhs",
     "line": 3433,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 49,
@@ -339,7 +339,7 @@
     "id": 57,
     "rule": "command_asgn: op_asgn_command_rhs",
     "line": 3434,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 58,
@@ -357,13 +357,13 @@
     "id": 60,
     "rule": "command_asgn: def_endless_method_endless_command",
     "line": 3435,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 61,
     "rule": "endless_command: command",
     "line": 3438,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 62,
@@ -393,7 +393,7 @@
     "id": 66,
     "rule": "command_rhs: command_call_value",
     "line": 3452,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 67,
@@ -405,7 +405,7 @@
     "id": 68,
     "rule": "command_rhs: command_asgn",
     "line": 3460,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 69,
@@ -441,7 +441,7 @@
     "id": 74,
     "rule": "$@7: %empty",
     "line": 3485,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 75,
