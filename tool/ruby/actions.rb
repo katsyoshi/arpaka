@@ -150,6 +150,7 @@ module RubyGrammarActions
     283 => ["pass_through", "$1"], 294 => ["empty", "nil"],
     297 => ["pass_through", "$1"], 303 => ["pass_through", "$1"],
     339 => ["pass_through", "$1"],
+    353 => ["ported", "@builder.parentheses($2, 353)"],
     354 => ["ported", "@builder.parentheses($2, 354)"],
     637 => ["pass_through", "$1"], 690 => ["pass_through", "$1"],
     691 => ["ported", "@builder.unary(:-, $2)"],

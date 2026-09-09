@@ -2115,7 +2115,7 @@
     "id": 353,
     "rule": "primary: \"( arg\" compstmt_stmts $@15 ')'",
     "line": 4405,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 354,

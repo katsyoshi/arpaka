@@ -890,7 +890,7 @@ primary: k_begin midrule_14 bodystmt k_end { $$ = @builder.unsupported(351) };
 /* upstream parse.y:4404: $@15: %empty */
 midrule_15: %empty { $$ = @builder.unsupported(352) };
 /* upstream parse.y:4405: primary: "( arg" compstmt_stmts $@15 ')' */
-primary: tLPAREN_ARG compstmt_stmts midrule_15 ')' %prec ')' { $$ = @builder.unsupported(353) };
+primary: tLPAREN_ARG compstmt_stmts midrule_15 ')' %prec ')' { $$ = @builder.parentheses($2, 353) };
 /* upstream parse.y:4411: primary: "(" compstmt_stmts ')' */
 primary: tLPAREN compstmt_stmts ')' %prec ')' { $$ = @builder.parentheses($2, 354) };
 /* upstream parse.y:4417: primary: primary_value "::" "constant" */
