@@ -382,7 +382,7 @@ fcall: tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(97) };
 /* upstream parse.y:3589: fcall: "method" */
 fcall: tFID %prec tFID { $$ = @builder.unsupported(98) };
 /* upstream parse.y:3596: command: fcall command_args */
-command: fcall command_args %prec tLOWEST { $$ = @builder.unsupported(99) };
+command: fcall command_args %prec tLOWEST { $$ = @builder.call($1, $2 || []) };
 /* upstream parse.y:3603: command: fcall command_args cmd_brace_block */
 command: fcall command_args cmd_brace_block { $$ = @builder.unsupported(100) };
 /* upstream parse.y:3612: command: primary_value call_op operation2 command_args */

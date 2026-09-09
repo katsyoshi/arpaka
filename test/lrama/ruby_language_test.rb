@@ -221,6 +221,10 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Call.new(:super, [literal(1)])]), parse([:keyword_super, nil], [:tINTEGER, 1]))
   end
 
+  test "command style method calls preserve their arguments" do
+    assert_equal(AST::Program.new([AST::Call.new(:f, [literal(1)])]), parse([:tIDENTIFIER, :f], [:tINTEGER, 1]))
+  end
+
   test "return with a value becomes a call node" do
     assert_equal(AST::Program.new([AST::Call.new(:return, [literal(1)])]), parse([:keyword_return, nil], [:tINTEGER, 1]))
   end
