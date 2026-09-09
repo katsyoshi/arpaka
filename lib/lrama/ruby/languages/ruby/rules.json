@@ -579,13 +579,13 @@
     "id": 97,
     "rule": "fcall: \"constant\"",
     "line": 3589,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 98,
     "rule": "fcall: \"method\"",
     "line": 3589,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 99,
@@ -663,7 +663,7 @@
     "id": 111,
     "rule": "mlhs: mlhs_basic",
     "line": 3670,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 112,
@@ -675,7 +675,7 @@
     "id": 113,
     "rule": "mlhs_inner: mlhs_basic",
     "line": 3678,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 114,
@@ -687,7 +687,7 @@
     "id": 115,
     "rule": "mlhs_basic: mlhs_head",
     "line": 3687,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 116,
@@ -705,7 +705,7 @@
     "id": 118,
     "rule": "mlhs_items_mlhs_item: mlhs_item",
     "line": 3048,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 119,

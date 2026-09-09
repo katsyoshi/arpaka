@@ -378,9 +378,9 @@ cmd_brace_block: tLBRACE_ARG brace_body '}' %prec '}' { $$ = @builder.unsupporte
 /* upstream parse.y:3589: fcall: "local variable or method" */
 fcall: tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:3589: fcall: "constant" */
-fcall: tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(97) };
+fcall: tCONSTANT %prec tCONSTANT { $$ = $1 };
 /* upstream parse.y:3589: fcall: "method" */
-fcall: tFID %prec tFID { $$ = @builder.unsupported(98) };
+fcall: tFID %prec tFID { $$ = $1 };
 /* upstream parse.y:3596: command: fcall command_args */
 command: fcall command_args %prec tLOWEST { $$ = @builder.call($1, $2 || []) };
 /* upstream parse.y:3603: command: fcall command_args cmd_brace_block */
@@ -406,21 +406,21 @@ command: keyword_break call_args %prec keyword_break { $$ = @builder.call(:break
 /* upstream parse.y:3662: command: "'next'" call_args */
 command: keyword_next call_args %prec keyword_next { $$ = @builder.call(:next, $2 || []) };
 /* upstream parse.y:3670: mlhs: mlhs_basic */
-mlhs: mlhs_basic { $$ = @builder.unsupported(111) };
+mlhs: mlhs_basic { $$ = $1 };
 /* upstream parse.y:3672: mlhs: "(" mlhs_inner rparen */
 mlhs: tLPAREN mlhs_inner rparen %prec tLPAREN { $$ = @builder.unsupported(112) };
 /* upstream parse.y:3678: mlhs_inner: mlhs_basic */
-mlhs_inner: mlhs_basic { $$ = @builder.unsupported(113) };
+mlhs_inner: mlhs_basic { $$ = $1 };
 /* upstream parse.y:3680: mlhs_inner: "(" mlhs_inner rparen */
 mlhs_inner: tLPAREN mlhs_inner rparen %prec tLPAREN { $$ = @builder.unsupported(114) };
 /* upstream parse.y:3687: mlhs_basic: mlhs_head */
-mlhs_basic: mlhs_head { $$ = @builder.unsupported(115) };
+mlhs_basic: mlhs_head { $$ = $1 };
 /* upstream parse.y:3692: mlhs_basic: mlhs_head mlhs_item */
 mlhs_basic: mlhs_head mlhs_item { $$ = @builder.unsupported(116) };
 /* upstream parse.y:3697: mlhs_basic: mlhs_head "*" mlhs_node */
 mlhs_basic: mlhs_head tSTAR mlhs_node %prec tSTAR { $$ = @builder.unsupported(117) };
 /* upstream parse.y:3048: mlhs_items_mlhs_item: mlhs_item */
-mlhs_items_mlhs_item: mlhs_item { $$ = @builder.unsupported(118) };
+mlhs_items_mlhs_item: mlhs_item { $$ = $1 };
 /* upstream parse.y:3053: mlhs_items_mlhs_item: mlhs_items_mlhs_item ',' mlhs_item */
 mlhs_items_mlhs_item: mlhs_items_mlhs_item ',' mlhs_item %prec ',' { $$ = @builder.unsupported(119) };
 /* upstream parse.y:3702: mlhs_basic: mlhs_head "*" mlhs_node ',' mlhs_items_mlhs_item */
