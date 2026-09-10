@@ -4371,7 +4371,7 @@
     "id": 729,
     "rule": "opt_f_block_arg_opt_comma: ',' f_block_arg",
     "line": 2957,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 730,

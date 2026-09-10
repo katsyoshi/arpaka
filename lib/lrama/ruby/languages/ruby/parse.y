@@ -1642,7 +1642,7 @@ f_kwarg_arg_value: f_kw_arg_value { $$ = $1 };
 /* upstream parse.y:3040: f_kwarg_arg_value: f_kwarg_arg_value ',' f_kw_arg_value */
 f_kwarg_arg_value: f_kwarg_arg_value ',' f_kw_arg_value %prec ',' { $$ = @builder.unsupported(728) };
 /* upstream parse.y:2957: opt_f_block_arg_opt_comma: ',' f_block_arg */
-opt_f_block_arg_opt_comma: ',' f_block_arg %prec ',' { $$ = @builder.unsupported(729) };
+opt_f_block_arg_opt_comma: ',' f_block_arg %prec ',' { $$ = $2 };
 /* upstream parse.y:6255: opt_f_block_arg_opt_comma: opt_comma */
 opt_f_block_arg_opt_comma: opt_comma { $$ = $1 };
 /* upstream parse.y:2934: args_tail_basic_arg_value_opt_comma: f_kwarg_arg_value ',' f_kwrest opt_f_block_arg_opt_comma */
