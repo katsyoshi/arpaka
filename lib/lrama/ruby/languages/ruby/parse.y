@@ -756,7 +756,7 @@ ternary: arg '?' arg option_newline ':' arg %prec ':' { $$ = @builder.ternary($1
 /* upstream parse.y:4085: endless_arg: arg */
 endless_arg: arg %prec modifier_rescue { $$ = $1 };
 /* upstream parse.y:4087: endless_arg: endless_arg "'rescue' modifier" after_rescue arg */
-endless_arg: endless_arg modifier_rescue after_rescue arg %prec modifier_rescue { $$ = @builder.unsupported(286) };
+endless_arg: endless_arg modifier_rescue after_rescue arg %prec modifier_rescue { $$ = @builder.rescue_modifier($1, $4) };
 /* upstream parse.y:4093: endless_arg: "'not'" option_'\n' endless_arg */
 endless_arg: keyword_not option_newline endless_arg %prec keyword_not { $$ = @builder.unary(:"!", $3) };
 /* upstream parse.y:4099: relop: '>' */
@@ -792,7 +792,7 @@ aref_args: assocs trailer { $$ = $1 };
 /* upstream parse.y:4156: arg_rhs: arg */
 arg_rhs: arg %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:4161: arg_rhs: arg "'rescue' modifier" after_rescue arg */
-arg_rhs: arg modifier_rescue after_rescue arg %prec modifier_rescue { $$ = @builder.unsupported(304) };
+arg_rhs: arg modifier_rescue after_rescue arg %prec modifier_rescue { $$ = @builder.rescue_modifier($1, $4) };
 /* upstream parse.y:4170: paren_args: '(' opt_call_args rparen */
 paren_args: '(' opt_call_args rparen %prec '(' { $$ = $2 };
 /* upstream parse.y:4175: paren_args: '(' args ',' args_forward rparen */

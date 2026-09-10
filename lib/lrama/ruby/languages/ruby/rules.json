@@ -1713,7 +1713,7 @@
     "id": 286,
     "rule": "endless_arg: endless_arg \"'rescue' modifier\" after_rescue arg",
     "line": 4087,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 287,
@@ -1821,7 +1821,7 @@
     "id": 304,
     "rule": "arg_rhs: arg \"'rescue' modifier\" after_rescue arg",
     "line": 4161,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 305,
