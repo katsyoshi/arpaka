@@ -795,7 +795,7 @@
     "id": 133,
     "rule": "mlhs_node: primary_value '[' opt_call_args rbracket",
     "line": 3765,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 134,

@@ -450,7 +450,7 @@ mlhs_node: user_variable { $$ = $1 };
 /* upstream parse.y:3760: mlhs_node: keyword_variable */
 mlhs_node: keyword_variable { $$ = $1 };
 /* upstream parse.y:3765: mlhs_node: primary_value '[' opt_call_args rbracket */
-mlhs_node: primary_value '[' opt_call_args rbracket %prec '[' { $$ = @builder.unsupported(133) };
+mlhs_node: primary_value '[' opt_call_args rbracket %prec '[' { $$ = @builder.index($1, $3 || []) };
 /* upstream parse.y:3770: mlhs_node: primary_value call_op "local variable or method" */
 mlhs_node: primary_value call_op tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(134) };
 /* upstream parse.y:3770: mlhs_node: primary_value call_op "constant" */
