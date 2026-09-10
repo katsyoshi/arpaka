@@ -819,7 +819,7 @@
     "id": 137,
     "rule": "mlhs_node: primary_value \"::\" \"constant\"",
     "line": 3781,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 138,
