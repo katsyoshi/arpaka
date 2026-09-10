@@ -603,7 +603,7 @@
     "id": 101,
     "rule": "command: primary_value call_op operation2 command_args",
     "line": 3612,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 102,
