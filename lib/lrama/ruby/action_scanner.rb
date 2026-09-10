@@ -118,7 +118,9 @@ module Lrama
               :bare
             end
           elsif char == "/" || char == "%" || @scanner.check(/<</)
-            if char == "%" && @scanner.check(/%[qQwWiIrsx]?[a-zA-Z0-9_]*[^a-zA-Z0-9_\\\s]/n)
+            if char == "%" && @scanner.check(/%[qQwWiIrsx]?[a-zA-Z0-9_]*[^a-zA-Z0-9_\\\s]/n) &&
+              (@scanner.peek(2).byteslice(1, 1).match?(/[qQwWiIrsx]/n) ||
+                !@scanner.peek(2).byteslice(1, 1).match?(/[a-zA-Z0-9_]/n))
               percent_literal(offset)
               state = :end
             elsif (state != :bare || spaced) &&
