@@ -277,7 +277,8 @@ module Lrama
         @scanner.getch
         kind = @scanner.scan(/[qQwWiIrsx]/) || "Q"
         delimiter = @scanner.getch
-        unless delimiter && /\A[!-~]\z/.match?(delimiter) && !/[a-zA-Z0-9\\]/.match?(delimiter)
+        unless delimiter && delimiter.bytesize == 1 &&
+          !delimiter.match?(/[a-zA-Z0-9\\\r\n]/n)
           fail_at("Unsupported percent literal delimiter", offset)
         end
         literal(LITERAL_PAIRS.fetch(delimiter, delimiter), open: LITERAL_PAIRS.key?(delimiter) ? delimiter : nil,
