@@ -2187,7 +2187,7 @@
     "id": 365,
     "rule": "primary: \"'not'\" '(' rparen",
     "line": 4470,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 366,

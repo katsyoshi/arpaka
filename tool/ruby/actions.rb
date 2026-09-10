@@ -204,6 +204,7 @@ module RubyGrammarActions
     137 => ["ported", "@builder.variable(:constant, $3)"],
     146 => ["ported", "@builder.variable(:constant, $3)"],
     355 => ["ported", "@builder.variable(:constant, $3)"],
+    365 => ["ported", "@builder.reserved_word(\"not\")"],
     147 => ["ported", "@builder.variable(:constant, $2)"],
     286 => ["ported", "@builder.rescue_modifier($1, $4)"],
     112 => ["pass_through", "$2"],
