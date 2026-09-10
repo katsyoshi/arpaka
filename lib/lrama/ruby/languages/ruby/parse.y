@@ -1770,31 +1770,31 @@ f_norm_arg: f_bad_arg { $$ = $1 };
 /* upstream parse.y:6410: f_norm_arg: "local variable or method" */
 f_norm_arg: tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(792) };
 /* upstream parse.y:6420: f_arg_asgn: f_norm_arg */
-f_arg_asgn: f_norm_arg { $$ = @builder.unsupported(793) };
+f_arg_asgn: f_norm_arg { $$ = $1 };
 /* upstream parse.y:6427: f_arg_item: f_arg_asgn */
-f_arg_item: f_arg_asgn { $$ = @builder.unsupported(794) };
+f_arg_item: f_arg_asgn { $$ = $1 };
 /* upstream parse.y:6432: f_arg_item: "(" f_margs rparen */
 f_arg_item: tLPAREN f_margs rparen %prec tLPAREN { $$ = @builder.unsupported(795) };
 /* upstream parse.y:6450: f_arg: f_arg_item */
-f_arg: f_arg_item { $$ = @builder.unsupported(796) };
+f_arg: f_arg_item { $$ = $1 };
 /* upstream parse.y:6453: f_arg: f_arg ',' f_arg_item */
 f_arg: f_arg ',' f_arg_item %prec ',' { $$ = @builder.unsupported(797) };
 /* upstream parse.y:6464: f_label: "label" */
-f_label: tLABEL %prec tLABEL { $$ = @builder.unsupported(798) };
+f_label: tLABEL %prec tLABEL { $$ = $1 };
 /* upstream parse.y:6483: kwrest_mark: "**" */
-kwrest_mark: tPOW %prec tPOW { $$ = @builder.unsupported(799) };
+kwrest_mark: tPOW %prec tPOW { $$ = nil };
 /* upstream parse.y:6484: kwrest_mark: "**arg" */
-kwrest_mark: tDSTAR %prec tDSTAR { $$ = @builder.unsupported(800) };
+kwrest_mark: tDSTAR %prec tDSTAR { $$ = nil };
 /* upstream parse.y:6488: f_no_kwarg: p_kwnorest */
-f_no_kwarg: p_kwnorest { $$ = @builder.unsupported(801) };
+f_no_kwarg: p_kwnorest { $$ = $1 };
 /* upstream parse.y:6494: f_kwrest: kwrest_mark "local variable or method" */
 f_kwrest: kwrest_mark tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(802) };
 /* upstream parse.y:6500: f_kwrest: kwrest_mark */
-f_kwrest: kwrest_mark { $$ = @builder.unsupported(803) };
+f_kwrest: kwrest_mark { $$ = $1 };
 /* upstream parse.y:6507: restarg_mark: '*' */
-restarg_mark: '*' %prec '*' { $$ = @builder.unsupported(804) };
+restarg_mark: '*' %prec '*' { $$ = nil };
 /* upstream parse.y:6508: restarg_mark: "*" */
-restarg_mark: tSTAR %prec tSTAR { $$ = @builder.unsupported(805) };
+restarg_mark: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:6512: f_rest_arg: restarg_mark "local variable or method" */
 f_rest_arg: restarg_mark tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(806) };
 /* upstream parse.y:6518: f_rest_arg: restarg_mark */

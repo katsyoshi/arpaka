@@ -4755,13 +4755,13 @@
     "id": 793,
     "rule": "f_arg_asgn: f_norm_arg",
     "line": 6420,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 794,
     "rule": "f_arg_item: f_arg_asgn",
     "line": 6427,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 795,
@@ -4773,7 +4773,7 @@
     "id": 796,
     "rule": "f_arg: f_arg_item",
     "line": 6450,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 797,
@@ -4785,25 +4785,25 @@
     "id": 798,
     "rule": "f_label: \"label\"",
     "line": 6464,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 799,
     "rule": "kwrest_mark: \"**\"",
     "line": 6483,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 800,
     "rule": "kwrest_mark: \"**arg\"",
     "line": 6484,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 801,
     "rule": "f_no_kwarg: p_kwnorest",
     "line": 6488,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 802,
@@ -4815,19 +4815,19 @@
     "id": 803,
     "rule": "f_kwrest: kwrest_mark",
     "line": 6500,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 804,
     "rule": "restarg_mark: '*'",
     "line": 6507,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 805,
     "rule": "restarg_mark: \"*\"",
     "line": 6508,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 806,
