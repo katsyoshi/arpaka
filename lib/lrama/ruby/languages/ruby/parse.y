@@ -1846,7 +1846,7 @@ assoc: tDSTAR arg_value %prec tDSTAR { $$ = $2 };
 /* upstream parse.y:6662: assoc: "**arg" */
 assoc: tDSTAR %prec tDSTAR { $$ = nil };
 /* upstream parse.y:6674: operation2: "local variable or method" */
-operation2: tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(831) };
+operation2: tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:6674: operation2: "constant" */
 operation2: tCONSTANT %prec tCONSTANT { $$ = $1 };
 /* upstream parse.y:6674: operation2: "method" */
