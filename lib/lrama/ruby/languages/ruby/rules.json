@@ -3303,7 +3303,7 @@
     "id": 551,
     "rule": "p_lbracket: '[' p_pktbl",
     "line": 5460,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 552,

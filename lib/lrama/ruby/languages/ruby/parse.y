@@ -1286,7 +1286,7 @@ p_alt: p_expr_basic { $$ = $1 };
 /* upstream parse.y:5453: p_lparen: '(' p_pktbl */
 p_lparen: '(' p_pktbl %prec '(' { $$ = $2 };
 /* upstream parse.y:5460: p_lbracket: '[' p_pktbl */
-p_lbracket: '[' p_pktbl %prec '[' { $$ = @builder.unsupported(551) };
+p_lbracket: '[' p_pktbl %prec '[' { $$ = $2 };
 /* upstream parse.y:5466: p_expr_basic: p_value */
 p_expr_basic: p_value { $$ = $1 };
 /* upstream parse.y:5467: p_expr_basic: p_variable */
