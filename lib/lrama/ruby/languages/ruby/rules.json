@@ -4857,7 +4857,7 @@
     "id": 810,
     "rule": "f_block_arg: blkarg_mark \"local variable or method\"",
     "line": 6530,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 811,
