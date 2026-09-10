@@ -1840,7 +1840,7 @@ assoc: tLABEL arg_value %prec tLABEL { $$ = @builder.pair(@builder.symbol($1), $
 /* upstream parse.y:6644: assoc: "label" */
 assoc: tLABEL %prec tLABEL { $$ = $1 };
 /* upstream parse.y:6651: assoc: "string literal" string_contents tLABEL_END arg_value */
-assoc: tSTRING_BEG string_contents tLABEL_END arg_value %prec tLABEL_END { $$ = @builder.unsupported(828) };
+assoc: tSTRING_BEG string_contents tLABEL_END arg_value %prec tLABEL_END { $$ = $4 };
 /* upstream parse.y:6657: assoc: "**arg" arg_value */
 assoc: tDSTAR arg_value %prec tDSTAR { $$ = $2 };
 /* upstream parse.y:6662: assoc: "**arg" */

@@ -4965,7 +4965,7 @@
     "id": 828,
     "rule": "assoc: \"string literal\" string_contents tLABEL_END arg_value",
     "line": 6651,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 829,
