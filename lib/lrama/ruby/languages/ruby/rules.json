@@ -3807,7 +3807,7 @@
     "id": 635,
     "rule": "opt_ensure: k_ensure stmts option_terms",
     "line": 5851,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 636,

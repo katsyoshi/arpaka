@@ -1454,7 +1454,7 @@ exc_var: tASSOC lhs %prec tASSOC { $$ = $2 };
 /* upstream parse.y:5847: exc_var: none */
 exc_var: none { $$ = nil };
 /* upstream parse.y:5851: opt_ensure: k_ensure stmts option_terms */
-opt_ensure: k_ensure stmts option_terms { $$ = @builder.unsupported(635) };
+opt_ensure: k_ensure stmts option_terms { $$ = $2 };
 /* upstream parse.y:5857: opt_ensure: none */
 opt_ensure: none { $$ = nil };
 /* upstream parse.y:5860: literal: numeric */
