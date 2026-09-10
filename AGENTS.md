@@ -2,12 +2,9 @@
 
 ## Project status
 
-`lrama-ruby` is a backend for Lrama that generates Ruby parser code. Its purpose
-is to support Ruby as an output language for Lrama. Keep implementation decisions
-aligned with this backend role. It also bundles language-specific grammars,
-Ruby semantic actions and ASTs under `Lrama::Ruby::Languages`.
-`Lrama::Ruby.parse(tokens, language: :ruby)` exposes the initial partial Ruby
-frontend. The generic generator remains independent of the target language.
+`arpaka` is a Ruby language parser frontend and an output backend for Lrama.
+Keep implementation decisions aligned with both roles. The frontend is exposed
+as `Arpaka`; the generic Ruby parser generator remains under `Lrama::Ruby`.
 
 The initial backend generates standalone Ruby parsers from Lrama's LALR/IELR
 tables. `Lrama::Ruby.generate` returns source; `Lrama::Ruby.compile` returns a
@@ -31,7 +28,7 @@ versions is not currently promised.
 - `vendor/ruby/`: pinned upstream grammar, preprocessing tools and license files.
 - `sig/lrama/ruby.rbs`: RBS declarations.
 - `test/lrama/*_test.rb`: Test::Unit tests; `test/test_helper.rb` loads the library.
-- `lrama-ruby.gemspec`: gem metadata and runtime dependencies.
+- `arpaka.gemspec`: gem metadata and runtime dependencies.
 - `Gemfile`: development dependencies.
 - `.github/workflows/main.yml`: CI runs `bundle exec rake` with `RUBY_BOX=1`.
 

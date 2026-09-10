@@ -1,9 +1,9 @@
-# Lrama::Ruby
+# Arpaka
 
-A Ruby output backend for [Lrama](https://github.com/ruby/lrama). It uses Lrama's
-LALR/IELR parsing tables to generate a standalone Ruby parser with Ruby semantic
-actions. The gem also bundles language-specific grammars and AST actions;
-the first is an experimental, partial Ruby-language frontend.
+A Ruby language parser frontend and Ruby output backend for
+[Lrama](https://github.com/ruby/lrama). `Arpaka` parses Ruby tokens into an AST,
+while `Lrama::Ruby` generates standalone Ruby parsers with Ruby semantic actions.
+The Ruby frontend is experimental and partial.
 
 ## Requirements
 
@@ -25,7 +25,7 @@ bin/setup
 To use this unreleased gem from another application's Gemfile:
 
 ```ruby
-gem "lrama-ruby", git: "https://github.com/katsyoshi/lrama-ruby"
+gem "arpaka", git: "https://github.com/katsyoshi/lrama-ruby"
 ```
 
 ## Usage
@@ -47,7 +47,7 @@ expression: NUMBER
 Run the following Ruby code with `RUBY_BOX=1 bundle exec ruby your_script.rb`:
 
 ```ruby
-require "lrama/ruby"
+require "arpaka"
 
 path = "examples/calculator.y"
 grammar = File.read(path)
@@ -104,7 +104,7 @@ p tree
 # => [:binary, :+, [:number, 2], [:binary, :*, [:number, 3], [:number, 4]]]
 ```
 
-Run this after requiring `lrama/ruby`, with `RUBY_BOX=1`. Supply tokens from
+Run this after requiring `arpaka`, with `RUBY_BOX=1`. Supply tokens from
 your own lexer, or pass a token array as above. The default parser mode runs
 the actions and returns the root node. Precedence and associativity determine
 the tree's shape. Parentheses affect grouping but are omitted from the AST by
@@ -114,13 +114,12 @@ to the application; even `1 / 0` produces a tree without performing division.
 ### Using the bundled Ruby grammar
 
 ```ruby
-require "lrama/ruby"
+require "arpaka"
 
-tree = Lrama::Ruby.parse(
-  [[:tIDENTIFIER, :a], ["=", nil], [:tINTEGER, 1]],
-  language: :ruby
+tree = Arpaka.parse(
+  [[:tIDENTIFIER, :a], ["=", nil], [:tINTEGER, 1]]
 )
-# Lrama::Ruby::Languages::Ruby::AST::Program containing LocalWrite(:a, Literal(1))
+# Arpaka::AST::Program containing LocalWrite(:a, Literal(1))
 ```
 
 Run with `RUBY_BOX=1`. The first call generates and compiles the bundled grammar
@@ -147,9 +146,9 @@ methods, and multi-statement parentheses are unsupported. Nodes have no source
 locations. Input must already reflect the lexical decisions Ruby's parser and
 lexer normally make together; this API does not parse Ruby source text.
 
-`Lrama::Ruby::Languages::Ruby::ParseError` exposes `token` and `state`.
-`UnsupportedSyntax` in the same namespace exposes the original `rule` and
-upstream `line`. Both inherit from `Lrama::Ruby::Error`. Unported rules raise
+`Arpaka::ParseError` exposes `token` and `state`. `Arpaka::UnsupportedSyntax`
+exposes the original `rule` and upstream `line`. Both inherit from
+`Lrama::Ruby::Error`. Unported rules raise
 instead of returning a partial AST. Lexer exceptions and invalid token values
 propagate to the caller.
 

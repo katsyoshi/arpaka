@@ -5,22 +5,15 @@ require "lrama/ruby/languages/ruby"
 require "open3"
 require "rbconfig"
 
-class Lrama::RubyLanguageTest < Test::Unit::TestCase
-  AST = Lrama::Ruby::Languages::Ruby::AST
+class ArpakaTest < Test::Unit::TestCase
+  AST = Arpaka::AST
 
   def parse(*tokens)
-    Lrama::Ruby.parse(tokens, language: :ruby)
+    Arpaka.parse(tokens)
   end
 
   def literal(value)
     AST::Literal.new(value)
-  end
-
-  test "language is required and unsupported languages fail explicitly" do
-    assert_raise(ArgumentError) { Lrama::Ruby.parse([]) }
-    [:c, "ruby", nil].each do |language|
-      assert_raise(ArgumentError) { Lrama::Ruby.parse([], language: language) }
-    end
   end
 
   test "generic parsers and Ruby ASTs coexist" do
@@ -40,7 +33,7 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
 
   test "first generation is synchronized and failed generation can be retried" do
     script = <<~'RUBY'
-      require "lrama/ruby"
+      require "arpaka"
       original = Lrama::Ruby.method(:compile)
       attempts = 0
       Lrama::Ruby.define_singleton_method(:compile) do |*args, **options|
@@ -50,17 +43,17 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
         original.call(*args, **options)
       end
       begin
-        Lrama::Ruby.parse([], language: :ruby)
+        Arpaka.parse([])
         abort "failure was swallowed"
       rescue RuntimeError => error
         raise unless error.message == "generation failed"
       end
       threads = 4.times.map do
-        Thread.new { Lrama::Ruby.parse([[:tINTEGER, 3]], language: :ruby) }
+        Thread.new { Arpaka.parse([[:tINTEGER, 3]]) }
       end
       trees = threads.map(&:value)
       abort "wrong AST" unless trees.all? { |tree| tree.statements.first.value == 3 }
-      Lrama::Ruby.parse([], language: :ruby)
+      Arpaka.parse([])
       abort "generated more than once after retry" unless attempts == 2
     RUBY
     _output, error, result = Open3.capture3({ "RUBY_BOX" => "1" }, RbConfig.ruby, "-Ilib", "-e", script)
@@ -334,14 +327,14 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
     assert_equal(expected, parse([:tIDENTIFIER, "a"]))
     parse([:tIDENTIFIER, :a], ["=", nil], [:tINTEGER, 1])
     assert_equal(expected, parse([:tIDENTIFIER, :a]))
-    assert_raise(Lrama::Ruby::Languages::Ruby::ParseError) { parse([:tIDENTIFIER, :a], ["=", nil]) }
+    assert_raise(Arpaka::ParseError) { parse([:tIDENTIFIER, :a], ["=", nil]) }
     assert_equal(expected, parse([:tIDENTIFIER, :a]))
   end
 
   test "unsupported syntax reports its upstream rule" do
     inputs = []
     inputs.each do |tokens|
-      error = assert_raise(Lrama::Ruby::Languages::Ruby::UnsupportedSyntax) { Lrama::Ruby::Languages::Ruby.parse(tokens) }
+      error = assert_raise(Arpaka::UnsupportedSyntax) { Arpaka.parse(tokens) }
       assert_kind_of(String, error.rule)
       assert_kind_of(Integer, error.line)
       assert_include(error.message, "upstream parse.y:")
@@ -351,7 +344,7 @@ class Lrama::RubyLanguageTest < Test::Unit::TestCase
 
   test "invalid token streams stop without recovery" do
     [[[:UNKNOWN, nil]], [[256, nil]], [[:tINTEGER, 1], ["+", nil]], [[:tINTEGER, 1], [:tINTEGER, 2]]].each do |tokens|
-      assert_raise(Lrama::Ruby::Languages::Ruby::ParseError) { Lrama::Ruby::Languages::Ruby.parse(tokens) }
+      assert_raise(Arpaka::ParseError) { Arpaka.parse(tokens) }
     end
   end
 end

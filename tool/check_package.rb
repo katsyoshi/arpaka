@@ -16,7 +16,7 @@ end
 # Include untracked implementation files so packaging can be checked before
 # staging a commit. The isolated checkout exercises the real git-based gemspec.
 files = run.call({}, "git", "ls-files", "--cached", "--others", "--exclude-standard", "-z", chdir: root).split("\0")
-Dir.mktmpdir("lrama-ruby-package-") do |directory|
+Dir.mktmpdir("arpaka-package-") do |directory|
   checkout = File.join(directory, "source")
   install = File.join(directory, "installed")
   FileUtils.mkdir_p([checkout, install])
@@ -31,21 +31,21 @@ Dir.mktmpdir("lrama-ruby-package-") do |directory|
   run.call({}, "git", "add", ".", chdir: checkout)
   env = { "RUBYOPT" => nil, "RUBYLIB" => nil, "BUNDLE_GEMFILE" => nil,
     "BUNDLE_BIN_PATH" => nil, "RUBY_BOX" => "1" }
-  run.call(env, RbConfig.ruby, "-S", "gem", "build", "lrama-ruby.gemspec", chdir: checkout)
+  run.call(env, RbConfig.ruby, "-S", "gem", "build", "arpaka.gemspec", chdir: checkout)
   gem_file = Dir.glob(File.join(checkout, "*.gem")).fetch(0)
   run.call(env, RbConfig.ruby, "-S", "gem", "install", "--local", "--ignore-dependencies",
     "--no-document", "--install-dir", install, gem_file, chdir: directory)
   env["GEM_HOME"] = install
   env["GEM_PATH"] = ([install] + Gem.path).join(File::PATH_SEPARATOR)
   script = <<~'RUBY'
-    require "lrama/ruby"
-    spec = Gem.loaded_specs.fetch("lrama-ruby")
+    require "arpaka"
+    spec = Gem.loaded_specs.fetch("arpaka")
     forbidden = spec.files.select { |file| file.start_with?("vendor/", "tool/", "test/") || %w[plan.md DESIGN.md AGENTS.md].include?(file) }
     abort "Development files packaged: #{forbidden.inspect}" unless forbidden.empty?
     %w[parse.y rules.json COPYING BSDL].each do |file|
       abort "Missing #{file}" unless File.file?(File.join(spec.full_gem_path, "lib/lrama/ruby/languages/ruby", file))
     end
-    tree = Lrama::Ruby.parse([[:tIDENTIFIER, :a], ["=", nil], [:tINTEGER, 1]], language: :ruby)
+    tree = Arpaka.parse([[:tIDENTIFIER, :a], ["=", nil], [:tINTEGER, 1]])
     node = tree.statements.fetch(0)
     abort "Wrong packaged AST" unless node.name == :a && node.value.value == 1
     puts "Packaged gem: first AST parse OK"
