@@ -93,7 +93,7 @@
     "id": 16,
     "rule": "bodystmt: compstmt_stmts lex_ctxt opt_rescue k_else $@2 compstmt_stmts $@3 opt_ensure",
     "line": 3256,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 17,

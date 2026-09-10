@@ -216,7 +216,7 @@ midrule_2: %empty { $$ = nil };
 /* upstream parse.y:3252: $@3: %empty */
 midrule_3: %empty { $$ = nil };
 /* upstream parse.y:3256: bodystmt: compstmt_stmts lex_ctxt opt_rescue k_else $@2 compstmt_stmts $@3 opt_ensure */
-bodystmt: compstmt_stmts lex_ctxt opt_rescue k_else midrule_2 compstmt_stmts midrule_3 opt_ensure { $$ = @builder.unsupported(16) };
+bodystmt: compstmt_stmts lex_ctxt opt_rescue k_else midrule_2 compstmt_stmts midrule_3 opt_ensure { $$ = @builder.body_nodes($1) };
 /* upstream parse.y:3263: $@4: %empty */
 midrule_4: %empty { $$ = nil };
 /* upstream parse.y:3267: bodystmt: compstmt_stmts lex_ctxt opt_rescue $@4 opt_ensure */
