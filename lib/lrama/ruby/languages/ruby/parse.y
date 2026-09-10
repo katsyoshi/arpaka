@@ -1796,7 +1796,7 @@ restarg_mark: '*' %prec '*' { $$ = nil };
 /* upstream parse.y:6508: restarg_mark: "*" */
 restarg_mark: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:6512: f_rest_arg: restarg_mark "local variable or method" */
-f_rest_arg: restarg_mark tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(806) };
+f_rest_arg: restarg_mark tIDENTIFIER %prec tIDENTIFIER { $$ = $2 };
 /* upstream parse.y:6518: f_rest_arg: restarg_mark */
 f_rest_arg: restarg_mark { $$ = $1 };
 /* upstream parse.y:6525: blkarg_mark: '&' */
