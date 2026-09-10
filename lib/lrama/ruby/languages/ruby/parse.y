@@ -1760,7 +1760,7 @@ args_forward: tBDOT3 %prec tBDOT3 { $$ = nil };
 /* upstream parse.y:6371: f_bad_arg: "constant" */
 f_bad_arg: tCONSTANT %prec tCONSTANT { $$ = $1 };
 /* upstream parse.y:6380: f_bad_arg: "instance variable" */
-f_bad_arg: tIVAR %prec tIVAR { $$ = @builder.unsupported(788) };
+f_bad_arg: tIVAR %prec tIVAR { $$ = nil };
 /* upstream parse.y:6389: f_bad_arg: "global variable" */
 f_bad_arg: tGVAR %prec tGVAR { $$ = @builder.unsupported(789) };
 /* upstream parse.y:6398: f_bad_arg: "class variable" */

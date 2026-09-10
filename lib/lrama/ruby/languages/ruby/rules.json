@@ -4725,7 +4725,7 @@
     "id": 788,
     "rule": "f_bad_arg: \"instance variable\"",
     "line": 6380,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 789,
