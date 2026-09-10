@@ -442,9 +442,9 @@ mlhs_item: mlhs_node { $$ = $1 };
 /* upstream parse.y:3740: mlhs_item: "(" mlhs_inner rparen */
 mlhs_item: tLPAREN mlhs_inner rparen %prec tLPAREN { $$ = $2 };
 /* upstream parse.y:3747: mlhs_head: mlhs_item ',' */
-mlhs_head: mlhs_item ',' %prec ',' { $$ = @builder.unsupported(129) };
+mlhs_head: mlhs_item ',' %prec ',' { $$ = [$1].freeze };
 /* upstream parse.y:3752: mlhs_head: mlhs_head mlhs_item ',' */
-mlhs_head: mlhs_head mlhs_item ',' %prec ',' { $$ = @builder.unsupported(130) };
+mlhs_head: mlhs_head mlhs_item ',' %prec ',' { $$ = ($1 + [$2]).freeze };
 /* upstream parse.y:3760: mlhs_node: user_variable */
 mlhs_node: user_variable { $$ = $1 };
 /* upstream parse.y:3760: mlhs_node: keyword_variable */

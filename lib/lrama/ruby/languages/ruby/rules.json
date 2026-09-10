@@ -771,13 +771,13 @@
     "id": 129,
     "rule": "mlhs_head: mlhs_item ','",
     "line": 3747,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 130,
     "rule": "mlhs_head: mlhs_head mlhs_item ','",
     "line": 3752,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 131,
