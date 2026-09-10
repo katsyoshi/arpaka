@@ -2529,7 +2529,7 @@
     "id": 422,
     "rule": "do: term",
     "line": 4902,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 423,
@@ -2571,13 +2571,13 @@
     "id": 429,
     "rule": "for_var: mlhs",
     "line": 4926,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 430,
     "rule": "f_marg: f_norm_arg",
     "line": 4930,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 431,

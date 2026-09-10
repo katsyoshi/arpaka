@@ -315,6 +315,8 @@ module RubyGrammarActions
     387 => ["ported", "@builder.module_node($2, $4)"],
     405 => ["empty", "nil"], 406 => ["empty", "nil"],
     408 => ["empty", "nil"], 410 => ["empty", "nil"], 411 => ["empty", "nil"],
+    422 => ["pass_through", "$1"], 429 => ["pass_through", "$1"],
+    430 => ["pass_through", "$1"],
     716 => ["pass_through", "$3"], 717 => ["empty", "nil"],
     493 => ["empty", "nil"], 494 => ["empty", "nil"],
     495 => ["ported", "@builder.lambda_node($7, $8)"],

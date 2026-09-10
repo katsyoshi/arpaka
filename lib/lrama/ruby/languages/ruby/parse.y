@@ -1028,7 +1028,7 @@ then: keyword_then %prec keyword_then { $$ = nil };
 /* upstream parse.y:4899: then: term "'then'" */
 then: term keyword_then %prec keyword_then { $$ = nil };
 /* upstream parse.y:4902: do: term */
-do: term { $$ = @builder.unsupported(422) };
+do: term { $$ = $1 };
 /* upstream parse.y:4903: do: "'do' for condition" */
 do: keyword_do_cond %prec keyword_do_cond { $$ = nil };
 /* upstream parse.y:4906: if_tail: opt_else */
@@ -1042,9 +1042,9 @@ opt_else: k_else compstmt_stmts { $$ = $2 };
 /* upstream parse.y:4925: for_var: lhs */
 for_var: lhs { $$ = $1 };
 /* upstream parse.y:4926: for_var: mlhs */
-for_var: mlhs { $$ = @builder.unsupported(429) };
+for_var: mlhs { $$ = $1 };
 /* upstream parse.y:4930: f_marg: f_norm_arg */
-f_marg: f_norm_arg { $$ = @builder.unsupported(430) };
+f_marg: f_norm_arg { $$ = $1 };
 /* upstream parse.y:4935: f_marg: "(" f_margs rparen */
 f_marg: tLPAREN f_margs rparen %prec tLPAREN { $$ = @builder.unsupported(431) };
 /* upstream parse.y:3048: mlhs_items_f_marg: f_marg */
