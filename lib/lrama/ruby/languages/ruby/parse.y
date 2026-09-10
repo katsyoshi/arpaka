@@ -796,9 +796,9 @@ arg_rhs: arg modifier_rescue after_rescue arg %prec modifier_rescue { $$ = @buil
 /* upstream parse.y:4170: paren_args: '(' opt_call_args rparen */
 paren_args: '(' opt_call_args rparen %prec '(' { $$ = $2 };
 /* upstream parse.y:4175: paren_args: '(' args ',' args_forward rparen */
-paren_args: '(' args ',' args_forward rparen %prec ',' { $$ = @builder.unsupported(306) };
+paren_args: '(' args ',' args_forward rparen %prec ',' { $$ = ($2 + [$4]).freeze };
 /* upstream parse.y:4185: paren_args: '(' args_forward rparen */
-paren_args: '(' args_forward rparen %prec '(' { $$ = @builder.unsupported(307) };
+paren_args: '(' args_forward rparen %prec '(' { $$ = $2 };
 /* upstream parse.y:4196: opt_paren_args: none */
 opt_paren_args: none { $$ = nil };
 /* upstream parse.y:4198: opt_paren_args: paren_args */
@@ -822,9 +822,9 @@ call_args: def_endless_method_endless_command { $$ = $1 };
 /* upstream parse.y:4229: call_args: args opt_block_arg */
 call_args: args opt_block_arg { $$ = $1 };
 /* upstream parse.y:4234: call_args: assocs opt_block_arg */
-call_args: assocs opt_block_arg { $$ = @builder.unsupported(319) };
+call_args: assocs opt_block_arg { $$ = $1 };
 /* upstream parse.y:4240: call_args: args ',' assocs opt_block_arg */
-call_args: args ',' assocs opt_block_arg %prec ',' { $$ = @builder.unsupported(320) };
+call_args: args ',' assocs opt_block_arg %prec ',' { $$ = (($1 || []) + ($3 || [])).freeze };
 /* upstream parse.y:4245: call_args: block_arg */
 call_args: block_arg { $$ = $1 };
 /* upstream parse.y:4249: $@13: %empty */
@@ -832,11 +832,11 @@ midrule_13: %empty { $$ = nil };
 /* upstream parse.y:4267: command_args: $@13 call_args */
 command_args: midrule_13 call_args { $$ = $2 };
 /* upstream parse.y:4288: block_arg: "&" arg_value */
-block_arg: tAMPER arg_value %prec tAMPER { $$ = @builder.unsupported(324) };
+block_arg: tAMPER arg_value %prec tAMPER { $$ = $2 };
 /* upstream parse.y:4293: block_arg: "&" */
 block_arg: tAMPER %prec tAMPER { $$ = nil };
 /* upstream parse.y:4301: opt_block_arg: ',' block_arg */
-opt_block_arg: ',' block_arg %prec ',' { $$ = @builder.unsupported(326) };
+opt_block_arg: ',' block_arg %prec ',' { $$ = $2 };
 /* upstream parse.y:4306: opt_block_arg: none */
 opt_block_arg: none { $$ = nil };
 /* upstream parse.y:4314: args: arg_value */
@@ -846,9 +846,9 @@ args: arg_splat { $$ = $1 };
 /* upstream parse.y:4324: args: args ',' arg_value */
 args: args ',' arg_value %prec ',' { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:4329: args: args ',' arg_splat */
-args: args ',' arg_splat %prec ',' { $$ = @builder.unsupported(331) };
+args: args ',' arg_splat %prec ',' { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:4337: arg_splat: "*" arg_value */
-arg_splat: tSTAR arg_value %prec tSTAR { $$ = @builder.unsupported(332) };
+arg_splat: tSTAR arg_value %prec tSTAR { $$ = $2 };
 /* upstream parse.y:4342: arg_splat: "*" */
 arg_splat: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:4350: mrhs_arg: mrhs */
@@ -856,11 +856,11 @@ mrhs_arg: mrhs { $$ = $1 };
 /* upstream parse.y:4351: mrhs_arg: arg_value */
 mrhs_arg: arg_value { $$ = $1 };
 /* upstream parse.y:4356: mrhs: args ',' arg_value */
-mrhs: args ',' arg_value %prec ',' { $$ = @builder.unsupported(336) };
+mrhs: args ',' arg_value %prec ',' { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:4361: mrhs: args ',' "*" arg_value */
-mrhs: args ',' tSTAR arg_value %prec tSTAR { $$ = @builder.unsupported(337) };
+mrhs: args ',' tSTAR arg_value %prec tSTAR { $$ = ($1 + [$4]).freeze };
 /* upstream parse.y:4366: mrhs: "*" arg_value */
-mrhs: tSTAR arg_value %prec tSTAR { $$ = @builder.unsupported(338) };
+mrhs: tSTAR arg_value %prec tSTAR { $$ = [$2].freeze };
 /* upstream parse.y:4383: primary: literal */
 primary: literal { $$ = $1 };
 /* upstream parse.y:4383: primary: strings */

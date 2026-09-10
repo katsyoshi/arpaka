@@ -1833,13 +1833,13 @@
     "id": 306,
     "rule": "paren_args: '(' args ',' args_forward rparen",
     "line": 4175,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 307,
     "rule": "paren_args: '(' args_forward rparen",
     "line": 4185,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 308,
@@ -1911,13 +1911,13 @@
     "id": 319,
     "rule": "call_args: assocs opt_block_arg",
     "line": 4234,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 320,
     "rule": "call_args: args ',' assocs opt_block_arg",
     "line": 4240,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 321,
@@ -1941,7 +1941,7 @@
     "id": 324,
     "rule": "block_arg: \"&\" arg_value",
     "line": 4288,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 325,
@@ -1953,7 +1953,7 @@
     "id": 326,
     "rule": "opt_block_arg: ',' block_arg",
     "line": 4301,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 327,
@@ -1983,13 +1983,13 @@
     "id": 331,
     "rule": "args: args ',' arg_splat",
     "line": 4329,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 332,
     "rule": "arg_splat: \"*\" arg_value",
     "line": 4337,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 333,
@@ -2013,19 +2013,19 @@
     "id": 336,
     "rule": "mrhs: args ',' arg_value",
     "line": 4356,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 337,
     "rule": "mrhs: args ',' \"*\" arg_value",
     "line": 4361,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 338,
     "rule": "mrhs: \"*\" arg_value",
     "line": 4366,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 339,
