@@ -165,6 +165,7 @@ module RubyGrammarActions
     338 => ["ported", "[$2].freeze"],
     349 => ["ported", "@builder.reserved_word(\"method\")"],
     16 => ["ported", "@builder.body_nodes($1)"],
+    43 => ["ported", "@builder.assign($1, @builder.rescue_modifier($4, $7))"],
     286 => ["ported", "@builder.rescue_modifier($1, $4)"],
     112 => ["pass_through", "$2"],
     163 => ["ported", "($1 + [$4]).freeze"],

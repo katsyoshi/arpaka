@@ -270,7 +270,7 @@ asgn_mrhs: lhs '=' lex_ctxt mrhs %prec '=' { $$ = $1 };
 /* upstream parse.y:3408: stmt: asgn_mrhs */
 stmt: asgn_mrhs { $$ = $1 };
 /* upstream parse.y:3411: stmt: mlhs '=' lex_ctxt mrhs_arg "'rescue' modifier" after_rescue stmt */
-stmt: mlhs '=' lex_ctxt mrhs_arg modifier_rescue after_rescue stmt %prec modifier_rescue { $$ = @builder.unsupported(43) };
+stmt: mlhs '=' lex_ctxt mrhs_arg modifier_rescue after_rescue stmt %prec modifier_rescue { $$ = @builder.assign($1, @builder.rescue_modifier($4, $7)) };
 /* upstream parse.y:3421: stmt: mlhs '=' lex_ctxt mrhs_arg */
 stmt: mlhs '=' lex_ctxt mrhs_arg %prec '=' { $$ = $1 };
 /* upstream parse.y:3425: stmt: expr */

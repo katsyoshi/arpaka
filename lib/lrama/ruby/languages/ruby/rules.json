@@ -255,7 +255,7 @@
     "id": 43,
     "rule": "stmt: mlhs '=' lex_ctxt mrhs_arg \"'rescue' modifier\" after_rescue stmt",
     "line": 3411,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 44,
