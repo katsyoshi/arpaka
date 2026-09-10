@@ -735,7 +735,7 @@
     "id": 123,
     "rule": "mlhs_basic: \"*\" mlhs_node",
     "line": 3717,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 124,
