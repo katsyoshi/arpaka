@@ -171,6 +171,7 @@ module RubyGrammarActions
     439 => ["pass_through", "$2"],
     449 => ["pass_through", "$2"],
     460 => ["pass_through", "$2"],
+    515 => ["pass_through", "$2"],
     286 => ["ported", "@builder.rescue_modifier($1, $4)"],
     112 => ["pass_through", "$2"],
     163 => ["ported", "($1 + [$4]).freeze"],

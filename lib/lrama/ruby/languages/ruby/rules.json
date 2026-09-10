@@ -3087,7 +3087,7 @@
     "id": 515,
     "rule": "brace_block: '{' brace_body '}'",
     "line": 5254,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 516,

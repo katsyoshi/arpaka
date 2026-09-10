@@ -1214,7 +1214,7 @@ method_call: keyword_super %prec keyword_super { $$ = @builder.call(:super, []) 
 /* upstream parse.y:5246: method_call: primary_value '[' opt_call_args rbracket */
 method_call: primary_value '[' opt_call_args rbracket %prec '[' { $$ = @builder.index($1, $3 || []) };
 /* upstream parse.y:5254: brace_block: '{' brace_body '}' */
-brace_block: '{' brace_body '}' %prec '}' { $$ = @builder.unsupported(515) };
+brace_block: '{' brace_body '}' %prec '}' { $$ = $2 };
 /* upstream parse.y:5260: brace_block: k_do do_body k_end */
 brace_block: k_do do_body k_end { $$ = @builder.unsupported(516) };
 /* upstream parse.y:5267: @29: %empty */
