@@ -171,6 +171,9 @@ module Lrama
           elsif char == "@" && @scanner.check(/@@?[a-zA-Z_\x80-\xff][a-zA-Z_0-9\x80-\xff]*/n)
             @scanner.scan(/@@?[a-zA-Z_\x80-\xff][a-zA-Z_0-9\x80-\xff]*/n)
             state = :end
+          elsif char == "@" && state == :begin
+            @scanner.getch
+            state = :end
           elsif @scanner.scan(/(?:\.\.\.?|->|\*\*=|&&=?|\|\|=?|<=>|===|==|=>|!=|!~|=~|<=|>=|>>=?|\*\*|[+\-*|&^]=|[=+\-*!,;:<>?~|&^])/)
             state = :begin
           else
@@ -202,7 +205,8 @@ module Lrama
 
       def scan_global_variable
         @scanner.pos = @global_variable_start || @scanner.pos
-        @scanner.scan(/\$(?:[<>]?|[!@&`'++~?=\/\\;,.:$-][a-zA-Z]?|[<>][^>\n]*>|[0-9]+|[a-zA-Z_][a-zA-Z0-9_]*)/)
+        @scanner.scan(/\$(?:`|')/) ||
+          @scanner.scan(/\$(?:[<>]?|[!@&+~?=\/\\;,.:$-][a-zA-Z]?|[<>][^>\n]*>|[0-9]+|[a-zA-Z_][a-zA-Z0-9_]*)/)
         fail_at("Unsupported global variable", @scanner.pos) if @scanner.pos == (@global_variable_start || @scanner.pos)
       end
 
