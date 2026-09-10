@@ -4911,7 +4911,7 @@
     "id": 819,
     "rule": "$@41: %empty",
     "line": 6588,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 820,
@@ -4959,7 +4959,7 @@
     "id": 827,
     "rule": "assoc: \"label\"",
     "line": 6644,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 828,
@@ -4977,7 +4977,7 @@
     "id": 830,
     "rule": "assoc: \"**arg\"",
     "line": 6662,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 831,
@@ -4989,19 +4989,19 @@
     "id": 832,
     "rule": "operation2: \"constant\"",
     "line": 6674,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 833,
     "rule": "operation2: \"method\"",
     "line": 6674,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 834,
     "rule": "operation2: op",
     "line": 6675,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 835,
@@ -5013,25 +5013,25 @@
     "id": 836,
     "rule": "operation3: \"method\"",
     "line": 6679,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 837,
     "rule": "operation3: op",
     "line": 6680,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 838,
     "rule": "dot_or_colon: '.'",
     "line": 6683,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 839,
     "rule": "dot_or_colon: \"::\"",
     "line": 6684,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 840,

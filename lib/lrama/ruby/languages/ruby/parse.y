@@ -1822,7 +1822,7 @@ singleton: value_expr_singleton_expr { $$ = $1 };
 /* upstream parse.y:6586: singleton_expr: var_ref */
 singleton_expr: var_ref { $$ = $1 };
 /* upstream parse.y:6588: $@41: %empty */
-midrule_41: %empty { $$ = @builder.unsupported(819) };
+midrule_41: %empty { $$ = nil };
 /* upstream parse.y:6593: singleton_expr: '(' $@41 expr rparen */
 singleton_expr: '(' midrule_41 expr rparen %prec '(' { $$ = @builder.unsupported(820) };
 /* upstream parse.y:6600: assoc_list: none */
@@ -1838,31 +1838,31 @@ assoc: arg_value tASSOC arg_value %prec tASSOC { $$ = @builder.pair($1, $3) };
 /* upstream parse.y:6639: assoc: "label" arg_value */
 assoc: tLABEL arg_value %prec tLABEL { $$ = @builder.pair(@builder.symbol($1), $2) };
 /* upstream parse.y:6644: assoc: "label" */
-assoc: tLABEL %prec tLABEL { $$ = @builder.unsupported(827) };
+assoc: tLABEL %prec tLABEL { $$ = $1 };
 /* upstream parse.y:6651: assoc: "string literal" string_contents tLABEL_END arg_value */
 assoc: tSTRING_BEG string_contents tLABEL_END arg_value %prec tLABEL_END { $$ = @builder.unsupported(828) };
 /* upstream parse.y:6657: assoc: "**arg" arg_value */
 assoc: tDSTAR arg_value %prec tDSTAR { $$ = @builder.unsupported(829) };
 /* upstream parse.y:6662: assoc: "**arg" */
-assoc: tDSTAR %prec tDSTAR { $$ = @builder.unsupported(830) };
+assoc: tDSTAR %prec tDSTAR { $$ = nil };
 /* upstream parse.y:6674: operation2: "local variable or method" */
 operation2: tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(831) };
 /* upstream parse.y:6674: operation2: "constant" */
-operation2: tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(832) };
+operation2: tCONSTANT %prec tCONSTANT { $$ = $1 };
 /* upstream parse.y:6674: operation2: "method" */
-operation2: tFID %prec tFID { $$ = @builder.unsupported(833) };
+operation2: tFID %prec tFID { $$ = $1 };
 /* upstream parse.y:6675: operation2: op */
-operation2: op { $$ = @builder.unsupported(834) };
+operation2: op { $$ = $1 };
 /* upstream parse.y:6678: operation3: "local variable or method" */
 operation3: tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(835) };
 /* upstream parse.y:6679: operation3: "method" */
-operation3: tFID %prec tFID { $$ = @builder.unsupported(836) };
+operation3: tFID %prec tFID { $$ = $1 };
 /* upstream parse.y:6680: operation3: op */
-operation3: op { $$ = @builder.unsupported(837) };
+operation3: op { $$ = $1 };
 /* upstream parse.y:6683: dot_or_colon: '.' */
-dot_or_colon: '.' %prec '.' { $$ = @builder.unsupported(838) };
+dot_or_colon: '.' %prec '.' { $$ = @builder.operator(".") };
 /* upstream parse.y:6684: dot_or_colon: "::" */
-dot_or_colon: tCOLON2 %prec tCOLON2 { $$ = @builder.unsupported(839) };
+dot_or_colon: tCOLON2 %prec tCOLON2 { $$ = @builder.operator("::") };
 /* upstream parse.y:6687: call_op: '.' */
 call_op: '.' %prec '.' { $$ = @builder.unsupported(840) };
 /* upstream parse.y:6688: call_op: "&." */
