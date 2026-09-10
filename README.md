@@ -25,7 +25,7 @@ bin/setup
 To use this unreleased gem from another application's Gemfile:
 
 ```ruby
-gem "arpaka", git: "https://github.com/katsyoshi/lrama-ruby"
+gem "arpaka", git: "https://github.com/katsyoshi/arpaka"
 ```
 
 ## Usage

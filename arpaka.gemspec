@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = "Ruby language parser frontend and Lrama output backend"
   spec.description = "A Ruby parser frontend and Ruby output backend for Lrama."
-  spec.homepage = "https://github.com/katsyoshi/lrama-ruby"
+  spec.homepage = "https://github.com/katsyoshi/arpaka"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 4.0.0"
   spec.metadata["homepage_uri"] = spec.homepage
