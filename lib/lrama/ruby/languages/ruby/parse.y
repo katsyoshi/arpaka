@@ -478,7 +478,7 @@ lhs: primary_value tCOLON2 tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsuppo
 /* upstream parse.y:3819: lhs: primary_value "::" "constant" */
 lhs: primary_value tCOLON2 tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(146) };
 /* upstream parse.y:3824: lhs: ":: at EXPR_BEG" "constant" */
-lhs: tCOLON3 tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(147) };
+lhs: tCOLON3 tCONSTANT %prec tCONSTANT { $$ = @builder.variable(:constant, $2) };
 /* upstream parse.y:3829: lhs: backref */
 lhs: backref { $$ = $1 };
 /* upstream parse.y:3837: cname: "local variable or method" */

@@ -879,7 +879,7 @@
     "id": 147,
     "rule": "lhs: \":: at EXPR_BEG\" \"constant\"",
     "line": 3824,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 148,
