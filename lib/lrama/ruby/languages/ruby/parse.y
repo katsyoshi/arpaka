@@ -436,7 +436,7 @@ mlhs_basic: tSTAR mlhs_node ',' mlhs_items_mlhs_item %prec ',' { $$ = $2 };
 /* upstream parse.y:3727: mlhs_basic: "*" */
 mlhs_basic: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:3732: mlhs_basic: "*" ',' mlhs_items_mlhs_item */
-mlhs_basic: tSTAR ',' mlhs_items_mlhs_item %prec ',' { $$ = @builder.unsupported(126) };
+mlhs_basic: tSTAR ',' mlhs_items_mlhs_item %prec ',' { $$ = $3 };
 /* upstream parse.y:3738: mlhs_item: mlhs_node */
 mlhs_item: mlhs_node { $$ = $1 };
 /* upstream parse.y:3740: mlhs_item: "(" mlhs_inner rparen */

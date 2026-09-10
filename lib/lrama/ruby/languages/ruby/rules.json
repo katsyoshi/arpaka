@@ -753,7 +753,7 @@
     "id": 126,
     "rule": "mlhs_basic: \"*\" ',' mlhs_items_mlhs_item",
     "line": 3732,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 127,
