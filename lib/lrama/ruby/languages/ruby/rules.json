@@ -5073,7 +5073,7 @@
     "id": 846,
     "rule": "rbrace: option_'\\n' '}'",
     "line": 6701,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 847,

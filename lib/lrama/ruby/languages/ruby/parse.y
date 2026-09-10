@@ -1876,7 +1876,7 @@ rparen: option_newline ')' %prec ')' { $$ = nil };
 /* upstream parse.y:6698: rbracket: option_'\n' ']' */
 rbracket: option_newline ']' %prec ']' { $$ = nil };
 /* upstream parse.y:6701: rbrace: option_'\n' '}' */
-rbrace: option_newline '}' %prec '}' { $$ = @builder.unsupported(846) };
+rbrace: option_newline '}' %prec '}' { $$ = nil };
 /* upstream parse.y:6704: trailer: option_'\n' */
 trailer: option_newline { $$ = nil };
 /* upstream parse.y:6705: trailer: ',' */
