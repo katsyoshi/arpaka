@@ -1,0 +1,5120 @@
+[
+  {
+    "id": 1,
+    "rule": "$@1: %empty",
+    "line": 3176,
+    "status": "empty"
+  },
+  {
+    "id": 2,
+    "rule": "option_terms: %empty",
+    "line": 3182,
+    "status": "empty"
+  },
+  {
+    "id": 3,
+    "rule": "option_terms: terms",
+    "line": 3182,
+    "status": "empty"
+  },
+  {
+    "id": 4,
+    "rule": "compstmt_top_stmts: top_stmts option_terms",
+    "line": 2991,
+    "status": "pass_through"
+  },
+  {
+    "id": 5,
+    "rule": "program: $@1 compstmt_top_stmts",
+    "line": 3183,
+    "status": "ported"
+  },
+  {
+    "id": 6,
+    "rule": "top_stmts: none",
+    "line": 3203,
+    "status": "ported"
+  },
+  {
+    "id": 7,
+    "rule": "top_stmts: top_stmt",
+    "line": 3208,
+    "status": "ported"
+  },
+  {
+    "id": 8,
+    "rule": "top_stmts: top_stmts terms top_stmt",
+    "line": 3213,
+    "status": "ported"
+  },
+  {
+    "id": 9,
+    "rule": "top_stmt: stmt",
+    "line": 3220,
+    "status": "pass_through"
+  },
+  {
+    "id": 10,
+    "rule": "top_stmt: \"'BEGIN'\" begin_block",
+    "line": 3225,
+    "status": "pass_through"
+  },
+  {
+    "id": 11,
+    "rule": "block_open: '{'",
+    "line": 3231,
+    "status": "empty"
+  },
+  {
+    "id": 12,
+    "rule": "begin_block: block_open compstmt_top_stmts '}'",
+    "line": 3234,
+    "status": "pass_through"
+  },
+  {
+    "id": 13,
+    "rule": "compstmt_stmts: stmts option_terms",
+    "line": 2991,
+    "status": "pass_through"
+  },
+  {
+    "id": 14,
+    "rule": "$@2: %empty",
+    "line": 3247,
+    "status": "empty"
+  },
+  {
+    "id": 15,
+    "rule": "$@3: %empty",
+    "line": 3252,
+    "status": "empty"
+  },
+  {
+    "id": 16,
+    "rule": "bodystmt: compstmt_stmts lex_ctxt opt_rescue k_else $@2 compstmt_stmts $@3 opt_ensure",
+    "line": 3256,
+    "status": "ported"
+  },
+  {
+    "id": 17,
+    "rule": "$@4: %empty",
+    "line": 3263,
+    "status": "empty"
+  },
+  {
+    "id": 18,
+    "rule": "bodystmt: compstmt_stmts lex_ctxt opt_rescue $@4 opt_ensure",
+    "line": 3267,
+    "status": "ported"
+  },
+  {
+    "id": 19,
+    "rule": "stmts: none",
+    "line": 3274,
+    "status": "ported"
+  },
+  {
+    "id": 20,
+    "rule": "stmts: stmt_or_begin",
+    "line": 3279,
+    "status": "ported"
+  },
+  {
+    "id": 21,
+    "rule": "stmts: stmts terms stmt_or_begin",
+    "line": 3284,
+    "status": "ported"
+  },
+  {
+    "id": 22,
+    "rule": "stmt_or_begin: stmt",
+    "line": 3290,
+    "status": "pass_through"
+  },
+  {
+    "id": 23,
+    "rule": "$@5: %empty",
+    "line": 3292,
+    "status": "empty"
+  },
+  {
+    "id": 24,
+    "rule": "stmt_or_begin: \"'BEGIN'\" $@5 begin_block",
+    "line": 3296,
+    "status": "pass_through"
+  },
+  {
+    "id": 25,
+    "rule": "allow_exits: %empty",
+    "line": 3301,
+    "status": "empty"
+  },
+  {
+    "id": 26,
+    "rule": "k_END: \"'END'\" lex_ctxt",
+    "line": 3304,
+    "status": "pass_through"
+  },
+  {
+    "id": 27,
+    "rule": "$@6: %empty",
+    "line": 3313,
+    "status": "empty"
+  },
+  {
+    "id": 28,
+    "rule": "stmt: \"'alias'\" fitem $@6 fitem",
+    "line": 3314,
+    "status": "pass_through"
+  },
+  {
+    "id": 29,
+    "rule": "stmt: \"'alias'\" \"global variable\" \"global variable\"",
+    "line": 3319,
+    "status": "pass_through"
+  },
+  {
+    "id": 30,
+    "rule": "stmt: \"'alias'\" \"global variable\" \"back reference\"",
+    "line": 3324,
+    "status": "pass_through"
+  },
+  {
+    "id": 31,
+    "rule": "stmt: \"'alias'\" \"global variable\" \"numbered reference\"",
+    "line": 3332,
+    "status": "pass_through"
+  },
+  {
+    "id": 32,
+    "rule": "stmt: \"'undef'\" undef_list",
+    "line": 3341,
+    "status": "pass_through"
+  },
+  {
+    "id": 33,
+    "rule": "stmt: stmt \"'if' modifier\" expr_value",
+    "line": 3348,
+    "status": "ported"
+  },
+  {
+    "id": 34,
+    "rule": "stmt: stmt \"'unless' modifier\" expr_value",
+    "line": 3354,
+    "status": "ported"
+  },
+  {
+    "id": 35,
+    "rule": "stmt: stmt \"'while' modifier\" expr_value",
+    "line": 3360,
+    "status": "ported"
+  },
+  {
+    "id": 36,
+    "rule": "stmt: stmt \"'until' modifier\" expr_value",
+    "line": 3371,
+    "status": "ported"
+  },
+  {
+    "id": 37,
+    "rule": "stmt: stmt \"'rescue' modifier\" after_rescue stmt",
+    "line": 3382,
+    "status": "ported"
+  },
+  {
+    "id": 38,
+    "rule": "stmt: k_END block_open compstmt_stmts '}'",
+    "line": 3391,
+    "status": "pass_through"
+  },
+  {
+    "id": 39,
+    "rule": "stmt: command_asgn",
+    "line": 3402,
+    "status": "pass_through"
+  },
+  {
+    "id": 40,
+    "rule": "stmt: mlhs '=' lex_ctxt command_call_value",
+    "line": 3404,
+    "status": "pass_through"
+  },
+  {
+    "id": 41,
+    "rule": "asgn_mrhs: lhs '=' lex_ctxt mrhs",
+    "line": 2926,
+    "status": "pass_through"
+  },
+  {
+    "id": 42,
+    "rule": "stmt: asgn_mrhs",
+    "line": 3408,
+    "status": "pass_through"
+  },
+  {
+    "id": 43,
+    "rule": "stmt: mlhs '=' lex_ctxt mrhs_arg \"'rescue' modifier\" after_rescue stmt",
+    "line": 3411,
+    "status": "ported"
+  },
+  {
+    "id": 44,
+    "rule": "stmt: mlhs '=' lex_ctxt mrhs_arg",
+    "line": 3421,
+    "status": "pass_through"
+  },
+  {
+    "id": 45,
+    "rule": "stmt: expr",
+    "line": 3425,
+    "status": "pass_through"
+  },
+  {
+    "id": 46,
+    "rule": "stmt: error",
+    "line": 3427,
+    "status": "empty"
+  },
+  {
+    "id": 47,
+    "rule": "asgn_command_rhs: lhs '=' lex_ctxt command_rhs",
+    "line": 2926,
+    "status": "pass_through"
+  },
+  {
+    "id": 48,
+    "rule": "command_asgn: asgn_command_rhs",
+    "line": 3433,
+    "status": "pass_through"
+  },
+  {
+    "id": 49,
+    "rule": "op_asgn_command_rhs: var_lhs \"operator-assignment\" lex_ctxt command_rhs",
+    "line": 3061,
+    "status": "pass_through"
+  },
+  {
+    "id": 50,
+    "rule": "op_asgn_command_rhs: primary_value '[' opt_call_args rbracket \"operator-assignment\" lex_ctxt command_rhs",
+    "line": 3066,
+    "status": "pass_through"
+  },
+  {
+    "id": 51,
+    "rule": "op_asgn_command_rhs: primary_value call_op \"local variable or method\" \"operator-assignment\" lex_ctxt command_rhs",
+    "line": 3071,
+    "status": "pass_through"
+  },
+  {
+    "id": 52,
+    "rule": "op_asgn_command_rhs: primary_value call_op \"constant\" \"operator-assignment\" lex_ctxt command_rhs",
+    "line": 3076,
+    "status": "pass_through"
+  },
+  {
+    "id": 53,
+    "rule": "op_asgn_command_rhs: primary_value \"::\" \"local variable or method\" \"operator-assignment\" lex_ctxt command_rhs",
+    "line": 3081,
+    "status": "pass_through"
+  },
+  {
+    "id": 54,
+    "rule": "op_asgn_command_rhs: primary_value \"::\" \"constant\" \"operator-assignment\" lex_ctxt command_rhs",
+    "line": 3086,
+    "status": "pass_through"
+  },
+  {
+    "id": 55,
+    "rule": "op_asgn_command_rhs: \":: at EXPR_BEG\" \"constant\" \"operator-assignment\" lex_ctxt command_rhs",
+    "line": 3092,
+    "status": "pass_through"
+  },
+  {
+    "id": 56,
+    "rule": "op_asgn_command_rhs: backref \"operator-assignment\" lex_ctxt command_rhs",
+    "line": 3098,
+    "status": "pass_through"
+  },
+  {
+    "id": 57,
+    "rule": "command_asgn: op_asgn_command_rhs",
+    "line": 3434,
+    "status": "pass_through"
+  },
+  {
+    "id": 58,
+    "rule": "def_endless_method_endless_command: defn_head f_opt_paren_args '=' endless_command",
+    "line": 2966,
+    "status": "pass_through"
+  },
+  {
+    "id": 59,
+    "rule": "def_endless_method_endless_command: defs_head f_opt_paren_args '=' endless_command",
+    "line": 2977,
+    "status": "pass_through"
+  },
+  {
+    "id": 60,
+    "rule": "command_asgn: def_endless_method_endless_command",
+    "line": 3435,
+    "status": "pass_through"
+  },
+  {
+    "id": 61,
+    "rule": "endless_command: command",
+    "line": 3438,
+    "status": "pass_through"
+  },
+  {
+    "id": 62,
+    "rule": "endless_command: endless_command \"'rescue' modifier\" after_rescue arg",
+    "line": 3440,
+    "status": "pass_through"
+  },
+  {
+    "id": 63,
+    "rule": "option_'\\n': %empty",
+    "line": 3445,
+    "status": "empty"
+  },
+  {
+    "id": 64,
+    "rule": "option_'\\n': '\\n'",
+    "line": 3445,
+    "status": "pass_through"
+  },
+  {
+    "id": 65,
+    "rule": "endless_command: \"'not'\" option_'\\n' endless_command",
+    "line": 3446,
+    "status": "pass_through"
+  },
+  {
+    "id": 66,
+    "rule": "command_rhs: command_call_value",
+    "line": 3452,
+    "status": "pass_through"
+  },
+  {
+    "id": 67,
+    "rule": "command_rhs: command_call_value \"'rescue' modifier\" after_rescue stmt",
+    "line": 3454,
+    "status": "pass_through"
+  },
+  {
+    "id": 68,
+    "rule": "command_rhs: command_asgn",
+    "line": 3460,
+    "status": "pass_through"
+  },
+  {
+    "id": 69,
+    "rule": "expr: command_call",
+    "line": 3463,
+    "status": "pass_through"
+  },
+  {
+    "id": 70,
+    "rule": "expr: expr \"'and'\" expr",
+    "line": 3465,
+    "status": "ported"
+  },
+  {
+    "id": 71,
+    "rule": "expr: expr \"'or'\" expr",
+    "line": 3470,
+    "status": "ported"
+  },
+  {
+    "id": 72,
+    "rule": "expr: \"'not'\" option_'\\n' expr",
+    "line": 3475,
+    "status": "ported"
+  },
+  {
+    "id": 73,
+    "rule": "expr: '!' command_call",
+    "line": 3480,
+    "status": "ported"
+  },
+  {
+    "id": 74,
+    "rule": "$@7: %empty",
+    "line": 3485,
+    "status": "empty"
+  },
+  {
+    "id": 75,
+    "rule": "expr: arg \"=>\" $@7 p_in_kwarg p_pvtbl p_pktbl p_top_expr_body",
+    "line": 3490,
+    "status": "pass_through"
+  },
+  {
+    "id": 76,
+    "rule": "$@8: %empty",
+    "line": 3500,
+    "status": "empty"
+  },
+  {
+    "id": 77,
+    "rule": "expr: arg \"'in'\" $@8 p_in_kwarg p_pvtbl p_pktbl p_top_expr_body",
+    "line": 3505,
+    "status": "pass_through"
+  },
+  {
+    "id": 78,
+    "rule": "expr: arg",
+    "line": 3514,
+    "status": "pass_through"
+  },
+  {
+    "id": 79,
+    "rule": "def_name: fname",
+    "line": 3518,
+    "status": "pass_through"
+  },
+  {
+    "id": 80,
+    "rule": "defn_head: k_def def_name",
+    "line": 3529,
+    "status": "pass_through"
+  },
+  {
+    "id": 81,
+    "rule": "$@9: %empty",
+    "line": 3538,
+    "status": "empty"
+  },
+  {
+    "id": 82,
+    "rule": "defs_head: k_def singleton dot_or_colon $@9 def_name",
+    "line": 3542,
+    "status": "pass_through"
+  },
+  {
+    "id": 83,
+    "rule": "value_expr_expr: expr",
+    "line": 3161,
+    "status": "pass_through"
+  },
+  {
+    "id": 84,
+    "rule": "expr_value: value_expr_expr",
+    "line": 3551,
+    "status": "pass_through"
+  },
+  {
+    "id": 85,
+    "rule": "expr_value: error",
+    "line": 3553,
+    "status": "empty"
+  },
+  {
+    "id": 86,
+    "rule": "$@10: %empty",
+    "line": 3558,
+    "status": "empty"
+  },
+  {
+    "id": 87,
+    "rule": "$@11: %empty",
+    "line": 3558,
+    "status": "empty"
+  },
+  {
+    "id": 88,
+    "rule": "expr_value_do: $@10 expr_value do $@11",
+    "line": 3559,
+    "status": "pass_through"
+  },
+  {
+    "id": 89,
+    "rule": "command_call: command",
+    "line": 3565,
+    "status": "pass_through"
+  },
+  {
+    "id": 90,
+    "rule": "command_call: block_command",
+    "line": 3566,
+    "status": "pass_through"
+  },
+  {
+    "id": 91,
+    "rule": "value_expr_command_call: command_call",
+    "line": 3161,
+    "status": "pass_through"
+  },
+  {
+    "id": 92,
+    "rule": "command_call_value: value_expr_command_call",
+    "line": 3569,
+    "status": "pass_through"
+  },
+  {
+    "id": 93,
+    "rule": "block_command: block_call",
+    "line": 3572,
+    "status": "pass_through"
+  },
+  {
+    "id": 94,
+    "rule": "block_command: block_call call_op2 operation2 command_args",
+    "line": 3574,
+    "status": "pass_through"
+  },
+  {
+    "id": 95,
+    "rule": "cmd_brace_block: \"{ arg\" brace_body '}'",
+    "line": 3581,
+    "status": "pass_through"
+  },
+  {
+    "id": 96,
+    "rule": "fcall: \"local variable or method\"",
+    "line": 3589,
+    "status": "pass_through"
+  },
+  {
+    "id": 97,
+    "rule": "fcall: \"constant\"",
+    "line": 3589,
+    "status": "pass_through"
+  },
+  {
+    "id": 98,
+    "rule": "fcall: \"method\"",
+    "line": 3589,
+    "status": "pass_through"
+  },
+  {
+    "id": 99,
+    "rule": "command: fcall command_args",
+    "line": 3596,
+    "status": "ported"
+  },
+  {
+    "id": 100,
+    "rule": "command: fcall command_args cmd_brace_block",
+    "line": 3603,
+    "status": "pass_through"
+  },
+  {
+    "id": 101,
+    "rule": "command: primary_value call_op operation2 command_args",
+    "line": 3612,
+    "status": "pass_through"
+  },
+  {
+    "id": 102,
+    "rule": "command: primary_value call_op operation2 command_args cmd_brace_block",
+    "line": 3617,
+    "status": "pass_through"
+  },
+  {
+    "id": 103,
+    "rule": "command: primary_value \"::\" operation2 command_args",
+    "line": 3622,
+    "status": "pass_through"
+  },
+  {
+    "id": 104,
+    "rule": "command: primary_value \"::\" operation2 command_args cmd_brace_block",
+    "line": 3627,
+    "status": "pass_through"
+  },
+  {
+    "id": 105,
+    "rule": "command: primary_value \"::\" \"constant\" '{' brace_body '}'",
+    "line": 3632,
+    "status": "pass_through"
+  },
+  {
+    "id": 106,
+    "rule": "command: \"'super'\" command_args",
+    "line": 3638,
+    "status": "ported"
+  },
+  {
+    "id": 107,
+    "rule": "command: k_yield command_args",
+    "line": 3644,
+    "status": "ported"
+  },
+  {
+    "id": 108,
+    "rule": "command: k_return call_args",
+    "line": 3650,
+    "status": "ported"
+  },
+  {
+    "id": 109,
+    "rule": "command: \"'break'\" call_args",
+    "line": 3655,
+    "status": "ported"
+  },
+  {
+    "id": 110,
+    "rule": "command: \"'next'\" call_args",
+    "line": 3662,
+    "status": "ported"
+  },
+  {
+    "id": 111,
+    "rule": "mlhs: mlhs_basic",
+    "line": 3670,
+    "status": "pass_through"
+  },
+  {
+    "id": 112,
+    "rule": "mlhs: \"(\" mlhs_inner rparen",
+    "line": 3672,
+    "status": "pass_through"
+  },
+  {
+    "id": 113,
+    "rule": "mlhs_inner: mlhs_basic",
+    "line": 3678,
+    "status": "pass_through"
+  },
+  {
+    "id": 114,
+    "rule": "mlhs_inner: \"(\" mlhs_inner rparen",
+    "line": 3680,
+    "status": "pass_through"
+  },
+  {
+    "id": 115,
+    "rule": "mlhs_basic: mlhs_head",
+    "line": 3687,
+    "status": "pass_through"
+  },
+  {
+    "id": 116,
+    "rule": "mlhs_basic: mlhs_head mlhs_item",
+    "line": 3692,
+    "status": "ported"
+  },
+  {
+    "id": 117,
+    "rule": "mlhs_basic: mlhs_head \"*\" mlhs_node",
+    "line": 3697,
+    "status": "ported"
+  },
+  {
+    "id": 118,
+    "rule": "mlhs_items_mlhs_item: mlhs_item",
+    "line": 3048,
+    "status": "pass_through"
+  },
+  {
+    "id": 119,
+    "rule": "mlhs_items_mlhs_item: mlhs_items_mlhs_item ',' mlhs_item",
+    "line": 3053,
+    "status": "ported"
+  },
+  {
+    "id": 120,
+    "rule": "mlhs_basic: mlhs_head \"*\" mlhs_node ',' mlhs_items_mlhs_item",
+    "line": 3702,
+    "status": "ported"
+  },
+  {
+    "id": 121,
+    "rule": "mlhs_basic: mlhs_head \"*\"",
+    "line": 3707,
+    "status": "pass_through"
+  },
+  {
+    "id": 122,
+    "rule": "mlhs_basic: mlhs_head \"*\" ',' mlhs_items_mlhs_item",
+    "line": 3712,
+    "status": "pass_through"
+  },
+  {
+    "id": 123,
+    "rule": "mlhs_basic: \"*\" mlhs_node",
+    "line": 3717,
+    "status": "pass_through"
+  },
+  {
+    "id": 124,
+    "rule": "mlhs_basic: \"*\" mlhs_node ',' mlhs_items_mlhs_item",
+    "line": 3722,
+    "status": "pass_through"
+  },
+  {
+    "id": 125,
+    "rule": "mlhs_basic: \"*\"",
+    "line": 3727,
+    "status": "empty"
+  },
+  {
+    "id": 126,
+    "rule": "mlhs_basic: \"*\" ',' mlhs_items_mlhs_item",
+    "line": 3732,
+    "status": "pass_through"
+  },
+  {
+    "id": 127,
+    "rule": "mlhs_item: mlhs_node",
+    "line": 3738,
+    "status": "pass_through"
+  },
+  {
+    "id": 128,
+    "rule": "mlhs_item: \"(\" mlhs_inner rparen",
+    "line": 3740,
+    "status": "pass_through"
+  },
+  {
+    "id": 129,
+    "rule": "mlhs_head: mlhs_item ','",
+    "line": 3747,
+    "status": "ported"
+  },
+  {
+    "id": 130,
+    "rule": "mlhs_head: mlhs_head mlhs_item ','",
+    "line": 3752,
+    "status": "ported"
+  },
+  {
+    "id": 131,
+    "rule": "mlhs_node: user_variable",
+    "line": 3760,
+    "status": "pass_through"
+  },
+  {
+    "id": 132,
+    "rule": "mlhs_node: keyword_variable",
+    "line": 3760,
+    "status": "pass_through"
+  },
+  {
+    "id": 133,
+    "rule": "mlhs_node: primary_value '[' opt_call_args rbracket",
+    "line": 3765,
+    "status": "ported"
+  },
+  {
+    "id": 134,
+    "rule": "mlhs_node: primary_value call_op \"local variable or method\"",
+    "line": 3770,
+    "status": "pass_through"
+  },
+  {
+    "id": 135,
+    "rule": "mlhs_node: primary_value call_op \"constant\"",
+    "line": 3770,
+    "status": "pass_through"
+  },
+  {
+    "id": 136,
+    "rule": "mlhs_node: primary_value \"::\" \"local variable or method\"",
+    "line": 3776,
+    "status": "pass_through"
+  },
+  {
+    "id": 137,
+    "rule": "mlhs_node: primary_value \"::\" \"constant\"",
+    "line": 3781,
+    "status": "ported"
+  },
+  {
+    "id": 138,
+    "rule": "mlhs_node: \":: at EXPR_BEG\" \"constant\"",
+    "line": 3786,
+    "status": "ported"
+  },
+  {
+    "id": 139,
+    "rule": "mlhs_node: backref",
+    "line": 3791,
+    "status": "pass_through"
+  },
+  {
+    "id": 140,
+    "rule": "lhs: user_variable",
+    "line": 3799,
+    "status": "ported"
+  },
+  {
+    "id": 141,
+    "rule": "lhs: keyword_variable",
+    "line": 3799,
+    "status": "pass_through"
+  },
+  {
+    "id": 142,
+    "rule": "lhs: primary_value '[' opt_call_args rbracket",
+    "line": 3804,
+    "status": "ported"
+  },
+  {
+    "id": 143,
+    "rule": "lhs: primary_value call_op \"local variable or method\"",
+    "line": 3809,
+    "status": "pass_through"
+  },
+  {
+    "id": 144,
+    "rule": "lhs: primary_value call_op \"constant\"",
+    "line": 3809,
+    "status": "pass_through"
+  },
+  {
+    "id": 145,
+    "rule": "lhs: primary_value \"::\" \"local variable or method\"",
+    "line": 3814,
+    "status": "pass_through"
+  },
+  {
+    "id": 146,
+    "rule": "lhs: primary_value \"::\" \"constant\"",
+    "line": 3819,
+    "status": "ported"
+  },
+  {
+    "id": 147,
+    "rule": "lhs: \":: at EXPR_BEG\" \"constant\"",
+    "line": 3824,
+    "status": "ported"
+  },
+  {
+    "id": 148,
+    "rule": "lhs: backref",
+    "line": 3829,
+    "status": "pass_through"
+  },
+  {
+    "id": 149,
+    "rule": "cname: \"local variable or method\"",
+    "line": 3837,
+    "status": "pass_through"
+  },
+  {
+    "id": 150,
+    "rule": "cname: \"constant\"",
+    "line": 3844,
+    "status": "pass_through"
+  },
+  {
+    "id": 151,
+    "rule": "cpath: \":: at EXPR_BEG\" cname",
+    "line": 3848,
+    "status": "pass_through"
+  },
+  {
+    "id": 152,
+    "rule": "cpath: cname",
+    "line": 3853,
+    "status": "pass_through"
+  },
+  {
+    "id": 153,
+    "rule": "cpath: primary_value \"::\" cname",
+    "line": 3858,
+    "status": "pass_through"
+  },
+  {
+    "id": 154,
+    "rule": "fname: \"local variable or method\"",
+    "line": 3864,
+    "status": "pass_through"
+  },
+  {
+    "id": 155,
+    "rule": "fname: \"constant\"",
+    "line": 3864,
+    "status": "pass_through"
+  },
+  {
+    "id": 156,
+    "rule": "fname: \"method\"",
+    "line": 3864,
+    "status": "pass_through"
+  },
+  {
+    "id": 157,
+    "rule": "fname: op",
+    "line": 3866,
+    "status": "pass_through"
+  },
+  {
+    "id": 158,
+    "rule": "fname: reswords",
+    "line": 3870,
+    "status": "pass_through"
+  },
+  {
+    "id": 159,
+    "rule": "fitem: fname",
+    "line": 3874,
+    "status": "pass_through"
+  },
+  {
+    "id": 160,
+    "rule": "fitem: symbol",
+    "line": 3878,
+    "status": "pass_through"
+  },
+  {
+    "id": 161,
+    "rule": "undef_list: fitem",
+    "line": 3882,
+    "status": "pass_through"
+  },
+  {
+    "id": 162,
+    "rule": "$@12: %empty",
+    "line": 3886,
+    "status": "empty"
+  },
+  {
+    "id": 163,
+    "rule": "undef_list: undef_list ',' $@12 fitem",
+    "line": 3887,
+    "status": "ported"
+  },
+  {
+    "id": 164,
+    "rule": "op: '|'",
+    "line": 3894,
+    "status": "ported"
+  },
+  {
+    "id": 165,
+    "rule": "op: '^'",
+    "line": 3895,
+    "status": "ported"
+  },
+  {
+    "id": 166,
+    "rule": "op: '&'",
+    "line": 3896,
+    "status": "ported"
+  },
+  {
+    "id": 167,
+    "rule": "op: \"<=>\"",
+    "line": 3897,
+    "status": "ported"
+  },
+  {
+    "id": 168,
+    "rule": "op: \"==\"",
+    "line": 3898,
+    "status": "ported"
+  },
+  {
+    "id": 169,
+    "rule": "op: \"===\"",
+    "line": 3899,
+    "status": "ported"
+  },
+  {
+    "id": 170,
+    "rule": "op: \"=~\"",
+    "line": 3900,
+    "status": "ported"
+  },
+  {
+    "id": 171,
+    "rule": "op: \"!~\"",
+    "line": 3901,
+    "status": "ported"
+  },
+  {
+    "id": 172,
+    "rule": "op: '>'",
+    "line": 3902,
+    "status": "ported"
+  },
+  {
+    "id": 173,
+    "rule": "op: \">=\"",
+    "line": 3903,
+    "status": "ported"
+  },
+  {
+    "id": 174,
+    "rule": "op: '<'",
+    "line": 3904,
+    "status": "ported"
+  },
+  {
+    "id": 175,
+    "rule": "op: \"<=\"",
+    "line": 3905,
+    "status": "ported"
+  },
+  {
+    "id": 176,
+    "rule": "op: \"!=\"",
+    "line": 3906,
+    "status": "ported"
+  },
+  {
+    "id": 177,
+    "rule": "op: \"<<\"",
+    "line": 3907,
+    "status": "ported"
+  },
+  {
+    "id": 178,
+    "rule": "op: \">>\"",
+    "line": 3908,
+    "status": "ported"
+  },
+  {
+    "id": 179,
+    "rule": "op: '+'",
+    "line": 3909,
+    "status": "ported"
+  },
+  {
+    "id": 180,
+    "rule": "op: '-'",
+    "line": 3910,
+    "status": "ported"
+  },
+  {
+    "id": 181,
+    "rule": "op: '*'",
+    "line": 3911,
+    "status": "ported"
+  },
+  {
+    "id": 182,
+    "rule": "op: \"*\"",
+    "line": 3912,
+    "status": "ported"
+  },
+  {
+    "id": 183,
+    "rule": "op: '/'",
+    "line": 3913,
+    "status": "ported"
+  },
+  {
+    "id": 184,
+    "rule": "op: '%'",
+    "line": 3914,
+    "status": "ported"
+  },
+  {
+    "id": 185,
+    "rule": "op: \"**\"",
+    "line": 3915,
+    "status": "ported"
+  },
+  {
+    "id": 186,
+    "rule": "op: \"**arg\"",
+    "line": 3916,
+    "status": "ported"
+  },
+  {
+    "id": 187,
+    "rule": "op: '!'",
+    "line": 3917,
+    "status": "ported"
+  },
+  {
+    "id": 188,
+    "rule": "op: '~'",
+    "line": 3918,
+    "status": "ported"
+  },
+  {
+    "id": 189,
+    "rule": "op: \"unary+\"",
+    "line": 3919,
+    "status": "ported"
+  },
+  {
+    "id": 190,
+    "rule": "op: \"unary-\"",
+    "line": 3920,
+    "status": "ported"
+  },
+  {
+    "id": 191,
+    "rule": "op: \"[]\"",
+    "line": 3921,
+    "status": "ported"
+  },
+  {
+    "id": 192,
+    "rule": "op: \"[]=\"",
+    "line": 3922,
+    "status": "ported"
+  },
+  {
+    "id": 193,
+    "rule": "op: '`'",
+    "line": 3923,
+    "status": "ported"
+  },
+  {
+    "id": 194,
+    "rule": "reswords: \"'__LINE__'\"",
+    "line": 3926,
+    "status": "ported"
+  },
+  {
+    "id": 195,
+    "rule": "reswords: \"'__FILE__'\"",
+    "line": 3926,
+    "status": "ported"
+  },
+  {
+    "id": 196,
+    "rule": "reswords: \"'__ENCODING__'\"",
+    "line": 3926,
+    "status": "ported"
+  },
+  {
+    "id": 197,
+    "rule": "reswords: \"'BEGIN'\"",
+    "line": 3927,
+    "status": "ported"
+  },
+  {
+    "id": 198,
+    "rule": "reswords: \"'END'\"",
+    "line": 3927,
+    "status": "ported"
+  },
+  {
+    "id": 199,
+    "rule": "reswords: \"'alias'\"",
+    "line": 3928,
+    "status": "ported"
+  },
+  {
+    "id": 200,
+    "rule": "reswords: \"'and'\"",
+    "line": 3928,
+    "status": "ported"
+  },
+  {
+    "id": 201,
+    "rule": "reswords: \"'begin'\"",
+    "line": 3928,
+    "status": "ported"
+  },
+  {
+    "id": 202,
+    "rule": "reswords: \"'break'\"",
+    "line": 3929,
+    "status": "ported"
+  },
+  {
+    "id": 203,
+    "rule": "reswords: \"'case'\"",
+    "line": 3929,
+    "status": "ported"
+  },
+  {
+    "id": 204,
+    "rule": "reswords: \"'class'\"",
+    "line": 3929,
+    "status": "ported"
+  },
+  {
+    "id": 205,
+    "rule": "reswords: \"'def'\"",
+    "line": 3929,
+    "status": "ported"
+  },
+  {
+    "id": 206,
+    "rule": "reswords: \"'defined?'\"",
+    "line": 3930,
+    "status": "ported"
+  },
+  {
+    "id": 207,
+    "rule": "reswords: \"'do'\"",
+    "line": 3930,
+    "status": "ported"
+  },
+  {
+    "id": 208,
+    "rule": "reswords: \"'else'\"",
+    "line": 3930,
+    "status": "ported"
+  },
+  {
+    "id": 209,
+    "rule": "reswords: \"'elsif'\"",
+    "line": 3930,
+    "status": "ported"
+  },
+  {
+    "id": 210,
+    "rule": "reswords: \"'end'\"",
+    "line": 3931,
+    "status": "ported"
+  },
+  {
+    "id": 211,
+    "rule": "reswords: \"'ensure'\"",
+    "line": 3931,
+    "status": "ported"
+  },
+  {
+    "id": 212,
+    "rule": "reswords: \"'false'\"",
+    "line": 3931,
+    "status": "ported"
+  },
+  {
+    "id": 213,
+    "rule": "reswords: \"'for'\"",
+    "line": 3932,
+    "status": "ported"
+  },
+  {
+    "id": 214,
+    "rule": "reswords: \"'in'\"",
+    "line": 3932,
+    "status": "ported"
+  },
+  {
+    "id": 215,
+    "rule": "reswords: \"'module'\"",
+    "line": 3932,
+    "status": "ported"
+  },
+  {
+    "id": 216,
+    "rule": "reswords: \"'next'\"",
+    "line": 3932,
+    "status": "ported"
+  },
+  {
+    "id": 217,
+    "rule": "reswords: \"'nil'\"",
+    "line": 3933,
+    "status": "ported"
+  },
+  {
+    "id": 218,
+    "rule": "reswords: \"'not'\"",
+    "line": 3933,
+    "status": "ported"
+  },
+  {
+    "id": 219,
+    "rule": "reswords: \"'or'\"",
+    "line": 3933,
+    "status": "ported"
+  },
+  {
+    "id": 220,
+    "rule": "reswords: \"'redo'\"",
+    "line": 3933,
+    "status": "ported"
+  },
+  {
+    "id": 221,
+    "rule": "reswords: \"'rescue'\"",
+    "line": 3934,
+    "status": "ported"
+  },
+  {
+    "id": 222,
+    "rule": "reswords: \"'retry'\"",
+    "line": 3934,
+    "status": "ported"
+  },
+  {
+    "id": 223,
+    "rule": "reswords: \"'return'\"",
+    "line": 3934,
+    "status": "ported"
+  },
+  {
+    "id": 224,
+    "rule": "reswords: \"'self'\"",
+    "line": 3934,
+    "status": "ported"
+  },
+  {
+    "id": 225,
+    "rule": "reswords: \"'super'\"",
+    "line": 3935,
+    "status": "ported"
+  },
+  {
+    "id": 226,
+    "rule": "reswords: \"'then'\"",
+    "line": 3935,
+    "status": "ported"
+  },
+  {
+    "id": 227,
+    "rule": "reswords: \"'true'\"",
+    "line": 3935,
+    "status": "ported"
+  },
+  {
+    "id": 228,
+    "rule": "reswords: \"'undef'\"",
+    "line": 3935,
+    "status": "ported"
+  },
+  {
+    "id": 229,
+    "rule": "reswords: \"'when'\"",
+    "line": 3936,
+    "status": "ported"
+  },
+  {
+    "id": 230,
+    "rule": "reswords: \"'yield'\"",
+    "line": 3936,
+    "status": "ported"
+  },
+  {
+    "id": 231,
+    "rule": "reswords: \"'if'\"",
+    "line": 3936,
+    "status": "ported"
+  },
+  {
+    "id": 232,
+    "rule": "reswords: \"'unless'\"",
+    "line": 3936,
+    "status": "ported"
+  },
+  {
+    "id": 233,
+    "rule": "reswords: \"'while'\"",
+    "line": 3937,
+    "status": "ported"
+  },
+  {
+    "id": 234,
+    "rule": "reswords: \"'until'\"",
+    "line": 3937,
+    "status": "ported"
+  },
+  {
+    "id": 235,
+    "rule": "asgn_arg_rhs: lhs '=' lex_ctxt arg_rhs",
+    "line": 2926,
+    "status": "ported"
+  },
+  {
+    "id": 236,
+    "rule": "arg: asgn_arg_rhs",
+    "line": 3940,
+    "status": "pass_through"
+  },
+  {
+    "id": 237,
+    "rule": "op_asgn_arg_rhs: var_lhs \"operator-assignment\" lex_ctxt arg_rhs",
+    "line": 3061,
+    "status": "pass_through"
+  },
+  {
+    "id": 238,
+    "rule": "op_asgn_arg_rhs: primary_value '[' opt_call_args rbracket \"operator-assignment\" lex_ctxt arg_rhs",
+    "line": 3066,
+    "status": "pass_through"
+  },
+  {
+    "id": 239,
+    "rule": "op_asgn_arg_rhs: primary_value call_op \"local variable or method\" \"operator-assignment\" lex_ctxt arg_rhs",
+    "line": 3071,
+    "status": "pass_through"
+  },
+  {
+    "id": 240,
+    "rule": "op_asgn_arg_rhs: primary_value call_op \"constant\" \"operator-assignment\" lex_ctxt arg_rhs",
+    "line": 3076,
+    "status": "pass_through"
+  },
+  {
+    "id": 241,
+    "rule": "op_asgn_arg_rhs: primary_value \"::\" \"local variable or method\" \"operator-assignment\" lex_ctxt arg_rhs",
+    "line": 3081,
+    "status": "pass_through"
+  },
+  {
+    "id": 242,
+    "rule": "op_asgn_arg_rhs: primary_value \"::\" \"constant\" \"operator-assignment\" lex_ctxt arg_rhs",
+    "line": 3086,
+    "status": "pass_through"
+  },
+  {
+    "id": 243,
+    "rule": "op_asgn_arg_rhs: \":: at EXPR_BEG\" \"constant\" \"operator-assignment\" lex_ctxt arg_rhs",
+    "line": 3092,
+    "status": "pass_through"
+  },
+  {
+    "id": 244,
+    "rule": "op_asgn_arg_rhs: backref \"operator-assignment\" lex_ctxt arg_rhs",
+    "line": 3098,
+    "status": "pass_through"
+  },
+  {
+    "id": 245,
+    "rule": "arg: op_asgn_arg_rhs",
+    "line": 3941,
+    "status": "pass_through"
+  },
+  {
+    "id": 246,
+    "rule": "range_expr_arg: arg \"..\" arg",
+    "line": 3120,
+    "status": "ported"
+  },
+  {
+    "id": 247,
+    "rule": "range_expr_arg: arg \"...\" arg",
+    "line": 3127,
+    "status": "ported"
+  },
+  {
+    "id": 248,
+    "rule": "range_expr_arg: arg \"..\"",
+    "line": 3134,
+    "status": "ported"
+  },
+  {
+    "id": 249,
+    "rule": "range_expr_arg: arg \"...\"",
+    "line": 3140,
+    "status": "ported"
+  },
+  {
+    "id": 250,
+    "rule": "range_expr_arg: \"(..\" arg",
+    "line": 3146,
+    "status": "ported"
+  },
+  {
+    "id": 251,
+    "rule": "range_expr_arg: \"(...\" arg",
+    "line": 3152,
+    "status": "ported"
+  },
+  {
+    "id": 252,
+    "rule": "arg: range_expr_arg",
+    "line": 3942,
+    "status": "pass_through"
+  },
+  {
+    "id": 253,
+    "rule": "arg: arg '+' arg",
+    "line": 3944,
+    "status": "ported"
+  },
+  {
+    "id": 254,
+    "rule": "arg: arg '-' arg",
+    "line": 3949,
+    "status": "ported"
+  },
+  {
+    "id": 255,
+    "rule": "arg: arg '*' arg",
+    "line": 3954,
+    "status": "ported"
+  },
+  {
+    "id": 256,
+    "rule": "arg: arg '/' arg",
+    "line": 3959,
+    "status": "ported"
+  },
+  {
+    "id": 257,
+    "rule": "arg: arg '%' arg",
+    "line": 3964,
+    "status": "ported"
+  },
+  {
+    "id": 258,
+    "rule": "arg: arg \"**\" arg",
+    "line": 3969,
+    "status": "ported"
+  },
+  {
+    "id": 259,
+    "rule": "arg: tUMINUS_NUM simple_numeric \"**\" arg",
+    "line": 3974,
+    "status": "ported"
+  },
+  {
+    "id": 260,
+    "rule": "arg: \"unary+\" arg",
+    "line": 3979,
+    "status": "ported"
+  },
+  {
+    "id": 261,
+    "rule": "arg: \"unary-\" arg",
+    "line": 3984,
+    "status": "ported"
+  },
+  {
+    "id": 262,
+    "rule": "arg: arg '|' arg",
+    "line": 3989,
+    "status": "ported"
+  },
+  {
+    "id": 263,
+    "rule": "arg: arg '^' arg",
+    "line": 3994,
+    "status": "ported"
+  },
+  {
+    "id": 264,
+    "rule": "arg: arg '&' arg",
+    "line": 3999,
+    "status": "ported"
+  },
+  {
+    "id": 265,
+    "rule": "arg: arg \"<=>\" arg",
+    "line": 4004,
+    "status": "ported"
+  },
+  {
+    "id": 266,
+    "rule": "arg: rel_expr",
+    "line": 4008,
+    "status": "pass_through"
+  },
+  {
+    "id": 267,
+    "rule": "arg: arg \"==\" arg",
+    "line": 4010,
+    "status": "ported"
+  },
+  {
+    "id": 268,
+    "rule": "arg: arg \"===\" arg",
+    "line": 4015,
+    "status": "ported"
+  },
+  {
+    "id": 269,
+    "rule": "arg: arg \"!=\" arg",
+    "line": 4020,
+    "status": "ported"
+  },
+  {
+    "id": 270,
+    "rule": "arg: arg \"=~\" arg",
+    "line": 4025,
+    "status": "ported"
+  },
+  {
+    "id": 271,
+    "rule": "arg: arg \"!~\" arg",
+    "line": 4030,
+    "status": "ported"
+  },
+  {
+    "id": 272,
+    "rule": "arg: '!' arg",
+    "line": 4035,
+    "status": "ported"
+  },
+  {
+    "id": 273,
+    "rule": "arg: '~' arg",
+    "line": 4040,
+    "status": "ported"
+  },
+  {
+    "id": 274,
+    "rule": "arg: arg \"<<\" arg",
+    "line": 4045,
+    "status": "ported"
+  },
+  {
+    "id": 275,
+    "rule": "arg: arg \">>\" arg",
+    "line": 4050,
+    "status": "ported"
+  },
+  {
+    "id": 276,
+    "rule": "arg: arg \"&&\" arg",
+    "line": 4055,
+    "status": "ported"
+  },
+  {
+    "id": 277,
+    "rule": "arg: arg \"||\" arg",
+    "line": 4060,
+    "status": "ported"
+  },
+  {
+    "id": 278,
+    "rule": "arg: \"'defined?'\" option_'\\n' begin_defined arg",
+    "line": 4065,
+    "status": "ported"
+  },
+  {
+    "id": 279,
+    "rule": "def_endless_method_endless_arg: defn_head f_opt_paren_args '=' endless_arg",
+    "line": 2966,
+    "status": "pass_through"
+  },
+  {
+    "id": 280,
+    "rule": "def_endless_method_endless_arg: defs_head f_opt_paren_args '=' endless_arg",
+    "line": 2977,
+    "status": "pass_through"
+  },
+  {
+    "id": 281,
+    "rule": "arg: def_endless_method_endless_arg",
+    "line": 4071,
+    "status": "pass_through"
+  },
+  {
+    "id": 282,
+    "rule": "arg: ternary",
+    "line": 4072,
+    "status": "pass_through"
+  },
+  {
+    "id": 283,
+    "rule": "arg: primary",
+    "line": 4073,
+    "status": "pass_through"
+  },
+  {
+    "id": 284,
+    "rule": "ternary: arg '?' arg option_'\\n' ':' arg",
+    "line": 4077,
+    "status": "ported"
+  },
+  {
+    "id": 285,
+    "rule": "endless_arg: arg",
+    "line": 4085,
+    "status": "pass_through"
+  },
+  {
+    "id": 286,
+    "rule": "endless_arg: endless_arg \"'rescue' modifier\" after_rescue arg",
+    "line": 4087,
+    "status": "ported"
+  },
+  {
+    "id": 287,
+    "rule": "endless_arg: \"'not'\" option_'\\n' endless_arg",
+    "line": 4093,
+    "status": "ported"
+  },
+  {
+    "id": 288,
+    "rule": "relop: '>'",
+    "line": 4099,
+    "status": "ported"
+  },
+  {
+    "id": 289,
+    "rule": "relop: '<'",
+    "line": 4100,
+    "status": "ported"
+  },
+  {
+    "id": 290,
+    "rule": "relop: \">=\"",
+    "line": 4101,
+    "status": "ported"
+  },
+  {
+    "id": 291,
+    "rule": "relop: \"<=\"",
+    "line": 4102,
+    "status": "ported"
+  },
+  {
+    "id": 292,
+    "rule": "rel_expr: arg relop arg",
+    "line": 4106,
+    "status": "ported"
+  },
+  {
+    "id": 293,
+    "rule": "rel_expr: rel_expr relop arg",
+    "line": 4111,
+    "status": "ported"
+  },
+  {
+    "id": 294,
+    "rule": "lex_ctxt: none",
+    "line": 4119,
+    "status": "empty"
+  },
+  {
+    "id": 295,
+    "rule": "begin_defined: lex_ctxt",
+    "line": 4125,
+    "status": "pass_through"
+  },
+  {
+    "id": 296,
+    "rule": "after_rescue: lex_ctxt",
+    "line": 4132,
+    "status": "pass_through"
+  },
+  {
+    "id": 297,
+    "rule": "value_expr_arg: arg",
+    "line": 3161,
+    "status": "pass_through"
+  },
+  {
+    "id": 298,
+    "rule": "arg_value: value_expr_arg",
+    "line": 4138,
+    "status": "pass_through"
+  },
+  {
+    "id": 299,
+    "rule": "aref_args: none",
+    "line": 4141,
+    "status": "ported"
+  },
+  {
+    "id": 300,
+    "rule": "aref_args: args trailer",
+    "line": 4142,
+    "status": "pass_through"
+  },
+  {
+    "id": 301,
+    "rule": "aref_args: args ',' assocs trailer",
+    "line": 4144,
+    "status": "ported"
+  },
+  {
+    "id": 302,
+    "rule": "aref_args: assocs trailer",
+    "line": 4149,
+    "status": "pass_through"
+  },
+  {
+    "id": 303,
+    "rule": "arg_rhs: arg",
+    "line": 4156,
+    "status": "pass_through"
+  },
+  {
+    "id": 304,
+    "rule": "arg_rhs: arg \"'rescue' modifier\" after_rescue arg",
+    "line": 4161,
+    "status": "ported"
+  },
+  {
+    "id": 305,
+    "rule": "paren_args: '(' opt_call_args rparen",
+    "line": 4170,
+    "status": "pass_through"
+  },
+  {
+    "id": 306,
+    "rule": "paren_args: '(' args ',' args_forward rparen",
+    "line": 4175,
+    "status": "ported"
+  },
+  {
+    "id": 307,
+    "rule": "paren_args: '(' args_forward rparen",
+    "line": 4185,
+    "status": "pass_through"
+  },
+  {
+    "id": 308,
+    "rule": "opt_paren_args: none",
+    "line": 4196,
+    "status": "empty"
+  },
+  {
+    "id": 309,
+    "rule": "opt_paren_args: paren_args",
+    "line": 4198,
+    "status": "pass_through"
+  },
+  {
+    "id": 310,
+    "rule": "opt_call_args: none",
+    "line": 4203,
+    "status": "empty"
+  },
+  {
+    "id": 311,
+    "rule": "opt_call_args: call_args",
+    "line": 4204,
+    "status": "pass_through"
+  },
+  {
+    "id": 312,
+    "rule": "opt_call_args: args ','",
+    "line": 4205,
+    "status": "pass_through"
+  },
+  {
+    "id": 313,
+    "rule": "opt_call_args: args ',' assocs ','",
+    "line": 4207,
+    "status": "pass_through"
+  },
+  {
+    "id": 314,
+    "rule": "opt_call_args: assocs ','",
+    "line": 4212,
+    "status": "pass_through"
+  },
+  {
+    "id": 315,
+    "rule": "value_expr_command: command",
+    "line": 3161,
+    "status": "pass_through"
+  },
+  {
+    "id": 316,
+    "rule": "call_args: value_expr_command",
+    "line": 4219,
+    "status": "pass_through"
+  },
+  {
+    "id": 317,
+    "rule": "call_args: def_endless_method_endless_command",
+    "line": 4224,
+    "status": "pass_through"
+  },
+  {
+    "id": 318,
+    "rule": "call_args: args opt_block_arg",
+    "line": 4229,
+    "status": "pass_through"
+  },
+  {
+    "id": 319,
+    "rule": "call_args: assocs opt_block_arg",
+    "line": 4234,
+    "status": "pass_through"
+  },
+  {
+    "id": 320,
+    "rule": "call_args: args ',' assocs opt_block_arg",
+    "line": 4240,
+    "status": "ported"
+  },
+  {
+    "id": 321,
+    "rule": "call_args: block_arg",
+    "line": 4245,
+    "status": "pass_through"
+  },
+  {
+    "id": 322,
+    "rule": "$@13: %empty",
+    "line": 4249,
+    "status": "empty"
+  },
+  {
+    "id": 323,
+    "rule": "command_args: $@13 call_args",
+    "line": 4267,
+    "status": "pass_through"
+  },
+  {
+    "id": 324,
+    "rule": "block_arg: \"&\" arg_value",
+    "line": 4288,
+    "status": "pass_through"
+  },
+  {
+    "id": 325,
+    "rule": "block_arg: \"&\"",
+    "line": 4293,
+    "status": "empty"
+  },
+  {
+    "id": 326,
+    "rule": "opt_block_arg: ',' block_arg",
+    "line": 4301,
+    "status": "pass_through"
+  },
+  {
+    "id": 327,
+    "rule": "opt_block_arg: none",
+    "line": 4306,
+    "status": "empty"
+  },
+  {
+    "id": 328,
+    "rule": "args: arg_value",
+    "line": 4314,
+    "status": "ported"
+  },
+  {
+    "id": 329,
+    "rule": "args: arg_splat",
+    "line": 4319,
+    "status": "pass_through"
+  },
+  {
+    "id": 330,
+    "rule": "args: args ',' arg_value",
+    "line": 4324,
+    "status": "ported"
+  },
+  {
+    "id": 331,
+    "rule": "args: args ',' arg_splat",
+    "line": 4329,
+    "status": "ported"
+  },
+  {
+    "id": 332,
+    "rule": "arg_splat: \"*\" arg_value",
+    "line": 4337,
+    "status": "pass_through"
+  },
+  {
+    "id": 333,
+    "rule": "arg_splat: \"*\"",
+    "line": 4342,
+    "status": "empty"
+  },
+  {
+    "id": 334,
+    "rule": "mrhs_arg: mrhs",
+    "line": 4350,
+    "status": "pass_through"
+  },
+  {
+    "id": 335,
+    "rule": "mrhs_arg: arg_value",
+    "line": 4351,
+    "status": "pass_through"
+  },
+  {
+    "id": 336,
+    "rule": "mrhs: args ',' arg_value",
+    "line": 4356,
+    "status": "ported"
+  },
+  {
+    "id": 337,
+    "rule": "mrhs: args ',' \"*\" arg_value",
+    "line": 4361,
+    "status": "ported"
+  },
+  {
+    "id": 338,
+    "rule": "mrhs: \"*\" arg_value",
+    "line": 4366,
+    "status": "ported"
+  },
+  {
+    "id": 339,
+    "rule": "primary: literal",
+    "line": 4383,
+    "status": "pass_through"
+  },
+  {
+    "id": 340,
+    "rule": "primary: strings",
+    "line": 4383,
+    "status": "pass_through"
+  },
+  {
+    "id": 341,
+    "rule": "primary: xstring",
+    "line": 4383,
+    "status": "pass_through"
+  },
+  {
+    "id": 342,
+    "rule": "primary: regexp",
+    "line": 4383,
+    "status": "pass_through"
+  },
+  {
+    "id": 343,
+    "rule": "primary: words",
+    "line": 4383,
+    "status": "ported"
+  },
+  {
+    "id": 344,
+    "rule": "primary: qwords",
+    "line": 4383,
+    "status": "ported"
+  },
+  {
+    "id": 345,
+    "rule": "primary: symbols",
+    "line": 4383,
+    "status": "pass_through"
+  },
+  {
+    "id": 346,
+    "rule": "primary: qsymbols",
+    "line": 4383,
+    "status": "pass_through"
+  },
+  {
+    "id": 347,
+    "rule": "primary: var_ref",
+    "line": 4384,
+    "status": "pass_through"
+  },
+  {
+    "id": 348,
+    "rule": "primary: backref",
+    "line": 4385,
+    "status": "pass_through"
+  },
+  {
+    "id": 349,
+    "rule": "primary: \"method\"",
+    "line": 4387,
+    "status": "ported"
+  },
+  {
+    "id": 350,
+    "rule": "$@14: %empty",
+    "line": 4392,
+    "status": "empty"
+  },
+  {
+    "id": 351,
+    "rule": "primary: k_begin $@14 bodystmt k_end",
+    "line": 4397,
+    "status": "ported"
+  },
+  {
+    "id": 352,
+    "rule": "$@15: %empty",
+    "line": 4404,
+    "status": "empty"
+  },
+  {
+    "id": 353,
+    "rule": "primary: \"( arg\" compstmt_stmts $@15 ')'",
+    "line": 4405,
+    "status": "ported"
+  },
+  {
+    "id": 354,
+    "rule": "primary: \"(\" compstmt_stmts ')'",
+    "line": 4411,
+    "status": "ported"
+  },
+  {
+    "id": 355,
+    "rule": "primary: primary_value \"::\" \"constant\"",
+    "line": 4417,
+    "status": "ported"
+  },
+  {
+    "id": 356,
+    "rule": "primary: \":: at EXPR_BEG\" \"constant\"",
+    "line": 4422,
+    "status": "pass_through"
+  },
+  {
+    "id": 357,
+    "rule": "primary: \"[\" aref_args ']'",
+    "line": 4427,
+    "status": "ported"
+  },
+  {
+    "id": 358,
+    "rule": "primary: \"{\" assoc_list '}'",
+    "line": 4432,
+    "status": "ported"
+  },
+  {
+    "id": 359,
+    "rule": "primary: k_return",
+    "line": 4438,
+    "status": "ported"
+  },
+  {
+    "id": 360,
+    "rule": "primary: k_yield '(' call_args rparen",
+    "line": 4443,
+    "status": "ported"
+  },
+  {
+    "id": 361,
+    "rule": "primary: k_yield '(' rparen",
+    "line": 4448,
+    "status": "ported"
+  },
+  {
+    "id": 362,
+    "rule": "primary: k_yield",
+    "line": 4453,
+    "status": "ported"
+  },
+  {
+    "id": 363,
+    "rule": "primary: \"'defined?'\" option_'\\n' '(' begin_defined expr rparen",
+    "line": 4458,
+    "status": "ported"
+  },
+  {
+    "id": 364,
+    "rule": "primary: \"'not'\" '(' expr rparen",
+    "line": 4465,
+    "status": "ported"
+  },
+  {
+    "id": 365,
+    "rule": "primary: \"'not'\" '(' rparen",
+    "line": 4470,
+    "status": "ported"
+  },
+  {
+    "id": 366,
+    "rule": "primary: fcall brace_block",
+    "line": 4475,
+    "status": "pass_through"
+  },
+  {
+    "id": 367,
+    "rule": "primary: method_call",
+    "line": 4479,
+    "status": "pass_through"
+  },
+  {
+    "id": 368,
+    "rule": "primary: method_call brace_block",
+    "line": 4481,
+    "status": "pass_through"
+  },
+  {
+    "id": 369,
+    "rule": "primary: lambda",
+    "line": 4486,
+    "status": "pass_through"
+  },
+  {
+    "id": 370,
+    "rule": "primary: k_if expr_value then compstmt_stmts if_tail k_end",
+    "line": 4491,
+    "status": "ported"
+  },
+  {
+    "id": 371,
+    "rule": "primary: k_unless expr_value then compstmt_stmts opt_else k_end",
+    "line": 4503,
+    "status": "ported"
+  },
+  {
+    "id": 372,
+    "rule": "primary: k_while expr_value_do compstmt_stmts k_end",
+    "line": 4511,
+    "status": "ported"
+  },
+  {
+    "id": 373,
+    "rule": "primary: k_until expr_value_do compstmt_stmts k_end",
+    "line": 4520,
+    "status": "ported"
+  },
+  {
+    "id": 374,
+    "rule": "@16: %empty",
+    "line": 4527,
+    "status": "empty"
+  },
+  {
+    "id": 375,
+    "rule": "primary: k_case expr_value option_terms @16 case_body k_end",
+    "line": 4533,
+    "status": "ported"
+  },
+  {
+    "id": 376,
+    "rule": "@17: %empty",
+    "line": 4541,
+    "status": "empty"
+  },
+  {
+    "id": 377,
+    "rule": "primary: k_case option_terms @17 case_body k_end",
+    "line": 4547,
+    "status": "ported"
+  },
+  {
+    "id": 378,
+    "rule": "primary: k_case expr_value option_terms p_case_body k_end",
+    "line": 4556,
+    "status": "pass_through"
+  },
+  {
+    "id": 379,
+    "rule": "$@18: %empty",
+    "line": 4561,
+    "status": "empty"
+  },
+  {
+    "id": 380,
+    "rule": "$@19: %empty",
+    "line": 4561,
+    "status": "empty"
+  },
+  {
+    "id": 381,
+    "rule": "primary: k_for for_var \"'in'\" $@18 expr_value do $@19 compstmt_stmts k_end",
+    "line": 4564,
+    "status": "ported"
+  },
+  {
+    "id": 382,
+    "rule": "$@20: %empty",
+    "line": 4606,
+    "status": "empty"
+  },
+  {
+    "id": 383,
+    "rule": "primary: k_class cpath superclass $@20 bodystmt k_end",
+    "line": 4611,
+    "status": "ported"
+  },
+  {
+    "id": 384,
+    "rule": "$@21: %empty",
+    "line": 4628,
+    "status": "empty"
+  },
+  {
+    "id": 385,
+    "rule": "primary: k_class \"<<\" expr_value $@21 term bodystmt k_end",
+    "line": 4634,
+    "status": "pass_through"
+  },
+  {
+    "id": 386,
+    "rule": "$@22: %empty",
+    "line": 4647,
+    "status": "empty"
+  },
+  {
+    "id": 387,
+    "rule": "primary: k_module cpath $@22 bodystmt k_end",
+    "line": 4652,
+    "status": "ported"
+  },
+  {
+    "id": 388,
+    "rule": "$@23: %empty",
+    "line": 4665,
+    "status": "empty"
+  },
+  {
+    "id": 389,
+    "rule": "primary: defn_head f_arglist $@23 bodystmt k_end",
+    "line": 4670,
+    "status": "ported"
+  },
+  {
+    "id": 390,
+    "rule": "$@24: %empty",
+    "line": 4680,
+    "status": "empty"
+  },
+  {
+    "id": 391,
+    "rule": "primary: defs_head f_arglist $@24 bodystmt k_end",
+    "line": 4685,
+    "status": "pass_through"
+  },
+  {
+    "id": 392,
+    "rule": "primary: \"'break'\"",
+    "line": 4694,
+    "status": "ported"
+  },
+  {
+    "id": 393,
+    "rule": "primary: \"'next'\"",
+    "line": 4699,
+    "status": "ported"
+  },
+  {
+    "id": 394,
+    "rule": "primary: \"'redo'\"",
+    "line": 4704,
+    "status": "ported"
+  },
+  {
+    "id": 395,
+    "rule": "primary: \"'retry'\"",
+    "line": 4709,
+    "status": "ported"
+  },
+  {
+    "id": 396,
+    "rule": "value_expr_primary: primary",
+    "line": 3161,
+    "status": "pass_through"
+  },
+  {
+    "id": 397,
+    "rule": "primary_value: value_expr_primary",
+    "line": 4723,
+    "status": "pass_through"
+  },
+  {
+    "id": 398,
+    "rule": "k_begin: \"'begin'\"",
+    "line": 4727,
+    "status": "empty"
+  },
+  {
+    "id": 399,
+    "rule": "k_if: \"'if'\"",
+    "line": 4734,
+    "status": "pass_through"
+  },
+  {
+    "id": 400,
+    "rule": "k_unless: \"'unless'\"",
+    "line": 4752,
+    "status": "pass_through"
+  },
+  {
+    "id": 401,
+    "rule": "k_while: \"'while'\" allow_exits",
+    "line": 4759,
+    "status": "pass_through"
+  },
+  {
+    "id": 402,
+    "rule": "k_until: \"'until'\" allow_exits",
+    "line": 4767,
+    "status": "pass_through"
+  },
+  {
+    "id": 403,
+    "rule": "k_case: \"'case'\"",
+    "line": 4775,
+    "status": "pass_through"
+  },
+  {
+    "id": 404,
+    "rule": "k_for: \"'for'\" allow_exits",
+    "line": 4782,
+    "status": "pass_through"
+  },
+  {
+    "id": 405,
+    "rule": "k_class: \"'class'\"",
+    "line": 4790,
+    "status": "empty"
+  },
+  {
+    "id": 406,
+    "rule": "k_module: \"'module'\"",
+    "line": 4799,
+    "status": "empty"
+  },
+  {
+    "id": 407,
+    "rule": "k_def: \"'def'\"",
+    "line": 4808,
+    "status": "empty"
+  },
+  {
+    "id": 408,
+    "rule": "k_do: \"'do'\"",
+    "line": 4816,
+    "status": "empty"
+  },
+  {
+    "id": 409,
+    "rule": "k_do_block: \"'do' for block\"",
+    "line": 4823,
+    "status": "empty"
+  },
+  {
+    "id": 410,
+    "rule": "k_rescue: \"'rescue'\"",
+    "line": 4830,
+    "status": "empty"
+  },
+  {
+    "id": 411,
+    "rule": "k_ensure: \"'ensure'\"",
+    "line": 4838,
+    "status": "empty"
+  },
+  {
+    "id": 412,
+    "rule": "k_when: \"'when'\"",
+    "line": 4845,
+    "status": "pass_through"
+  },
+  {
+    "id": 413,
+    "rule": "k_else: \"'else'\"",
+    "line": 4851,
+    "status": "pass_through"
+  },
+  {
+    "id": 414,
+    "rule": "k_elsif: \"'elsif'\"",
+    "line": 4866,
+    "status": "pass_through"
+  },
+  {
+    "id": 415,
+    "rule": "k_end: \"'end'\"",
+    "line": 4873,
+    "status": "pass_through"
+  },
+  {
+    "id": 416,
+    "rule": "k_end: \"dummy end\"",
+    "line": 4878,
+    "status": "empty"
+  },
+  {
+    "id": 417,
+    "rule": "k_return: \"'return'\"",
+    "line": 4884,
+    "status": "pass_through"
+  },
+  {
+    "id": 418,
+    "rule": "k_yield: \"'yield'\"",
+    "line": 4891,
+    "status": "pass_through"
+  },
+  {
+    "id": 419,
+    "rule": "then: term",
+    "line": 4897,
+    "status": "pass_through"
+  },
+  {
+    "id": 420,
+    "rule": "then: \"'then'\"",
+    "line": 4898,
+    "status": "pass_through"
+  },
+  {
+    "id": 421,
+    "rule": "then: term \"'then'\"",
+    "line": 4899,
+    "status": "pass_through"
+  },
+  {
+    "id": 422,
+    "rule": "do: term",
+    "line": 4902,
+    "status": "pass_through"
+  },
+  {
+    "id": 423,
+    "rule": "do: \"'do' for condition\"",
+    "line": 4903,
+    "status": "pass_through"
+  },
+  {
+    "id": 424,
+    "rule": "if_tail: opt_else",
+    "line": 4906,
+    "status": "pass_through"
+  },
+  {
+    "id": 425,
+    "rule": "if_tail: k_elsif expr_value then compstmt_stmts if_tail",
+    "line": 4910,
+    "status": "ported"
+  },
+  {
+    "id": 426,
+    "rule": "opt_else: none",
+    "line": 4917,
+    "status": "empty"
+  },
+  {
+    "id": 427,
+    "rule": "opt_else: k_else compstmt_stmts",
+    "line": 4919,
+    "status": "pass_through"
+  },
+  {
+    "id": 428,
+    "rule": "for_var: lhs",
+    "line": 4925,
+    "status": "pass_through"
+  },
+  {
+    "id": 429,
+    "rule": "for_var: mlhs",
+    "line": 4926,
+    "status": "pass_through"
+  },
+  {
+    "id": 430,
+    "rule": "f_marg: f_norm_arg",
+    "line": 4930,
+    "status": "pass_through"
+  },
+  {
+    "id": 431,
+    "rule": "f_marg: \"(\" f_margs rparen",
+    "line": 4935,
+    "status": "pass_through"
+  },
+  {
+    "id": 432,
+    "rule": "mlhs_items_f_marg: f_marg",
+    "line": 3048,
+    "status": "pass_through"
+  },
+  {
+    "id": 433,
+    "rule": "mlhs_items_f_marg: mlhs_items_f_marg ',' f_marg",
+    "line": 3053,
+    "status": "pass_through"
+  },
+  {
+    "id": 434,
+    "rule": "f_margs: mlhs_items_f_marg",
+    "line": 4943,
+    "status": "pass_through"
+  },
+  {
+    "id": 435,
+    "rule": "f_margs: mlhs_items_f_marg ',' f_rest_marg",
+    "line": 4948,
+    "status": "pass_through"
+  },
+  {
+    "id": 436,
+    "rule": "f_margs: mlhs_items_f_marg ',' f_rest_marg ',' mlhs_items_f_marg",
+    "line": 4953,
+    "status": "pass_through"
+  },
+  {
+    "id": 437,
+    "rule": "f_margs: f_rest_marg",
+    "line": 4958,
+    "status": "pass_through"
+  },
+  {
+    "id": 438,
+    "rule": "f_margs: f_rest_marg ',' mlhs_items_f_marg",
+    "line": 4963,
+    "status": "pass_through"
+  },
+  {
+    "id": 439,
+    "rule": "f_rest_marg: \"*\" f_norm_arg",
+    "line": 4970,
+    "status": "pass_through"
+  },
+  {
+    "id": 440,
+    "rule": "f_rest_marg: \"*\"",
+    "line": 4976,
+    "status": "empty"
+  },
+  {
+    "id": 441,
+    "rule": "f_any_kwrest: f_kwrest",
+    "line": 4982,
+    "status": "pass_through"
+  },
+  {
+    "id": 442,
+    "rule": "f_any_kwrest: f_no_kwarg",
+    "line": 4984,
+    "status": "pass_through"
+  },
+  {
+    "id": 443,
+    "rule": "$@25: %empty",
+    "line": 4990,
+    "status": "empty"
+  },
+  {
+    "id": 444,
+    "rule": "f_eq: $@25 '='",
+    "line": 4990,
+    "status": "empty"
+  },
+  {
+    "id": 445,
+    "rule": "f_kw_primary_value: f_label primary_value",
+    "line": 3020,
+    "status": "pass_through"
+  },
+  {
+    "id": 446,
+    "rule": "f_kw_primary_value: f_label",
+    "line": 3026,
+    "status": "pass_through"
+  },
+  {
+    "id": 447,
+    "rule": "f_kwarg_primary_value: f_kw_primary_value",
+    "line": 3035,
+    "status": "pass_through"
+  },
+  {
+    "id": 448,
+    "rule": "f_kwarg_primary_value: f_kwarg_primary_value ',' f_kw_primary_value",
+    "line": 3040,
+    "status": "pass_through"
+  },
+  {
+    "id": 449,
+    "rule": "opt_f_block_arg_none: ',' f_block_arg",
+    "line": 2957,
+    "status": "pass_through"
+  },
+  {
+    "id": 450,
+    "rule": "opt_f_block_arg_none: none",
+    "line": 4992,
+    "status": "empty"
+  },
+  {
+    "id": 451,
+    "rule": "args_tail_basic_primary_value_none: f_kwarg_primary_value ',' f_kwrest opt_f_block_arg_none",
+    "line": 2934,
+    "status": "pass_through"
+  },
+  {
+    "id": 452,
+    "rule": "args_tail_basic_primary_value_none: f_kwarg_primary_value opt_f_block_arg_none",
+    "line": 2939,
+    "status": "pass_through"
+  },
+  {
+    "id": 453,
+    "rule": "args_tail_basic_primary_value_none: f_any_kwrest opt_f_block_arg_none",
+    "line": 2944,
+    "status": "pass_through"
+  },
+  {
+    "id": 454,
+    "rule": "args_tail_basic_primary_value_none: f_block_arg",
+    "line": 2949,
+    "status": "pass_through"
+  },
+  {
+    "id": 455,
+    "rule": "block_args_tail: args_tail_basic_primary_value_none",
+    "line": 4992,
+    "status": "pass_through"
+  },
+  {
+    "id": 456,
+    "rule": "excessed_comma: ','",
+    "line": 4996,
+    "status": "empty"
+  },
+  {
+    "id": 457,
+    "rule": "f_opt_primary_value: f_arg_asgn f_eq primary_value",
+    "line": 2998,
+    "status": "pass_through"
+  },
+  {
+    "id": 458,
+    "rule": "f_opt_arg_primary_value: f_opt_primary_value",
+    "line": 3007,
+    "status": "pass_through"
+  },
+  {
+    "id": 459,
+    "rule": "f_opt_arg_primary_value: f_opt_arg_primary_value ',' f_opt_primary_value",
+    "line": 3012,
+    "status": "pass_through"
+  },
+  {
+    "id": 460,
+    "rule": "opt_args_tail_block_args_tail_none: ',' block_args_tail",
+    "line": 3107,
+    "status": "pass_through"
+  },
+  {
+    "id": 461,
+    "rule": "opt_args_tail_block_args_tail_none: none",
+    "line": 3112,
+    "status": "empty"
+  },
+  {
+    "id": 462,
+    "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_opt_arg_primary_value ',' f_rest_arg opt_args_tail_block_args_tail_none",
+    "line": 6277,
+    "status": "pass_through"
+  },
+  {
+    "id": 463,
+    "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_opt_arg_primary_value ',' f_rest_arg ',' f_arg opt_args_tail_block_args_tail_none",
+    "line": 6282,
+    "status": "pass_through"
+  },
+  {
+    "id": 464,
+    "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_opt_arg_primary_value opt_args_tail_block_args_tail_none",
+    "line": 6287,
+    "status": "pass_through"
+  },
+  {
+    "id": 465,
+    "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_opt_arg_primary_value ',' f_arg opt_args_tail_block_args_tail_none",
+    "line": 6292,
+    "status": "pass_through"
+  },
+  {
+    "id": 466,
+    "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_rest_arg opt_args_tail_block_args_tail_none",
+    "line": 6297,
+    "status": "pass_through"
+  },
+  {
+    "id": 467,
+    "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_rest_arg ',' f_arg opt_args_tail_block_args_tail_none",
+    "line": 6302,
+    "status": "pass_through"
+  },
+  {
+    "id": 468,
+    "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_opt_arg_primary_value ',' f_rest_arg opt_args_tail_block_args_tail_none",
+    "line": 6307,
+    "status": "pass_through"
+  },
+  {
+    "id": 469,
+    "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_opt_arg_primary_value ',' f_rest_arg ',' f_arg opt_args_tail_block_args_tail_none",
+    "line": 6312,
+    "status": "pass_through"
+  },
+  {
+    "id": 470,
+    "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_opt_arg_primary_value opt_args_tail_block_args_tail_none",
+    "line": 6317,
+    "status": "pass_through"
+  },
+  {
+    "id": 471,
+    "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_opt_arg_primary_value ',' f_arg opt_args_tail_block_args_tail_none",
+    "line": 6322,
+    "status": "pass_through"
+  },
+  {
+    "id": 472,
+    "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_rest_arg opt_args_tail_block_args_tail_none",
+    "line": 6327,
+    "status": "pass_through"
+  },
+  {
+    "id": 473,
+    "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_rest_arg ',' f_arg opt_args_tail_block_args_tail_none",
+    "line": 6332,
+    "status": "pass_through"
+  },
+  {
+    "id": 474,
+    "rule": "block_param: args-list_primary_value_opt_args_tail_block_args_tail_none",
+    "line": 5003,
+    "status": "pass_through"
+  },
+  {
+    "id": 475,
+    "rule": "block_param: f_arg excessed_comma",
+    "line": 5005,
+    "status": "pass_through"
+  },
+  {
+    "id": 476,
+    "rule": "block_param: f_arg opt_args_tail_block_args_tail_none",
+    "line": 5011,
+    "status": "pass_through"
+  },
+  {
+    "id": 477,
+    "rule": "tail-only-args_block_args_tail: block_args_tail",
+    "line": 6340,
+    "status": "pass_through"
+  },
+  {
+    "id": 478,
+    "rule": "block_param: tail-only-args_block_args_tail",
+    "line": 5015,
+    "status": "pass_through"
+  },
+  {
+    "id": 479,
+    "rule": "opt_block_param_def: none",
+    "line": 5018,
+    "status": "empty"
+  },
+  {
+    "id": 480,
+    "rule": "opt_block_param_def: block_param_def",
+    "line": 5020,
+    "status": "pass_through"
+  },
+  {
+    "id": 481,
+    "rule": "block_param_def: '|' opt_block_param opt_bv_decl '|'",
+    "line": 5026,
+    "status": "pass_through"
+  },
+  {
+    "id": 482,
+    "rule": "opt_block_param: %empty",
+    "line": 5035,
+    "status": "empty"
+  },
+  {
+    "id": 483,
+    "rule": "opt_block_param: block_param",
+    "line": 5039,
+    "status": "pass_through"
+  },
+  {
+    "id": 484,
+    "rule": "opt_bv_decl: option_'\\n'",
+    "line": 5043,
+    "status": "pass_through"
+  },
+  {
+    "id": 485,
+    "rule": "opt_bv_decl: option_'\\n' ';' bv_decls option_'\\n'",
+    "line": 5048,
+    "status": "pass_through"
+  },
+  {
+    "id": 486,
+    "rule": "bv_decls: bvar",
+    "line": 5054,
+    "status": "pass_through"
+  },
+  {
+    "id": 487,
+    "rule": "bv_decls: bv_decls ',' bvar",
+    "line": 5056,
+    "status": "pass_through"
+  },
+  {
+    "id": 488,
+    "rule": "bvar: \"local variable or method\"",
+    "line": 5061,
+    "status": "pass_through"
+  },
+  {
+    "id": 489,
+    "rule": "bvar: f_bad_arg",
+    "line": 5065,
+    "status": "pass_through"
+  },
+  {
+    "id": 490,
+    "rule": "max_numparam: %empty",
+    "line": 5068,
+    "status": "empty"
+  },
+  {
+    "id": 491,
+    "rule": "numparam: %empty",
+    "line": 5074,
+    "status": "empty"
+  },
+  {
+    "id": 492,
+    "rule": "it_id: %empty",
+    "line": 5079,
+    "status": "empty"
+  },
+  {
+    "id": 493,
+    "rule": "@26: %empty",
+    "line": 5086,
+    "status": "empty"
+  },
+  {
+    "id": 494,
+    "rule": "$@27: %empty",
+    "line": 5092,
+    "status": "empty"
+  },
+  {
+    "id": 495,
+    "rule": "lambda: \"->\" @26 max_numparam numparam it_id allow_exits f_larglist $@27 lambda_body",
+    "line": 5096,
+    "status": "ported"
+  },
+  {
+    "id": 496,
+    "rule": "f_larglist: '(' f_largs opt_bv_decl ')'",
+    "line": 5120,
+    "status": "pass_through"
+  },
+  {
+    "id": 497,
+    "rule": "f_larglist: f_largs",
+    "line": 5127,
+    "status": "pass_through"
+  },
+  {
+    "id": 498,
+    "rule": "lambda_body: tLAMBEG compstmt_stmts '}'",
+    "line": 5136,
+    "status": "pass_through"
+  },
+  {
+    "id": 499,
+    "rule": "$@28: %empty",
+    "line": 5142,
+    "status": "empty"
+  },
+  {
+    "id": 500,
+    "rule": "lambda_body: \"'do' for lambda\" $@28 bodystmt k_end",
+    "line": 5146,
+    "status": "pass_through"
+  },
+  {
+    "id": 501,
+    "rule": "do_block: k_do_block do_body k_end",
+    "line": 5153,
+    "status": "pass_through"
+  },
+  {
+    "id": 502,
+    "rule": "block_call: command do_block",
+    "line": 5161,
+    "status": "pass_through"
+  },
+  {
+    "id": 503,
+    "rule": "block_call: block_call call_op2 operation2 opt_paren_args",
+    "line": 5167,
+    "status": "pass_through"
+  },
+  {
+    "id": 504,
+    "rule": "block_call: block_call call_op2 operation2 opt_paren_args brace_block",
+    "line": 5177,
+    "status": "pass_through"
+  },
+  {
+    "id": 505,
+    "rule": "block_call: block_call call_op2 operation2 command_args do_block",
+    "line": 5183,
+    "status": "pass_through"
+  },
+  {
+    "id": 506,
+    "rule": "block_call: block_call call_op2 paren_args",
+    "line": 5188,
+    "status": "pass_through"
+  },
+  {
+    "id": 507,
+    "rule": "method_call: fcall paren_args",
+    "line": 5196,
+    "status": "ported"
+  },
+  {
+    "id": 508,
+    "rule": "method_call: primary_value call_op operation2 opt_paren_args",
+    "line": 5203,
+    "status": "pass_through"
+  },
+  {
+    "id": 509,
+    "rule": "method_call: primary_value \"::\" operation2 paren_args",
+    "line": 5214,
+    "status": "pass_through"
+  },
+  {
+    "id": 510,
+    "rule": "method_call: primary_value \"::\" operation3",
+    "line": 5220,
+    "status": "pass_through"
+  },
+  {
+    "id": 511,
+    "rule": "method_call: primary_value call_op2 paren_args",
+    "line": 5225,
+    "status": "pass_through"
+  },
+  {
+    "id": 512,
+    "rule": "method_call: \"'super'\" paren_args",
+    "line": 5231,
+    "status": "ported"
+  },
+  {
+    "id": 513,
+    "rule": "method_call: \"'super'\"",
+    "line": 5241,
+    "status": "ported"
+  },
+  {
+    "id": 514,
+    "rule": "method_call: primary_value '[' opt_call_args rbracket",
+    "line": 5246,
+    "status": "ported"
+  },
+  {
+    "id": 515,
+    "rule": "brace_block: '{' brace_body '}'",
+    "line": 5254,
+    "status": "pass_through"
+  },
+  {
+    "id": 516,
+    "rule": "brace_block: k_do do_body k_end",
+    "line": 5260,
+    "status": "pass_through"
+  },
+  {
+    "id": 517,
+    "rule": "@29: %empty",
+    "line": 5267,
+    "status": "empty"
+  },
+  {
+    "id": 518,
+    "rule": "brace_body: @29 max_numparam numparam it_id allow_exits opt_block_param_def compstmt_stmts",
+    "line": 5270,
+    "status": "pass_through"
+  },
+  {
+    "id": 519,
+    "rule": "@30: %empty",
+    "line": 5284,
+    "status": "empty"
+  },
+  {
+    "id": 520,
+    "rule": "do_body: @30 max_numparam numparam it_id allow_exits opt_block_param_def bodystmt",
+    "line": 5290,
+    "status": "pass_through"
+  },
+  {
+    "id": 521,
+    "rule": "case_args: arg_value",
+    "line": 5306,
+    "status": "ported"
+  },
+  {
+    "id": 522,
+    "rule": "case_args: \"*\" arg_value",
+    "line": 5312,
+    "status": "pass_through"
+  },
+  {
+    "id": 523,
+    "rule": "case_args: case_args ',' arg_value",
+    "line": 5317,
+    "status": "ported"
+  },
+  {
+    "id": 524,
+    "rule": "case_args: case_args ',' \"*\" arg_value",
+    "line": 5323,
+    "status": "pass_through"
+  },
+  {
+    "id": 525,
+    "rule": "case_body: k_when case_args then compstmt_stmts cases",
+    "line": 5332,
+    "status": "ported"
+  },
+  {
+    "id": 526,
+    "rule": "cases: opt_else",
+    "line": 5339,
+    "status": "pass_through"
+  },
+  {
+    "id": 527,
+    "rule": "cases: case_body",
+    "line": 5340,
+    "status": "ported"
+  },
+  {
+    "id": 528,
+    "rule": "p_pvtbl: %empty",
+    "line": 5343,
+    "status": "empty"
+  },
+  {
+    "id": 529,
+    "rule": "p_pktbl: %empty",
+    "line": 5344,
+    "status": "empty"
+  },
+  {
+    "id": 530,
+    "rule": "p_in_kwarg: %empty",
+    "line": 5346,
+    "status": "empty"
+  },
+  {
+    "id": 531,
+    "rule": "$@31: %empty",
+    "line": 5359,
+    "status": "empty"
+  },
+  {
+    "id": 532,
+    "rule": "p_case_body: \"'in'\" p_in_kwarg p_pvtbl p_pktbl p_top_expr then $@31 compstmt_stmts p_cases",
+    "line": 5368,
+    "status": "pass_through"
+  },
+  {
+    "id": 533,
+    "rule": "p_cases: opt_else",
+    "line": 5374,
+    "status": "pass_through"
+  },
+  {
+    "id": 534,
+    "rule": "p_cases: p_case_body",
+    "line": 5375,
+    "status": "pass_through"
+  },
+  {
+    "id": 535,
+    "rule": "p_top_expr: p_top_expr_body",
+    "line": 5378,
+    "status": "pass_through"
+  },
+  {
+    "id": 536,
+    "rule": "p_top_expr: p_top_expr_body \"'if' modifier\" expr_value",
+    "line": 5380,
+    "status": "pass_through"
+  },
+  {
+    "id": 537,
+    "rule": "p_top_expr: p_top_expr_body \"'unless' modifier\" expr_value",
+    "line": 5386,
+    "status": "pass_through"
+  },
+  {
+    "id": 538,
+    "rule": "p_top_expr_body: p_expr",
+    "line": 5393,
+    "status": "pass_through"
+  },
+  {
+    "id": 539,
+    "rule": "p_top_expr_body: p_expr ','",
+    "line": 5395,
+    "status": "pass_through"
+  },
+  {
+    "id": 540,
+    "rule": "p_top_expr_body: p_expr ',' p_args",
+    "line": 5401,
+    "status": "pass_through"
+  },
+  {
+    "id": 541,
+    "rule": "p_top_expr_body: p_find",
+    "line": 5407,
+    "status": "pass_through"
+  },
+  {
+    "id": 542,
+    "rule": "p_top_expr_body: p_args_tail",
+    "line": 5412,
+    "status": "pass_through"
+  },
+  {
+    "id": 543,
+    "rule": "p_top_expr_body: p_kwargs",
+    "line": 5417,
+    "status": "pass_through"
+  },
+  {
+    "id": 544,
+    "rule": "p_expr: p_as",
+    "line": 5423,
+    "status": "pass_through"
+  },
+  {
+    "id": 545,
+    "rule": "p_as: p_expr \"=>\" p_variable",
+    "line": 5427,
+    "status": "pass_through"
+  },
+  {
+    "id": 546,
+    "rule": "p_as: p_alt",
+    "line": 5433,
+    "status": "pass_through"
+  },
+  {
+    "id": 547,
+    "rule": "$@32: %empty",
+    "line": 5437,
+    "status": "empty"
+  },
+  {
+    "id": 548,
+    "rule": "p_alt: p_alt '|' $@32 p_expr_basic",
+    "line": 5441,
+    "status": "pass_through"
+  },
+  {
+    "id": 549,
+    "rule": "p_alt: p_expr_basic",
+    "line": 5449,
+    "status": "pass_through"
+  },
+  {
+    "id": 550,
+    "rule": "p_lparen: '(' p_pktbl",
+    "line": 5453,
+    "status": "pass_through"
+  },
+  {
+    "id": 551,
+    "rule": "p_lbracket: '[' p_pktbl",
+    "line": 5460,
+    "status": "pass_through"
+  },
+  {
+    "id": 552,
+    "rule": "p_expr_basic: p_value",
+    "line": 5466,
+    "status": "pass_through"
+  },
+  {
+    "id": 553,
+    "rule": "p_expr_basic: p_variable",
+    "line": 5467,
+    "status": "pass_through"
+  },
+  {
+    "id": 554,
+    "rule": "p_expr_basic: p_const p_lparen p_args rparen",
+    "line": 5469,
+    "status": "pass_through"
+  },
+  {
+    "id": 555,
+    "rule": "p_expr_basic: p_const p_lparen p_find rparen",
+    "line": 5476,
+    "status": "pass_through"
+  },
+  {
+    "id": 556,
+    "rule": "p_expr_basic: p_const p_lparen p_kwargs rparen",
+    "line": 5483,
+    "status": "pass_through"
+  },
+  {
+    "id": 557,
+    "rule": "p_expr_basic: p_const '(' rparen",
+    "line": 5490,
+    "status": "pass_through"
+  },
+  {
+    "id": 558,
+    "rule": "p_expr_basic: p_const p_lbracket p_args rbracket",
+    "line": 5496,
+    "status": "pass_through"
+  },
+  {
+    "id": 559,
+    "rule": "p_expr_basic: p_const p_lbracket p_find rbracket",
+    "line": 5503,
+    "status": "pass_through"
+  },
+  {
+    "id": 560,
+    "rule": "p_expr_basic: p_const p_lbracket p_kwargs rbracket",
+    "line": 5510,
+    "status": "pass_through"
+  },
+  {
+    "id": 561,
+    "rule": "p_expr_basic: p_const '[' rbracket",
+    "line": 5517,
+    "status": "pass_through"
+  },
+  {
+    "id": 562,
+    "rule": "p_expr_basic: \"[\" p_args rbracket",
+    "line": 5523,
+    "status": "pass_through"
+  },
+  {
+    "id": 563,
+    "rule": "p_expr_basic: \"[\" p_find rbracket",
+    "line": 5528,
+    "status": "pass_through"
+  },
+  {
+    "id": 564,
+    "rule": "p_expr_basic: \"[\" rbracket",
+    "line": 5533,
+    "status": "empty"
+  },
+  {
+    "id": 565,
+    "rule": "$@33: %empty",
+    "line": 5539,
+    "status": "empty"
+  },
+  {
+    "id": 566,
+    "rule": "p_expr_basic: \"{\" p_pktbl lex_ctxt $@33 p_kwargs rbrace",
+    "line": 5543,
+    "status": "pass_through"
+  },
+  {
+    "id": 567,
+    "rule": "p_expr_basic: \"{\" rbrace",
+    "line": 5550,
+    "status": "empty"
+  },
+  {
+    "id": 568,
+    "rule": "p_expr_basic: \"(\" p_pktbl p_expr rparen",
+    "line": 5556,
+    "status": "pass_through"
+  },
+  {
+    "id": 569,
+    "rule": "p_args: p_expr",
+    "line": 5564,
+    "status": "pass_through"
+  },
+  {
+    "id": 570,
+    "rule": "p_args: p_args_head",
+    "line": 5570,
+    "status": "pass_through"
+  },
+  {
+    "id": 571,
+    "rule": "p_args: p_args_head p_arg",
+    "line": 5575,
+    "status": "pass_through"
+  },
+  {
+    "id": 572,
+    "rule": "p_args: p_args_head p_rest",
+    "line": 5580,
+    "status": "pass_through"
+  },
+  {
+    "id": 573,
+    "rule": "p_args: p_args_head p_rest ',' p_args_post",
+    "line": 5585,
+    "status": "pass_through"
+  },
+  {
+    "id": 574,
+    "rule": "p_args: p_args_tail",
+    "line": 5589,
+    "status": "pass_through"
+  },
+  {
+    "id": 575,
+    "rule": "p_args_head: p_arg ','",
+    "line": 5592,
+    "status": "pass_through"
+  },
+  {
+    "id": 576,
+    "rule": "p_args_head: p_args_head p_arg ','",
+    "line": 5594,
+    "status": "pass_through"
+  },
+  {
+    "id": 577,
+    "rule": "p_args_tail: p_rest",
+    "line": 5601,
+    "status": "pass_through"
+  },
+  {
+    "id": 578,
+    "rule": "p_args_tail: p_rest ',' p_args_post",
+    "line": 5606,
+    "status": "pass_through"
+  },
+  {
+    "id": 579,
+    "rule": "p_find: p_rest ',' p_args_post ',' p_rest",
+    "line": 5613,
+    "status": "pass_through"
+  },
+  {
+    "id": 580,
+    "rule": "p_rest: \"*\" \"local variable or method\"",
+    "line": 5621,
+    "status": "pass_through"
+  },
+  {
+    "id": 581,
+    "rule": "p_rest: \"*\"",
+    "line": 5627,
+    "status": "empty"
+  },
+  {
+    "id": 582,
+    "rule": "p_args_post: p_arg",
+    "line": 5633,
+    "status": "pass_through"
+  },
+  {
+    "id": 583,
+    "rule": "p_args_post: p_args_post ',' p_arg",
+    "line": 5635,
+    "status": "pass_through"
+  },
+  {
+    "id": 584,
+    "rule": "p_arg: p_expr",
+    "line": 5642,
+    "status": "pass_through"
+  },
+  {
+    "id": 585,
+    "rule": "p_kwargs: p_kwarg ',' p_any_kwrest",
+    "line": 5649,
+    "status": "pass_through"
+  },
+  {
+    "id": 586,
+    "rule": "p_kwargs: p_kwarg",
+    "line": 5654,
+    "status": "pass_through"
+  },
+  {
+    "id": 587,
+    "rule": "p_kwargs: p_kwarg ','",
+    "line": 5659,
+    "status": "pass_through"
+  },
+  {
+    "id": 588,
+    "rule": "p_kwargs: p_any_kwrest",
+    "line": 5664,
+    "status": "pass_through"
+  },
+  {
+    "id": 589,
+    "rule": "p_kwarg: p_kw",
+    "line": 5670,
+    "status": "pass_through"
+  },
+  {
+    "id": 590,
+    "rule": "p_kwarg: p_kwarg ',' p_kw",
+    "line": 5673,
+    "status": "pass_through"
+  },
+  {
+    "id": 591,
+    "rule": "p_kw: p_kw_label p_expr",
+    "line": 5680,
+    "status": "pass_through"
+  },
+  {
+    "id": 592,
+    "rule": "p_kw: p_kw_label",
+    "line": 5686,
+    "status": "pass_through"
+  },
+  {
+    "id": 593,
+    "rule": "p_kw_label: \"label\"",
+    "line": 5697,
+    "status": "pass_through"
+  },
+  {
+    "id": 594,
+    "rule": "p_kw_label: \"string literal\" string_contents tLABEL_END",
+    "line": 5699,
+    "status": "pass_through"
+  },
+  {
+    "id": 595,
+    "rule": "p_kwrest: kwrest_mark \"local variable or method\"",
+    "line": 5714,
+    "status": "pass_through"
+  },
+  {
+    "id": 596,
+    "rule": "p_kwrest: kwrest_mark",
+    "line": 5719,
+    "status": "empty"
+  },
+  {
+    "id": 597,
+    "rule": "p_kwnorest: kwrest_mark \"'nil'\"",
+    "line": 5726,
+    "status": "pass_through"
+  },
+  {
+    "id": 598,
+    "rule": "p_any_kwrest: p_kwrest",
+    "line": 5731,
+    "status": "pass_through"
+  },
+  {
+    "id": 599,
+    "rule": "p_any_kwrest: p_kwnorest",
+    "line": 5733,
+    "status": "pass_through"
+  },
+  {
+    "id": 600,
+    "rule": "p_value: p_primitive",
+    "line": 5739,
+    "status": "pass_through"
+  },
+  {
+    "id": 601,
+    "rule": "range_expr_p_primitive: p_primitive \"..\" p_primitive",
+    "line": 3120,
+    "status": "pass_through"
+  },
+  {
+    "id": 602,
+    "rule": "range_expr_p_primitive: p_primitive \"...\" p_primitive",
+    "line": 3127,
+    "status": "pass_through"
+  },
+  {
+    "id": 603,
+    "rule": "range_expr_p_primitive: p_primitive \"..\"",
+    "line": 3134,
+    "status": "ported"
+  },
+  {
+    "id": 604,
+    "rule": "range_expr_p_primitive: p_primitive \"...\"",
+    "line": 3140,
+    "status": "ported"
+  },
+  {
+    "id": 605,
+    "rule": "range_expr_p_primitive: \"(..\" p_primitive",
+    "line": 3146,
+    "status": "ported"
+  },
+  {
+    "id": 606,
+    "rule": "range_expr_p_primitive: \"(...\" p_primitive",
+    "line": 3152,
+    "status": "ported"
+  },
+  {
+    "id": 607,
+    "rule": "p_value: range_expr_p_primitive",
+    "line": 5740,
+    "status": "pass_through"
+  },
+  {
+    "id": 608,
+    "rule": "p_value: p_var_ref",
+    "line": 5741,
+    "status": "pass_through"
+  },
+  {
+    "id": 609,
+    "rule": "p_value: p_expr_ref",
+    "line": 5742,
+    "status": "pass_through"
+  },
+  {
+    "id": 610,
+    "rule": "p_value: p_const",
+    "line": 5743,
+    "status": "pass_through"
+  },
+  {
+    "id": 611,
+    "rule": "p_primitive: literal",
+    "line": 5746,
+    "status": "pass_through"
+  },
+  {
+    "id": 612,
+    "rule": "p_primitive: strings",
+    "line": 5746,
+    "status": "pass_through"
+  },
+  {
+    "id": 613,
+    "rule": "p_primitive: xstring",
+    "line": 5746,
+    "status": "pass_through"
+  },
+  {
+    "id": 614,
+    "rule": "p_primitive: regexp",
+    "line": 5746,
+    "status": "pass_through"
+  },
+  {
+    "id": 615,
+    "rule": "p_primitive: words",
+    "line": 5746,
+    "status": "pass_through"
+  },
+  {
+    "id": 616,
+    "rule": "p_primitive: qwords",
+    "line": 5746,
+    "status": "pass_through"
+  },
+  {
+    "id": 617,
+    "rule": "p_primitive: symbols",
+    "line": 5746,
+    "status": "pass_through"
+  },
+  {
+    "id": 618,
+    "rule": "p_primitive: qsymbols",
+    "line": 5746,
+    "status": "pass_through"
+  },
+  {
+    "id": 619,
+    "rule": "p_primitive: keyword_variable",
+    "line": 5748,
+    "status": "pass_through"
+  },
+  {
+    "id": 620,
+    "rule": "p_primitive: lambda",
+    "line": 5752,
+    "status": "pass_through"
+  },
+  {
+    "id": 621,
+    "rule": "p_variable: \"local variable or method\"",
+    "line": 5756,
+    "status": "pass_through"
+  },
+  {
+    "id": 622,
+    "rule": "p_var_ref: '^' \"local variable or method\"",
+    "line": 5764,
+    "status": "pass_through"
+  },
+  {
+    "id": 623,
+    "rule": "p_var_ref: '^' nonlocal_var",
+    "line": 5776,
+    "status": "pass_through"
+  },
+  {
+    "id": 624,
+    "rule": "p_expr_ref: '^' \"(\" expr_value rparen",
+    "line": 5783,
+    "status": "pass_through"
+  },
+  {
+    "id": 625,
+    "rule": "p_const: \":: at EXPR_BEG\" cname",
+    "line": 5790,
+    "status": "pass_through"
+  },
+  {
+    "id": 626,
+    "rule": "p_const: p_const \"::\" cname",
+    "line": 5795,
+    "status": "pass_through"
+  },
+  {
+    "id": 627,
+    "rule": "p_const: \"constant\"",
+    "line": 5800,
+    "status": "pass_through"
+  },
+  {
+    "id": 628,
+    "rule": "opt_rescue: k_rescue exc_list exc_var then compstmt_stmts opt_rescue",
+    "line": 5809,
+    "status": "pass_through"
+  },
+  {
+    "id": 629,
+    "rule": "opt_rescue: none",
+    "line": 5827,
+    "status": "empty"
+  },
+  {
+    "id": 630,
+    "rule": "exc_list: arg_value",
+    "line": 5831,
+    "status": "pass_through"
+  },
+  {
+    "id": 631,
+    "rule": "exc_list: mrhs",
+    "line": 5836,
+    "status": "pass_through"
+  },
+  {
+    "id": 632,
+    "rule": "exc_list: none",
+    "line": 5839,
+    "status": "empty"
+  },
+  {
+    "id": 633,
+    "rule": "exc_var: \"=>\" lhs",
+    "line": 5843,
+    "status": "pass_through"
+  },
+  {
+    "id": 634,
+    "rule": "exc_var: none",
+    "line": 5847,
+    "status": "empty"
+  },
+  {
+    "id": 635,
+    "rule": "opt_ensure: k_ensure stmts option_terms",
+    "line": 5851,
+    "status": "pass_through"
+  },
+  {
+    "id": 636,
+    "rule": "opt_ensure: none",
+    "line": 5857,
+    "status": "empty"
+  },
+  {
+    "id": 637,
+    "rule": "literal: numeric",
+    "line": 5860,
+    "status": "pass_through"
+  },
+  {
+    "id": 638,
+    "rule": "literal: symbol",
+    "line": 5861,
+    "status": "pass_through"
+  },
+  {
+    "id": 639,
+    "rule": "strings: string",
+    "line": 5865,
+    "status": "pass_through"
+  },
+  {
+    "id": 640,
+    "rule": "string: \"char literal\"",
+    "line": 5876,
+    "status": "ported"
+  },
+  {
+    "id": 641,
+    "rule": "string: string1",
+    "line": 5877,
+    "status": "pass_through"
+  },
+  {
+    "id": 642,
+    "rule": "string: string string1",
+    "line": 5879,
+    "status": "ported"
+  },
+  {
+    "id": 643,
+    "rule": "string1: \"string literal\" string_contents \"terminator\"",
+    "line": 5886,
+    "status": "ported"
+  },
+  {
+    "id": 644,
+    "rule": "xstring: \"backtick literal\" xstring_contents \"terminator\"",
+    "line": 5899,
+    "status": "ported"
+  },
+  {
+    "id": 645,
+    "rule": "regexp: \"regexp literal\" regexp_contents tREGEXP_END",
+    "line": 5911,
+    "status": "ported"
+  },
+  {
+    "id": 646,
+    "rule": "nonempty_list_' ': ' '",
+    "line": 5917,
+    "status": "pass_through"
+  },
+  {
+    "id": 647,
+    "rule": "nonempty_list_' ': nonempty_list_' ' ' '",
+    "line": 5917,
+    "status": "pass_through"
+  },
+  {
+    "id": 648,
+    "rule": "words_tWORDS_BEG_word_list: \"word list\" nonempty_list_' ' word_list \"terminator\"",
+    "line": 3169,
+    "status": "pass_through"
+  },
+  {
+    "id": 649,
+    "rule": "words: words_tWORDS_BEG_word_list",
+    "line": 5917,
+    "status": "pass_through"
+  },
+  {
+    "id": 650,
+    "rule": "word_list: %empty",
+    "line": 5921,
+    "status": "empty"
+  },
+  {
+    "id": 651,
+    "rule": "word_list: word_list word nonempty_list_' '",
+    "line": 5926,
+    "status": "ported"
+  },
+  {
+    "id": 652,
+    "rule": "word: string_content",
+    "line": 5932,
+    "status": "pass_through"
+  },
+  {
+    "id": 653,
+    "rule": "word: word string_content",
+    "line": 5935,
+    "status": "ported"
+  },
+  {
+    "id": 654,
+    "rule": "words_tSYMBOLS_BEG_symbol_list: \"symbol list\" nonempty_list_' ' symbol_list \"terminator\"",
+    "line": 3169,
+    "status": "pass_through"
+  },
+  {
+    "id": 655,
+    "rule": "symbols: words_tSYMBOLS_BEG_symbol_list",
+    "line": 5941,
+    "status": "ported"
+  },
+  {
+    "id": 656,
+    "rule": "symbol_list: %empty",
+    "line": 5945,
+    "status": "empty"
+  },
+  {
+    "id": 657,
+    "rule": "symbol_list: symbol_list word nonempty_list_' '",
+    "line": 5950,
+    "status": "ported"
+  },
+  {
+    "id": 658,
+    "rule": "words_tQWORDS_BEG_qword_list: \"verbatim word list\" nonempty_list_' ' qword_list \"terminator\"",
+    "line": 3169,
+    "status": "pass_through"
+  },
+  {
+    "id": 659,
+    "rule": "qwords: words_tQWORDS_BEG_qword_list",
+    "line": 5956,
+    "status": "ported"
+  },
+  {
+    "id": 660,
+    "rule": "words_tQSYMBOLS_BEG_qsym_list: \"verbatim symbol list\" nonempty_list_' ' qsym_list \"terminator\"",
+    "line": 3169,
+    "status": "pass_through"
+  },
+  {
+    "id": 661,
+    "rule": "qsymbols: words_tQSYMBOLS_BEG_qsym_list",
+    "line": 5959,
+    "status": "ported"
+  },
+  {
+    "id": 662,
+    "rule": "qword_list: %empty",
+    "line": 5963,
+    "status": "empty"
+  },
+  {
+    "id": 663,
+    "rule": "qword_list: qword_list \"literal content\" nonempty_list_' '",
+    "line": 5968,
+    "status": "ported"
+  },
+  {
+    "id": 664,
+    "rule": "qsym_list: %empty",
+    "line": 5975,
+    "status": "empty"
+  },
+  {
+    "id": 665,
+    "rule": "qsym_list: qsym_list \"literal content\" nonempty_list_' '",
+    "line": 5980,
+    "status": "pass_through"
+  },
+  {
+    "id": 666,
+    "rule": "string_contents: %empty",
+    "line": 5987,
+    "status": "empty"
+  },
+  {
+    "id": 667,
+    "rule": "string_contents: string_contents string_content",
+    "line": 5992,
+    "status": "ported"
+  },
+  {
+    "id": 668,
+    "rule": "xstring_contents: %empty",
+    "line": 5999,
+    "status": "empty"
+  },
+  {
+    "id": 669,
+    "rule": "xstring_contents: xstring_contents string_content",
+    "line": 6004,
+    "status": "ported"
+  },
+  {
+    "id": 670,
+    "rule": "regexp_contents: %empty",
+    "line": 6011,
+    "status": "empty"
+  },
+  {
+    "id": 671,
+    "rule": "regexp_contents: regexp_contents string_content",
+    "line": 6016,
+    "status": "ported"
+  },
+  {
+    "id": 672,
+    "rule": "string_content: \"literal content\"",
+    "line": 6041,
+    "status": "pass_through"
+  },
+  {
+    "id": 673,
+    "rule": "@34: %empty",
+    "line": 6044,
+    "status": "empty"
+  },
+  {
+    "id": 674,
+    "rule": "string_content: tSTRING_DVAR @34 string_dvar",
+    "line": 6051,
+    "status": "pass_through"
+  },
+  {
+    "id": 675,
+    "rule": "@35: %empty",
+    "line": 6058,
+    "status": "empty"
+  },
+  {
+    "id": 676,
+    "rule": "@36: %empty",
+    "line": 6066,
+    "status": "empty"
+  },
+  {
+    "id": 677,
+    "rule": "@37: %empty",
+    "line": 6070,
+    "status": "empty"
+  },
+  {
+    "id": 678,
+    "rule": "@38: %empty",
+    "line": 6074,
+    "status": "empty"
+  },
+  {
+    "id": 679,
+    "rule": "string_content: \"'#{'\" @35 @36 @37 @38 compstmt_stmts string_dend",
+    "line": 6079,
+    "status": "pass_through"
+  },
+  {
+    "id": 680,
+    "rule": "string_dend: \"'}'\"",
+    "line": 6094,
+    "status": "empty"
+  },
+  {
+    "id": 681,
+    "rule": "string_dend: \"end-of-input\"",
+    "line": 6095,
+    "status": "empty"
+  },
+  {
+    "id": 682,
+    "rule": "string_dvar: nonlocal_var",
+    "line": 6099,
+    "status": "pass_through"
+  },
+  {
+    "id": 683,
+    "rule": "string_dvar: backref",
+    "line": 6103,
+    "status": "pass_through"
+  },
+  {
+    "id": 684,
+    "rule": "symbol: ssym",
+    "line": 6106,
+    "status": "pass_through"
+  },
+  {
+    "id": 685,
+    "rule": "symbol: dsym",
+    "line": 6107,
+    "status": "pass_through"
+  },
+  {
+    "id": 686,
+    "rule": "ssym: \"symbol literal\" sym",
+    "line": 6111,
+    "status": "ported"
+  },
+  {
+    "id": 687,
+    "rule": "sym: fname",
+    "line": 6126,
+    "status": "pass_through"
+  },
+  {
+    "id": 688,
+    "rule": "sym: nonlocal_var",
+    "line": 6127,
+    "status": "pass_through"
+  },
+  {
+    "id": 689,
+    "rule": "dsym: \"symbol literal\" string_contents \"terminator\"",
+    "line": 6131,
+    "status": "pass_through"
+  },
+  {
+    "id": 690,
+    "rule": "numeric: simple_numeric",
+    "line": 6138,
+    "status": "pass_through"
+  },
+  {
+    "id": 691,
+    "rule": "numeric: tUMINUS_NUM simple_numeric",
+    "line": 6140,
+    "status": "ported"
+  },
+  {
+    "id": 692,
+    "rule": "simple_numeric: \"integer literal\"",
+    "line": 6147,
+    "status": "ported"
+  },
+  {
+    "id": 693,
+    "rule": "simple_numeric: \"float literal\"",
+    "line": 6148,
+    "status": "ported"
+  },
+  {
+    "id": 694,
+    "rule": "simple_numeric: \"rational literal\"",
+    "line": 6149,
+    "status": "ported"
+  },
+  {
+    "id": 695,
+    "rule": "simple_numeric: \"imaginary literal\"",
+    "line": 6150,
+    "status": "ported"
+  },
+  {
+    "id": 696,
+    "rule": "nonlocal_var: \"instance variable\"",
+    "line": 6153,
+    "status": "ported"
+  },
+  {
+    "id": 697,
+    "rule": "nonlocal_var: \"global variable\"",
+    "line": 6154,
+    "status": "ported"
+  },
+  {
+    "id": 698,
+    "rule": "nonlocal_var: \"class variable\"",
+    "line": 6155,
+    "status": "ported"
+  },
+  {
+    "id": 699,
+    "rule": "user_variable: \"local variable or method\"",
+    "line": 6158,
+    "status": "ported"
+  },
+  {
+    "id": 700,
+    "rule": "user_variable: \"constant\"",
+    "line": 6158,
+    "status": "ported"
+  },
+  {
+    "id": 701,
+    "rule": "user_variable: nonlocal_var",
+    "line": 6159,
+    "status": "pass_through"
+  },
+  {
+    "id": 702,
+    "rule": "keyword_variable: \"'nil'\"",
+    "line": 6162,
+    "status": "ported"
+  },
+  {
+    "id": 703,
+    "rule": "keyword_variable: \"'self'\"",
+    "line": 6163,
+    "status": "ported"
+  },
+  {
+    "id": 704,
+    "rule": "keyword_variable: \"'true'\"",
+    "line": 6164,
+    "status": "ported"
+  },
+  {
+    "id": 705,
+    "rule": "keyword_variable: \"'false'\"",
+    "line": 6165,
+    "status": "ported"
+  },
+  {
+    "id": 706,
+    "rule": "keyword_variable: \"'__FILE__'\"",
+    "line": 6166,
+    "status": "ported"
+  },
+  {
+    "id": 707,
+    "rule": "keyword_variable: \"'__LINE__'\"",
+    "line": 6167,
+    "status": "ported"
+  },
+  {
+    "id": 708,
+    "rule": "keyword_variable: \"'__ENCODING__'\"",
+    "line": 6168,
+    "status": "ported"
+  },
+  {
+    "id": 709,
+    "rule": "var_ref: user_variable",
+    "line": 6172,
+    "status": "ported"
+  },
+  {
+    "id": 710,
+    "rule": "var_ref: keyword_variable",
+    "line": 6182,
+    "status": "pass_through"
+  },
+  {
+    "id": 711,
+    "rule": "var_lhs: user_variable",
+    "line": 6189,
+    "status": "pass_through"
+  },
+  {
+    "id": 712,
+    "rule": "var_lhs: keyword_variable",
+    "line": 6189,
+    "status": "pass_through"
+  },
+  {
+    "id": 713,
+    "rule": "backref: \"numbered reference\"",
+    "line": 6195,
+    "status": "ported"
+  },
+  {
+    "id": 714,
+    "rule": "backref: \"back reference\"",
+    "line": 6196,
+    "status": "ported"
+  },
+  {
+    "id": 715,
+    "rule": "$@39: %empty",
+    "line": 6200,
+    "status": "empty"
+  },
+  {
+    "id": 716,
+    "rule": "superclass: '<' $@39 expr_value term",
+    "line": 6205,
+    "status": "pass_through"
+  },
+  {
+    "id": 717,
+    "rule": "superclass: none",
+    "line": 6209,
+    "status": "empty"
+  },
+  {
+    "id": 718,
+    "rule": "f_opt_paren_args: f_paren_args",
+    "line": 6212,
+    "status": "pass_through"
+  },
+  {
+    "id": 719,
+    "rule": "f_opt_paren_args: f_empty_arg",
+    "line": 6214,
+    "status": "empty"
+  },
+  {
+    "id": 720,
+    "rule": "f_empty_arg: %empty",
+    "line": 6220,
+    "status": "empty"
+  },
+  {
+    "id": 721,
+    "rule": "f_paren_args: '(' f_args rparen",
+    "line": 6228,
+    "status": "pass_through"
+  },
+  {
+    "id": 722,
+    "rule": "f_arglist: f_paren_args",
+    "line": 6237,
+    "status": "pass_through"
+  },
+  {
+    "id": 723,
+    "rule": "@40: %empty",
+    "line": 6238,
+    "status": "empty"
+  },
+  {
+    "id": 724,
+    "rule": "f_arglist: @40 f_args term",
+    "line": 6245,
+    "status": "pass_through"
+  },
+  {
+    "id": 725,
+    "rule": "f_kw_arg_value: f_label arg_value",
+    "line": 3020,
+    "status": "pass_through"
+  },
+  {
+    "id": 726,
+    "rule": "f_kw_arg_value: f_label",
+    "line": 3026,
+    "status": "pass_through"
+  },
+  {
+    "id": 727,
+    "rule": "f_kwarg_arg_value: f_kw_arg_value",
+    "line": 3035,
+    "status": "pass_through"
+  },
+  {
+    "id": 728,
+    "rule": "f_kwarg_arg_value: f_kwarg_arg_value ',' f_kw_arg_value",
+    "line": 3040,
+    "status": "pass_through"
+  },
+  {
+    "id": 729,
+    "rule": "opt_f_block_arg_opt_comma: ',' f_block_arg",
+    "line": 2957,
+    "status": "pass_through"
+  },
+  {
+    "id": 730,
+    "rule": "opt_f_block_arg_opt_comma: opt_comma",
+    "line": 6255,
+    "status": "pass_through"
+  },
+  {
+    "id": 731,
+    "rule": "args_tail_basic_arg_value_opt_comma: f_kwarg_arg_value ',' f_kwrest opt_f_block_arg_opt_comma",
+    "line": 2934,
+    "status": "pass_through"
+  },
+  {
+    "id": 732,
+    "rule": "args_tail_basic_arg_value_opt_comma: f_kwarg_arg_value opt_f_block_arg_opt_comma",
+    "line": 2939,
+    "status": "pass_through"
+  },
+  {
+    "id": 733,
+    "rule": "args_tail_basic_arg_value_opt_comma: f_any_kwrest opt_f_block_arg_opt_comma",
+    "line": 2944,
+    "status": "pass_through"
+  },
+  {
+    "id": 734,
+    "rule": "args_tail_basic_arg_value_opt_comma: f_block_arg",
+    "line": 2949,
+    "status": "pass_through"
+  },
+  {
+    "id": 735,
+    "rule": "args_tail: args_tail_basic_arg_value_opt_comma",
+    "line": 6255,
+    "status": "pass_through"
+  },
+  {
+    "id": 736,
+    "rule": "args_tail: args_forward",
+    "line": 6257,
+    "status": "pass_through"
+  },
+  {
+    "id": 737,
+    "rule": "args_tail_basic_arg_value_none: f_kwarg_arg_value ',' f_kwrest opt_f_block_arg_none",
+    "line": 2934,
+    "status": "pass_through"
+  },
+  {
+    "id": 738,
+    "rule": "args_tail_basic_arg_value_none: f_kwarg_arg_value opt_f_block_arg_none",
+    "line": 2939,
+    "status": "pass_through"
+  },
+  {
+    "id": 739,
+    "rule": "args_tail_basic_arg_value_none: f_any_kwrest opt_f_block_arg_none",
+    "line": 2944,
+    "status": "pass_through"
+  },
+  {
+    "id": 740,
+    "rule": "args_tail_basic_arg_value_none: f_block_arg",
+    "line": 2949,
+    "status": "pass_through"
+  },
+  {
+    "id": 741,
+    "rule": "largs_tail: args_tail_basic_arg_value_none",
+    "line": 6265,
+    "status": "pass_through"
+  },
+  {
+    "id": 742,
+    "rule": "largs_tail: args_forward",
+    "line": 6267,
+    "status": "pass_through"
+  },
+  {
+    "id": 743,
+    "rule": "f_opt_arg_value: f_arg_asgn f_eq arg_value",
+    "line": 2998,
+    "status": "pass_through"
+  },
+  {
+    "id": 744,
+    "rule": "f_opt_arg_arg_value: f_opt_arg_value",
+    "line": 3007,
+    "status": "pass_through"
+  },
+  {
+    "id": 745,
+    "rule": "f_opt_arg_arg_value: f_opt_arg_arg_value ',' f_opt_arg_value",
+    "line": 3012,
+    "status": "pass_through"
+  },
+  {
+    "id": 746,
+    "rule": "opt_args_tail_args_tail_opt_comma: ',' args_tail",
+    "line": 3107,
+    "status": "pass_through"
+  },
+  {
+    "id": 747,
+    "rule": "opt_args_tail_args_tail_opt_comma: opt_comma",
+    "line": 3112,
+    "status": "pass_through"
+  },
+  {
+    "id": 748,
+    "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg opt_args_tail_args_tail_opt_comma",
+    "line": 6277,
+    "status": "pass_through"
+  },
+  {
+    "id": 749,
+    "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg ',' f_arg opt_args_tail_args_tail_opt_comma",
+    "line": 6282,
+    "status": "pass_through"
+  },
+  {
+    "id": 750,
+    "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_opt_arg_arg_value opt_args_tail_args_tail_opt_comma",
+    "line": 6287,
+    "status": "pass_through"
+  },
+  {
+    "id": 751,
+    "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_opt_arg_arg_value ',' f_arg opt_args_tail_args_tail_opt_comma",
+    "line": 6292,
+    "status": "pass_through"
+  },
+  {
+    "id": 752,
+    "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_rest_arg opt_args_tail_args_tail_opt_comma",
+    "line": 6297,
+    "status": "pass_through"
+  },
+  {
+    "id": 753,
+    "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_rest_arg ',' f_arg opt_args_tail_args_tail_opt_comma",
+    "line": 6302,
+    "status": "pass_through"
+  },
+  {
+    "id": 754,
+    "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_opt_arg_arg_value ',' f_rest_arg opt_args_tail_args_tail_opt_comma",
+    "line": 6307,
+    "status": "pass_through"
+  },
+  {
+    "id": 755,
+    "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_opt_arg_arg_value ',' f_rest_arg ',' f_arg opt_args_tail_args_tail_opt_comma",
+    "line": 6312,
+    "status": "pass_through"
+  },
+  {
+    "id": 756,
+    "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_opt_arg_arg_value opt_args_tail_args_tail_opt_comma",
+    "line": 6317,
+    "status": "pass_through"
+  },
+  {
+    "id": 757,
+    "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_opt_arg_arg_value ',' f_arg opt_args_tail_args_tail_opt_comma",
+    "line": 6322,
+    "status": "pass_through"
+  },
+  {
+    "id": 758,
+    "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_rest_arg opt_args_tail_args_tail_opt_comma",
+    "line": 6327,
+    "status": "pass_through"
+  },
+  {
+    "id": 759,
+    "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_rest_arg ',' f_arg opt_args_tail_args_tail_opt_comma",
+    "line": 6332,
+    "status": "pass_through"
+  },
+  {
+    "id": 760,
+    "rule": "f_args-list_args_tail_opt_comma: args-list_arg_value_opt_args_tail_args_tail_opt_comma",
+    "line": 6357,
+    "status": "pass_through"
+  },
+  {
+    "id": 761,
+    "rule": "f_args-list_args_tail_opt_comma: f_arg opt_args_tail_args_tail_opt_comma",
+    "line": 6349,
+    "status": "pass_through"
+  },
+  {
+    "id": 762,
+    "rule": "tail-only-args_args_tail: args_tail",
+    "line": 6340,
+    "status": "pass_through"
+  },
+  {
+    "id": 763,
+    "rule": "f_args-list_args_tail_opt_comma: tail-only-args_args_tail",
+    "line": 6357,
+    "status": "pass_through"
+  },
+  {
+    "id": 764,
+    "rule": "f_args-list_args_tail_opt_comma: f_empty_arg",
+    "line": 6357,
+    "status": "empty"
+  },
+  {
+    "id": 765,
+    "rule": "f_args: f_args-list_args_tail_opt_comma",
+    "line": 6357,
+    "status": "pass_through"
+  },
+  {
+    "id": 766,
+    "rule": "opt_args_tail_largs_tail_none: ',' largs_tail",
+    "line": 3107,
+    "status": "pass_through"
+  },
+  {
+    "id": 767,
+    "rule": "opt_args_tail_largs_tail_none: none",
+    "line": 3112,
+    "status": "empty"
+  },
+  {
+    "id": 768,
+    "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg opt_args_tail_largs_tail_none",
+    "line": 6277,
+    "status": "pass_through"
+  },
+  {
+    "id": 769,
+    "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg ',' f_arg opt_args_tail_largs_tail_none",
+    "line": 6282,
+    "status": "pass_through"
+  },
+  {
+    "id": 770,
+    "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_opt_arg_arg_value opt_args_tail_largs_tail_none",
+    "line": 6287,
+    "status": "pass_through"
+  },
+  {
+    "id": 771,
+    "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_opt_arg_arg_value ',' f_arg opt_args_tail_largs_tail_none",
+    "line": 6292,
+    "status": "pass_through"
+  },
+  {
+    "id": 772,
+    "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_rest_arg opt_args_tail_largs_tail_none",
+    "line": 6297,
+    "status": "pass_through"
+  },
+  {
+    "id": 773,
+    "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_rest_arg ',' f_arg opt_args_tail_largs_tail_none",
+    "line": 6302,
+    "status": "pass_through"
+  },
+  {
+    "id": 774,
+    "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_opt_arg_arg_value ',' f_rest_arg opt_args_tail_largs_tail_none",
+    "line": 6307,
+    "status": "pass_through"
+  },
+  {
+    "id": 775,
+    "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_opt_arg_arg_value ',' f_rest_arg ',' f_arg opt_args_tail_largs_tail_none",
+    "line": 6312,
+    "status": "pass_through"
+  },
+  {
+    "id": 776,
+    "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_opt_arg_arg_value opt_args_tail_largs_tail_none",
+    "line": 6317,
+    "status": "pass_through"
+  },
+  {
+    "id": 777,
+    "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_opt_arg_arg_value ',' f_arg opt_args_tail_largs_tail_none",
+    "line": 6322,
+    "status": "pass_through"
+  },
+  {
+    "id": 778,
+    "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_rest_arg opt_args_tail_largs_tail_none",
+    "line": 6327,
+    "status": "pass_through"
+  },
+  {
+    "id": 779,
+    "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_rest_arg ',' f_arg opt_args_tail_largs_tail_none",
+    "line": 6332,
+    "status": "pass_through"
+  },
+  {
+    "id": 780,
+    "rule": "f_args-list_largs_tail_none: args-list_arg_value_opt_args_tail_largs_tail_none",
+    "line": 6360,
+    "status": "pass_through"
+  },
+  {
+    "id": 781,
+    "rule": "f_args-list_largs_tail_none: f_arg opt_args_tail_largs_tail_none",
+    "line": 6349,
+    "status": "pass_through"
+  },
+  {
+    "id": 782,
+    "rule": "tail-only-args_largs_tail: largs_tail",
+    "line": 6340,
+    "status": "pass_through"
+  },
+  {
+    "id": 783,
+    "rule": "f_args-list_largs_tail_none: tail-only-args_largs_tail",
+    "line": 6360,
+    "status": "pass_through"
+  },
+  {
+    "id": 784,
+    "rule": "f_args-list_largs_tail_none: f_empty_arg",
+    "line": 6360,
+    "status": "empty"
+  },
+  {
+    "id": 785,
+    "rule": "f_largs: f_args-list_largs_tail_none",
+    "line": 6360,
+    "status": "pass_through"
+  },
+  {
+    "id": 786,
+    "rule": "args_forward: \"(...\"",
+    "line": 6364,
+    "status": "empty"
+  },
+  {
+    "id": 787,
+    "rule": "f_bad_arg: \"constant\"",
+    "line": 6371,
+    "status": "pass_through"
+  },
+  {
+    "id": 788,
+    "rule": "f_bad_arg: \"instance variable\"",
+    "line": 6380,
+    "status": "empty"
+  },
+  {
+    "id": 789,
+    "rule": "f_bad_arg: \"global variable\"",
+    "line": 6389,
+    "status": "empty"
+  },
+  {
+    "id": 790,
+    "rule": "f_bad_arg: \"class variable\"",
+    "line": 6398,
+    "status": "empty"
+  },
+  {
+    "id": 791,
+    "rule": "f_norm_arg: f_bad_arg",
+    "line": 6408,
+    "status": "pass_through"
+  },
+  {
+    "id": 792,
+    "rule": "f_norm_arg: \"local variable or method\"",
+    "line": 6410,
+    "status": "pass_through"
+  },
+  {
+    "id": 793,
+    "rule": "f_arg_asgn: f_norm_arg",
+    "line": 6420,
+    "status": "pass_through"
+  },
+  {
+    "id": 794,
+    "rule": "f_arg_item: f_arg_asgn",
+    "line": 6427,
+    "status": "pass_through"
+  },
+  {
+    "id": 795,
+    "rule": "f_arg_item: \"(\" f_margs rparen",
+    "line": 6432,
+    "status": "pass_through"
+  },
+  {
+    "id": 796,
+    "rule": "f_arg: f_arg_item",
+    "line": 6450,
+    "status": "pass_through"
+  },
+  {
+    "id": 797,
+    "rule": "f_arg: f_arg ',' f_arg_item",
+    "line": 6453,
+    "status": "pass_through"
+  },
+  {
+    "id": 798,
+    "rule": "f_label: \"label\"",
+    "line": 6464,
+    "status": "pass_through"
+  },
+  {
+    "id": 799,
+    "rule": "kwrest_mark: \"**\"",
+    "line": 6483,
+    "status": "empty"
+  },
+  {
+    "id": 800,
+    "rule": "kwrest_mark: \"**arg\"",
+    "line": 6484,
+    "status": "empty"
+  },
+  {
+    "id": 801,
+    "rule": "f_no_kwarg: p_kwnorest",
+    "line": 6488,
+    "status": "pass_through"
+  },
+  {
+    "id": 802,
+    "rule": "f_kwrest: kwrest_mark \"local variable or method\"",
+    "line": 6494,
+    "status": "pass_through"
+  },
+  {
+    "id": 803,
+    "rule": "f_kwrest: kwrest_mark",
+    "line": 6500,
+    "status": "pass_through"
+  },
+  {
+    "id": 804,
+    "rule": "restarg_mark: '*'",
+    "line": 6507,
+    "status": "empty"
+  },
+  {
+    "id": 805,
+    "rule": "restarg_mark: \"*\"",
+    "line": 6508,
+    "status": "empty"
+  },
+  {
+    "id": 806,
+    "rule": "f_rest_arg: restarg_mark \"local variable or method\"",
+    "line": 6512,
+    "status": "pass_through"
+  },
+  {
+    "id": 807,
+    "rule": "f_rest_arg: restarg_mark",
+    "line": 6518,
+    "status": "pass_through"
+  },
+  {
+    "id": 808,
+    "rule": "blkarg_mark: '&'",
+    "line": 6525,
+    "status": "empty"
+  },
+  {
+    "id": 809,
+    "rule": "blkarg_mark: \"&\"",
+    "line": 6526,
+    "status": "empty"
+  },
+  {
+    "id": 810,
+    "rule": "f_block_arg: blkarg_mark \"local variable or method\"",
+    "line": 6530,
+    "status": "pass_through"
+  },
+  {
+    "id": 811,
+    "rule": "f_block_arg: blkarg_mark \"'nil'\"",
+    "line": 6536,
+    "status": "empty"
+  },
+  {
+    "id": 812,
+    "rule": "f_block_arg: blkarg_mark",
+    "line": 6541,
+    "status": "pass_through"
+  },
+  {
+    "id": 813,
+    "rule": "option_',': %empty",
+    "line": 6548,
+    "status": "empty"
+  },
+  {
+    "id": 814,
+    "rule": "option_',': ','",
+    "line": 6548,
+    "status": "pass_through"
+  },
+  {
+    "id": 815,
+    "rule": "opt_comma: option_','",
+    "line": 6549,
+    "status": "pass_through"
+  },
+  {
+    "id": 816,
+    "rule": "value_expr_singleton_expr: singleton_expr",
+    "line": 3161,
+    "status": "pass_through"
+  },
+  {
+    "id": 817,
+    "rule": "singleton: value_expr_singleton_expr",
+    "line": 6557,
+    "status": "pass_through"
+  },
+  {
+    "id": 818,
+    "rule": "singleton_expr: var_ref",
+    "line": 6586,
+    "status": "pass_through"
+  },
+  {
+    "id": 819,
+    "rule": "$@41: %empty",
+    "line": 6588,
+    "status": "empty"
+  },
+  {
+    "id": 820,
+    "rule": "singleton_expr: '(' $@41 expr rparen",
+    "line": 6593,
+    "status": "pass_through"
+  },
+  {
+    "id": 821,
+    "rule": "assoc_list: none",
+    "line": 6600,
+    "status": "ported"
+  },
+  {
+    "id": 822,
+    "rule": "assoc_list: assocs trailer",
+    "line": 6602,
+    "status": "pass_through"
+  },
+  {
+    "id": 823,
+    "rule": "assocs: assoc",
+    "line": 6608,
+    "status": "ported"
+  },
+  {
+    "id": 824,
+    "rule": "assocs: assocs ',' assoc",
+    "line": 6611,
+    "status": "ported"
+  },
+  {
+    "id": 825,
+    "rule": "assoc: arg_value \"=>\" arg_value",
+    "line": 6634,
+    "status": "ported"
+  },
+  {
+    "id": 826,
+    "rule": "assoc: \"label\" arg_value",
+    "line": 6639,
+    "status": "ported"
+  },
+  {
+    "id": 827,
+    "rule": "assoc: \"label\"",
+    "line": 6644,
+    "status": "pass_through"
+  },
+  {
+    "id": 828,
+    "rule": "assoc: \"string literal\" string_contents tLABEL_END arg_value",
+    "line": 6651,
+    "status": "pass_through"
+  },
+  {
+    "id": 829,
+    "rule": "assoc: \"**arg\" arg_value",
+    "line": 6657,
+    "status": "pass_through"
+  },
+  {
+    "id": 830,
+    "rule": "assoc: \"**arg\"",
+    "line": 6662,
+    "status": "empty"
+  },
+  {
+    "id": 831,
+    "rule": "operation2: \"local variable or method\"",
+    "line": 6674,
+    "status": "pass_through"
+  },
+  {
+    "id": 832,
+    "rule": "operation2: \"constant\"",
+    "line": 6674,
+    "status": "pass_through"
+  },
+  {
+    "id": 833,
+    "rule": "operation2: \"method\"",
+    "line": 6674,
+    "status": "pass_through"
+  },
+  {
+    "id": 834,
+    "rule": "operation2: op",
+    "line": 6675,
+    "status": "pass_through"
+  },
+  {
+    "id": 835,
+    "rule": "operation3: \"local variable or method\"",
+    "line": 6678,
+    "status": "pass_through"
+  },
+  {
+    "id": 836,
+    "rule": "operation3: \"method\"",
+    "line": 6679,
+    "status": "pass_through"
+  },
+  {
+    "id": 837,
+    "rule": "operation3: op",
+    "line": 6680,
+    "status": "pass_through"
+  },
+  {
+    "id": 838,
+    "rule": "dot_or_colon: '.'",
+    "line": 6683,
+    "status": "ported"
+  },
+  {
+    "id": 839,
+    "rule": "dot_or_colon: \"::\"",
+    "line": 6684,
+    "status": "ported"
+  },
+  {
+    "id": 840,
+    "rule": "call_op: '.'",
+    "line": 6687,
+    "status": "ported"
+  },
+  {
+    "id": 841,
+    "rule": "call_op: \"&.\"",
+    "line": 6688,
+    "status": "ported"
+  },
+  {
+    "id": 842,
+    "rule": "call_op2: call_op",
+    "line": 6691,
+    "status": "pass_through"
+  },
+  {
+    "id": 843,
+    "rule": "call_op2: \"::\"",
+    "line": 6692,
+    "status": "ported"
+  },
+  {
+    "id": 844,
+    "rule": "rparen: option_'\\n' ')'",
+    "line": 6695,
+    "status": "pass_through"
+  },
+  {
+    "id": 845,
+    "rule": "rbracket: option_'\\n' ']'",
+    "line": 6698,
+    "status": "pass_through"
+  },
+  {
+    "id": 846,
+    "rule": "rbrace: option_'\\n' '}'",
+    "line": 6701,
+    "status": "empty"
+  },
+  {
+    "id": 847,
+    "rule": "trailer: option_'\\n'",
+    "line": 6704,
+    "status": "pass_through"
+  },
+  {
+    "id": 848,
+    "rule": "trailer: ','",
+    "line": 6705,
+    "status": "pass_through"
+  },
+  {
+    "id": 849,
+    "rule": "term: ';'",
+    "line": 6709,
+    "status": "empty"
+  },
+  {
+    "id": 850,
+    "rule": "term: '\\n'",
+    "line": 6717,
+    "status": "empty"
+  },
+  {
+    "id": 851,
+    "rule": "terms: term",
+    "line": 6723,
+    "status": "empty"
+  },
+  {
+    "id": 852,
+    "rule": "terms: terms ';'",
+    "line": 6724,
+    "status": "empty"
+  },
+  {
+    "id": 853,
+    "rule": "none: %empty",
+    "line": 6728,
+    "status": "empty"
+  }
+]

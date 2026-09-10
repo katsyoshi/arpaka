@@ -1,6 +1,243 @@
 module Lrama
   module Ruby
     VERSION: String
-    # See the writing guide of rbs: https://github.com/ruby/rbs#guides
+
+    class Error < StandardError
+    end
+
+    def self.parse: (Enumerable[[String | Symbol | Integer, untyped]] tokens, language: :ruby) -> Languages::Ruby::AST::Program
+
+    def self.generate: (String source, ?filename: String, ?class_name: String, ?mode: (:parser | :recognizer), ?allow_error_rules: bool) -> String
+    def self.compile: (String source, ?filename: String, ?class_name: String, ?mode: (:parser | :recognizer), ?allow_error_rules: bool) -> Class
+
+    class Generator
+      def initialize: () -> void
+      def generate: (String source, ?filename: String, ?class_name: String, ?mode: (:parser | :recognizer), ?allow_error_rules: bool) -> String
+    end
+
+    module Languages
+      module Ruby
+        def self.parse: (Enumerable[[String | Symbol | Integer, untyped]] tokens) -> AST::Program
+
+        class ParseError < ::Lrama::Ruby::Error
+          attr_reader token: untyped
+          attr_reader state: Integer
+          def initialize: (untyped error) -> void
+        end
+
+        class UnsupportedSyntax < ::Lrama::Ruby::Error
+          attr_reader rule: String
+          attr_reader line: Integer
+          def initialize: (String rule, Integer line) -> void
+        end
+
+        module AST
+          type node = Literal | Binary | Unary | If | LocalRead | LocalWrite | BareCall | ArrayLiteral | HashLiteral | RangeLiteral | Ternary | Call | StringLiteral | RegexpLiteral | XStringLiteral | Index | Loop | Control | Variable | Rescue | Case | When | For | Def | ClassDef | ModuleDef | Lambda
+          type hash_pair = Pair
+
+          class Program < ::Data
+            attr_reader statements: Array[node]
+            def self.new: (Array[node] statements) -> instance
+                        | (statements: Array[node]) -> instance
+          end
+
+          class Literal < ::Data
+            attr_reader value: Integer | Float | Symbol | bool | nil
+            def self.new: (Integer | Float | Symbol | bool | nil value) -> instance
+                        | (value: Integer | Float | Symbol | bool | nil) -> instance
+          end
+
+          class Binary < ::Data
+            attr_reader operator: Symbol
+            attr_reader left: node
+            attr_reader right: node
+            def self.new: (Symbol operator, node left, node right) -> instance
+                        | (operator: Symbol, left: node, right: node) -> instance
+          end
+
+          class Unary < ::Data
+            attr_reader operator: Symbol
+            attr_reader operand: node
+            def self.new: (Symbol operator, node operand) -> instance
+                        | (operator: Symbol, operand: node) -> instance
+          end
+
+          class If < ::Data
+            attr_reader condition: node
+            attr_reader then_body: Array[node]
+            attr_reader else_body: Array[node]?
+            def self.new: (node condition, Array[node] then_body, Array[node]? else_body) -> instance
+                        | (condition: node, then_body: Array[node], else_body: Array[node]?) -> instance
+          end
+
+          class LocalRead < ::Data
+            attr_reader name: Symbol
+            def self.new: (Symbol name) -> instance
+                        | (name: Symbol) -> instance
+          end
+
+          class LocalWrite < ::Data
+            attr_reader name: Symbol
+            attr_reader value: node
+            def self.new: (Symbol name, node value) -> instance
+                        | (name: Symbol, value: node) -> instance
+          end
+
+          class BareCall < ::Data
+            attr_reader name: Symbol
+            def self.new: (Symbol name) -> instance
+                        | (name: Symbol) -> instance
+          end
+
+          class ArrayLiteral < ::Data
+            attr_reader elements: Array[node]
+            def self.new: (Array[node] elements) -> instance
+                        | (elements: Array[node]) -> instance
+          end
+
+          class HashLiteral < ::Data
+            attr_reader pairs: Array[Pair]
+            def self.new: (Array[Pair] pairs) -> instance
+                        | (pairs: Array[Pair]) -> instance
+          end
+
+          class Pair < ::Data
+            attr_reader key: node
+            attr_reader value: node
+            def self.new: (node key, node value) -> instance
+                        | (key: node, value: node) -> instance
+          end
+
+          class RangeLiteral < ::Data
+            attr_reader operator: Symbol
+            attr_reader begin_value: node
+            attr_reader end_value: node
+            def self.new: (Symbol operator, node begin_value, node end_value) -> instance
+                        | (operator: Symbol, begin_value: node, end_value: node) -> instance
+          end
+
+          class Ternary < ::Data
+            attr_reader condition: node
+            attr_reader then_value: node
+            attr_reader else_value: node
+            def self.new: (node condition, node then_value, node else_value) -> instance
+                        | (condition: node, then_value: node, else_value: node) -> instance
+          end
+
+          class Call < ::Data
+            attr_reader name: Symbol
+            attr_reader arguments: Array[node]
+            def self.new: (Symbol name, Array[node] arguments) -> instance
+                        | (name: Symbol, arguments: Array[node]) -> instance
+          end
+
+          class StringLiteral < ::Data
+            attr_reader value: String
+            def self.new: (String value) -> instance
+                        | (value: String) -> instance
+          end
+
+          class RegexpLiteral < ::Data
+            attr_reader value: String
+            def self.new: (String value) -> instance
+                        | (value: String) -> instance
+          end
+
+          class XStringLiteral < ::Data
+            attr_reader value: String
+            def self.new: (String value) -> instance
+                        | (value: String) -> instance
+          end
+
+          class For < ::Data
+            attr_reader variable: node
+            attr_reader enumerable: node
+            attr_reader body: Array[node]
+            def self.new: (node variable, node enumerable, Array[node] body) -> instance
+                        | (variable: node, enumerable: node, body: Array[node]) -> instance
+          end
+
+          class Lambda < ::Data
+            attr_reader arguments: Array[untyped]
+            attr_reader body: Array[node]
+            def self.new: (Array[untyped] arguments, Array[node] body) -> instance
+                        | (arguments: Array[untyped], body: Array[node]) -> instance
+          end
+
+          class Def < ::Data
+            attr_reader name: Symbol
+            attr_reader arguments: Array[untyped]
+            attr_reader body: Array[node]
+            def self.new: (Symbol name, Array[untyped] arguments, Array[node] body) -> instance
+                        | (name: Symbol, arguments: Array[untyped], body: Array[node]) -> instance
+          end
+
+          class ClassDef < ::Data
+            attr_reader name: Symbol
+            attr_reader superclass: node?
+            attr_reader body: Array[node]
+            def self.new: (Symbol name, node? superclass, Array[node] body) -> instance
+                        | (name: Symbol, superclass: node?, body: Array[node]) -> instance
+          end
+
+          class ModuleDef < ::Data
+            attr_reader name: Symbol
+            attr_reader body: Array[node]
+            def self.new: (Symbol name, Array[node] body) -> instance
+                        | (name: Symbol, body: Array[node]) -> instance
+          end
+
+          class Index < ::Data
+            attr_reader receiver: node
+            attr_reader arguments: Array[node]
+            def self.new: (node receiver, Array[node] arguments) -> instance
+                        | (receiver: node, arguments: Array[node]) -> instance
+          end
+
+          class Loop < ::Data
+            attr_reader kind: Symbol
+            attr_reader condition: node
+            attr_reader body: Array[node]
+            def self.new: (Symbol kind, node condition, Array[node] body) -> instance
+                        | (kind: Symbol, condition: node, body: Array[node]) -> instance
+          end
+
+          class Control < ::Data
+            attr_reader kind: Symbol
+            def self.new: (Symbol kind) -> instance
+                        | (kind: Symbol) -> instance
+          end
+
+          class Variable < ::Data
+            attr_reader kind: Symbol
+            attr_reader name: Symbol | Integer
+            def self.new: (Symbol kind, Symbol | Integer name) -> instance
+                        | (kind: Symbol, name: Symbol | Integer) -> instance
+          end
+
+          class Rescue < ::Data
+            attr_reader expression: node
+            attr_reader fallback: node
+            def self.new: (node expression, node fallback) -> instance
+                        | (expression: node, fallback: node) -> instance
+          end
+
+          class When < ::Data
+            attr_reader patterns: Array[node]
+            attr_reader body: Array[node]
+            def self.new: (Array[node] patterns, Array[node] body) -> instance
+                        | (patterns: Array[node], body: Array[node]) -> instance
+          end
+
+          class Case < ::Data
+            attr_reader expression: node
+            attr_reader whens: Array[When]
+            attr_reader else_body: Array[node]?
+            def self.new: (node expression, Array[When] whens, Array[node]? else_body) -> instance
+                        | (expression: node, whens: Array[When], else_body: Array[node]?) -> instance
+          end
+        end
+      end
+    end
   end
 end
