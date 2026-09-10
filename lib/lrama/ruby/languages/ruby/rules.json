@@ -873,7 +873,7 @@
     "id": 146,
     "rule": "lhs: primary_value \"::\" \"constant\"",
     "line": 3819,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 147,
