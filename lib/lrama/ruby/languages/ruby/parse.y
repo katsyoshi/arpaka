@@ -1672,13 +1672,13 @@ largs_tail: args_forward { $$ = $1 };
 /* upstream parse.y:2998: f_opt_arg_value: f_arg_asgn f_eq arg_value */
 f_opt_arg_value: f_arg_asgn f_eq arg_value { $$ = @builder.unsupported(743) };
 /* upstream parse.y:3007: f_opt_arg_arg_value: f_opt_arg_value */
-f_opt_arg_arg_value: f_opt_arg_value { $$ = @builder.unsupported(744) };
+f_opt_arg_arg_value: f_opt_arg_value { $$ = $1 };
 /* upstream parse.y:3012: f_opt_arg_arg_value: f_opt_arg_arg_value ',' f_opt_arg_value */
 f_opt_arg_arg_value: f_opt_arg_arg_value ',' f_opt_arg_value %prec ',' { $$ = @builder.unsupported(745) };
 /* upstream parse.y:3107: opt_args_tail_args_tail_opt_comma: ',' args_tail */
 opt_args_tail_args_tail_opt_comma: ',' args_tail %prec ',' { $$ = @builder.unsupported(746) };
 /* upstream parse.y:3112: opt_args_tail_args_tail_opt_comma: opt_comma */
-opt_args_tail_args_tail_opt_comma: opt_comma { $$ = @builder.unsupported(747) };
+opt_args_tail_args_tail_opt_comma: opt_comma { $$ = $1 };
 /* upstream parse.y:6277: args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg opt_args_tail_args_tail_opt_comma */
 args_list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg opt_args_tail_args_tail_opt_comma %prec ',' { $$ = @builder.unsupported(748) };
 /* upstream parse.y:6282: args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg ',' f_arg opt_args_tail_args_tail_opt_comma */
@@ -1704,13 +1704,13 @@ args_list_arg_value_opt_args_tail_args_tail_opt_comma: f_rest_arg opt_args_tail_
 /* upstream parse.y:6332: args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_rest_arg ',' f_arg opt_args_tail_args_tail_opt_comma */
 args_list_arg_value_opt_args_tail_args_tail_opt_comma: f_rest_arg ',' f_arg opt_args_tail_args_tail_opt_comma %prec ',' { $$ = @builder.unsupported(759) };
 /* upstream parse.y:6357: f_args-list_args_tail_opt_comma: args-list_arg_value_opt_args_tail_args_tail_opt_comma */
-f_args_list_args_tail_opt_comma: args_list_arg_value_opt_args_tail_args_tail_opt_comma { $$ = @builder.unsupported(760) };
+f_args_list_args_tail_opt_comma: args_list_arg_value_opt_args_tail_args_tail_opt_comma { $$ = $1 };
 /* upstream parse.y:6349: f_args-list_args_tail_opt_comma: f_arg opt_args_tail_args_tail_opt_comma */
 f_args_list_args_tail_opt_comma: f_arg opt_args_tail_args_tail_opt_comma { $$ = @builder.unsupported(761) };
 /* upstream parse.y:6340: tail-only-args_args_tail: args_tail */
-tail_only_args_args_tail: args_tail { $$ = @builder.unsupported(762) };
+tail_only_args_args_tail: args_tail { $$ = $1 };
 /* upstream parse.y:6357: f_args-list_args_tail_opt_comma: tail-only-args_args_tail */
-f_args_list_args_tail_opt_comma: tail_only_args_args_tail { $$ = @builder.unsupported(763) };
+f_args_list_args_tail_opt_comma: tail_only_args_args_tail { $$ = $1 };
 /* upstream parse.y:6357: f_args-list_args_tail_opt_comma: f_empty_arg */
 f_args_list_args_tail_opt_comma: f_empty_arg { $$ = [] };
 /* upstream parse.y:6357: f_args: f_args-list_args_tail_opt_comma */
@@ -1718,7 +1718,7 @@ f_args: f_args_list_args_tail_opt_comma { $$ = $1 };
 /* upstream parse.y:3107: opt_args_tail_largs_tail_none: ',' largs_tail */
 opt_args_tail_largs_tail_none: ',' largs_tail %prec ',' { $$ = @builder.unsupported(766) };
 /* upstream parse.y:3112: opt_args_tail_largs_tail_none: none */
-opt_args_tail_largs_tail_none: none { $$ = @builder.unsupported(767) };
+opt_args_tail_largs_tail_none: none { $$ = nil };
 /* upstream parse.y:6277: args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg opt_args_tail_largs_tail_none */
 args_list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg opt_args_tail_largs_tail_none %prec ',' { $$ = @builder.unsupported(768) };
 /* upstream parse.y:6282: args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg ',' f_arg opt_args_tail_largs_tail_none */
@@ -1744,21 +1744,21 @@ args_list_arg_value_opt_args_tail_largs_tail_none: f_rest_arg opt_args_tail_larg
 /* upstream parse.y:6332: args-list_arg_value_opt_args_tail_largs_tail_none: f_rest_arg ',' f_arg opt_args_tail_largs_tail_none */
 args_list_arg_value_opt_args_tail_largs_tail_none: f_rest_arg ',' f_arg opt_args_tail_largs_tail_none %prec ',' { $$ = @builder.unsupported(779) };
 /* upstream parse.y:6360: f_args-list_largs_tail_none: args-list_arg_value_opt_args_tail_largs_tail_none */
-f_args_list_largs_tail_none: args_list_arg_value_opt_args_tail_largs_tail_none { $$ = @builder.unsupported(780) };
+f_args_list_largs_tail_none: args_list_arg_value_opt_args_tail_largs_tail_none { $$ = $1 };
 /* upstream parse.y:6349: f_args-list_largs_tail_none: f_arg opt_args_tail_largs_tail_none */
 f_args_list_largs_tail_none: f_arg opt_args_tail_largs_tail_none { $$ = @builder.unsupported(781) };
 /* upstream parse.y:6340: tail-only-args_largs_tail: largs_tail */
-tail_only_args_largs_tail: largs_tail { $$ = @builder.unsupported(782) };
+tail_only_args_largs_tail: largs_tail { $$ = $1 };
 /* upstream parse.y:6360: f_args-list_largs_tail_none: tail-only-args_largs_tail */
-f_args_list_largs_tail_none: tail_only_args_largs_tail { $$ = @builder.unsupported(783) };
+f_args_list_largs_tail_none: tail_only_args_largs_tail { $$ = $1 };
 /* upstream parse.y:6360: f_args-list_largs_tail_none: f_empty_arg */
-f_args_list_largs_tail_none: f_empty_arg { $$ = @builder.unsupported(784) };
+f_args_list_largs_tail_none: f_empty_arg { $$ = nil };
 /* upstream parse.y:6360: f_largs: f_args-list_largs_tail_none */
 f_largs: f_args_list_largs_tail_none { $$ = $1 };
 /* upstream parse.y:6364: args_forward: "(..." */
-args_forward: tBDOT3 %prec tBDOT3 { $$ = @builder.unsupported(786) };
+args_forward: tBDOT3 %prec tBDOT3 { $$ = nil };
 /* upstream parse.y:6371: f_bad_arg: "constant" */
-f_bad_arg: tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(787) };
+f_bad_arg: tCONSTANT %prec tCONSTANT { $$ = $1 };
 /* upstream parse.y:6380: f_bad_arg: "instance variable" */
 f_bad_arg: tIVAR %prec tIVAR { $$ = @builder.unsupported(788) };
 /* upstream parse.y:6389: f_bad_arg: "global variable" */
@@ -1766,7 +1766,7 @@ f_bad_arg: tGVAR %prec tGVAR { $$ = @builder.unsupported(789) };
 /* upstream parse.y:6398: f_bad_arg: "class variable" */
 f_bad_arg: tCVAR %prec tCVAR { $$ = @builder.unsupported(790) };
 /* upstream parse.y:6408: f_norm_arg: f_bad_arg */
-f_norm_arg: f_bad_arg { $$ = @builder.unsupported(791) };
+f_norm_arg: f_bad_arg { $$ = $1 };
 /* upstream parse.y:6410: f_norm_arg: "local variable or method" */
 f_norm_arg: tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(792) };
 /* upstream parse.y:6420: f_arg_asgn: f_norm_arg */

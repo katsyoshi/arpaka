@@ -4461,7 +4461,7 @@
     "id": 744,
     "rule": "f_opt_arg_arg_value: f_opt_arg_value",
     "line": 3007,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 745,
@@ -4479,7 +4479,7 @@
     "id": 747,
     "rule": "opt_args_tail_args_tail_opt_comma: opt_comma",
     "line": 3112,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 748,
@@ -4557,7 +4557,7 @@
     "id": 760,
     "rule": "f_args-list_args_tail_opt_comma: args-list_arg_value_opt_args_tail_args_tail_opt_comma",
     "line": 6357,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 761,
@@ -4569,13 +4569,13 @@
     "id": 762,
     "rule": "tail-only-args_args_tail: args_tail",
     "line": 6340,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 763,
     "rule": "f_args-list_args_tail_opt_comma: tail-only-args_args_tail",
     "line": 6357,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 764,
@@ -4599,7 +4599,7 @@
     "id": 767,
     "rule": "opt_args_tail_largs_tail_none: none",
     "line": 3112,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 768,
@@ -4677,7 +4677,7 @@
     "id": 780,
     "rule": "f_args-list_largs_tail_none: args-list_arg_value_opt_args_tail_largs_tail_none",
     "line": 6360,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 781,
@@ -4689,19 +4689,19 @@
     "id": 782,
     "rule": "tail-only-args_largs_tail: largs_tail",
     "line": 6340,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 783,
     "rule": "f_args-list_largs_tail_none: tail-only-args_largs_tail",
     "line": 6360,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 784,
     "rule": "f_args-list_largs_tail_none: f_empty_arg",
     "line": 6360,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 785,
@@ -4713,13 +4713,13 @@
     "id": 786,
     "rule": "args_forward: \"(...\"",
     "line": 6364,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 787,
     "rule": "f_bad_arg: \"constant\"",
     "line": 6371,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 788,
@@ -4743,7 +4743,7 @@
     "id": 791,
     "rule": "f_norm_arg: f_bad_arg",
     "line": 6408,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 792,
