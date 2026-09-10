@@ -4737,7 +4737,7 @@
     "id": 790,
     "rule": "f_bad_arg: \"class variable\"",
     "line": 6398,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 791,

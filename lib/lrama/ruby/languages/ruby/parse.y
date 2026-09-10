@@ -1764,7 +1764,7 @@ f_bad_arg: tIVAR %prec tIVAR { $$ = nil };
 /* upstream parse.y:6389: f_bad_arg: "global variable" */
 f_bad_arg: tGVAR %prec tGVAR { $$ = nil };
 /* upstream parse.y:6398: f_bad_arg: "class variable" */
-f_bad_arg: tCVAR %prec tCVAR { $$ = @builder.unsupported(790) };
+f_bad_arg: tCVAR %prec tCVAR { $$ = nil };
 /* upstream parse.y:6408: f_norm_arg: f_bad_arg */
 f_norm_arg: f_bad_arg { $$ = $1 };
 /* upstream parse.y:6410: f_norm_arg: "local variable or method" */
