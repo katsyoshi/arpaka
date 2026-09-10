@@ -1104,7 +1104,7 @@ f_opt_arg_primary_value: f_opt_primary_value { $$ = $1 };
 /* upstream parse.y:3012: f_opt_arg_primary_value: f_opt_arg_primary_value ',' f_opt_primary_value */
 f_opt_arg_primary_value: f_opt_arg_primary_value ',' f_opt_primary_value %prec ',' { $$ = @builder.unsupported(459) };
 /* upstream parse.y:3107: opt_args_tail_block_args_tail_none: ',' block_args_tail */
-opt_args_tail_block_args_tail_none: ',' block_args_tail %prec ',' { $$ = @builder.unsupported(460) };
+opt_args_tail_block_args_tail_none: ',' block_args_tail %prec ',' { $$ = $2 };
 /* upstream parse.y:3112: opt_args_tail_block_args_tail_none: none */
 opt_args_tail_block_args_tail_none: none { $$ = nil };
 /* upstream parse.y:6277: args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_opt_arg_primary_value ',' f_rest_arg opt_args_tail_block_args_tail_none */

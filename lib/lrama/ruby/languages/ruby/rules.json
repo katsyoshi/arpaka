@@ -2757,7 +2757,7 @@
     "id": 460,
     "rule": "opt_args_tail_block_args_tail_none: ',' block_args_tail",
     "line": 3107,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 461,
