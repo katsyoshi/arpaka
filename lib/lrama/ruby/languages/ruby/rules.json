@@ -237,13 +237,13 @@
     "id": 40,
     "rule": "stmt: mlhs '=' lex_ctxt command_call_value",
     "line": 3404,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 41,
     "rule": "asgn_mrhs: lhs '=' lex_ctxt mrhs",
     "line": 2926,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 42,
@@ -261,7 +261,7 @@
     "id": 44,
     "rule": "stmt: mlhs '=' lex_ctxt mrhs_arg",
     "line": 3421,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 45,
@@ -279,7 +279,7 @@
     "id": 47,
     "rule": "asgn_command_rhs: lhs '=' lex_ctxt command_rhs",
     "line": 2926,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 48,

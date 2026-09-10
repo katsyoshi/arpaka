@@ -390,6 +390,8 @@ module RubyGrammarActions
     28 => ["pass_through", "$2"], 29 => ["pass_through", "$2"],
     30 => ["pass_through", "$2"], 31 => ["pass_through", "$2"],
     32 => ["pass_through", "$2"], 38 => ["pass_through", "$3"],
+    40 => ["pass_through", "$1"], 41 => ["pass_through", "$1"],
+    44 => ["pass_through", "$1"], 47 => ["pass_through", "$1"],
     716 => ["pass_through", "$3"], 717 => ["empty", "nil"],
     493 => ["empty", "nil"], 494 => ["empty", "nil"],
     495 => ["ported", "@builder.lambda_node($7, $8)"],

@@ -264,21 +264,21 @@ stmt: k_END block_open compstmt_stmts '}' %prec '}' { $$ = $3 };
 /* upstream parse.y:3402: stmt: command_asgn */
 stmt: command_asgn { $$ = $1 };
 /* upstream parse.y:3404: stmt: mlhs '=' lex_ctxt command_call_value */
-stmt: mlhs '=' lex_ctxt command_call_value %prec '=' { $$ = @builder.unsupported(40) };
+stmt: mlhs '=' lex_ctxt command_call_value %prec '=' { $$ = $1 };
 /* upstream parse.y:2926: asgn_mrhs: lhs '=' lex_ctxt mrhs */
-asgn_mrhs: lhs '=' lex_ctxt mrhs %prec '=' { $$ = @builder.unsupported(41) };
+asgn_mrhs: lhs '=' lex_ctxt mrhs %prec '=' { $$ = $1 };
 /* upstream parse.y:3408: stmt: asgn_mrhs */
 stmt: asgn_mrhs { $$ = $1 };
 /* upstream parse.y:3411: stmt: mlhs '=' lex_ctxt mrhs_arg "'rescue' modifier" after_rescue stmt */
 stmt: mlhs '=' lex_ctxt mrhs_arg modifier_rescue after_rescue stmt %prec modifier_rescue { $$ = @builder.unsupported(43) };
 /* upstream parse.y:3421: stmt: mlhs '=' lex_ctxt mrhs_arg */
-stmt: mlhs '=' lex_ctxt mrhs_arg %prec '=' { $$ = @builder.unsupported(44) };
+stmt: mlhs '=' lex_ctxt mrhs_arg %prec '=' { $$ = $1 };
 /* upstream parse.y:3425: stmt: expr */
 stmt: expr { $$ = $1 };
 /* upstream parse.y:3427: stmt: error */
 stmt: YYerror %prec YYerror { $$ = @builder.unsupported(46) };
 /* upstream parse.y:2926: asgn_command_rhs: lhs '=' lex_ctxt command_rhs */
-asgn_command_rhs: lhs '=' lex_ctxt command_rhs %prec '=' { $$ = @builder.unsupported(47) };
+asgn_command_rhs: lhs '=' lex_ctxt command_rhs %prec '=' { $$ = $1 };
 /* upstream parse.y:3433: command_asgn: asgn_command_rhs */
 command_asgn: asgn_command_rhs { $$ = $1 };
 /* upstream parse.y:3061: op_asgn_command_rhs: var_lhs "operator-assignment" lex_ctxt command_rhs */
