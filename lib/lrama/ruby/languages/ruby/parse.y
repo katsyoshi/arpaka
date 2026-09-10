@@ -746,7 +746,7 @@ def_endless_method_endless_arg: defn_head f_opt_paren_args '=' endless_arg %prec
 /* upstream parse.y:2977: def_endless_method_endless_arg: defs_head f_opt_paren_args '=' endless_arg */
 def_endless_method_endless_arg: defs_head f_opt_paren_args '=' endless_arg %prec '=' { $$ = @builder.unsupported(280) };
 /* upstream parse.y:4071: arg: def_endless_method_endless_arg */
-arg: def_endless_method_endless_arg { $$ = @builder.unsupported(281) };
+arg: def_endless_method_endless_arg { $$ = $1 };
 /* upstream parse.y:4072: arg: ternary */
 arg: ternary { $$ = $1 };
 /* upstream parse.y:4073: arg: primary */

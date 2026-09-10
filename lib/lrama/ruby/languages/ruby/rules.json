@@ -1683,7 +1683,7 @@
     "id": 281,
     "rule": "arg: def_endless_method_endless_arg",
     "line": 4071,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 282,
