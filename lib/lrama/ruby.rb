@@ -22,7 +22,11 @@ module Lrama
       code = generate(source, filename: filename, class_name: class_name,
         mode: mode, allow_error_rules: allow_error_rules)
       box = ::Ruby::Box.new
-      box.eval(code)
+      begin
+        box.eval(code)
+      rescue SyntaxError => error
+        raise Error, "Invalid generated Ruby for #{filename}: #{error.message}"
+      end
       box.const_get(class_name, false)
     end
   end
