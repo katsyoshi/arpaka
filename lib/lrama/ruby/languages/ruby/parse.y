@@ -1798,29 +1798,29 @@ restarg_mark: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:6512: f_rest_arg: restarg_mark "local variable or method" */
 f_rest_arg: restarg_mark tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(806) };
 /* upstream parse.y:6518: f_rest_arg: restarg_mark */
-f_rest_arg: restarg_mark { $$ = @builder.unsupported(807) };
+f_rest_arg: restarg_mark { $$ = $1 };
 /* upstream parse.y:6525: blkarg_mark: '&' */
-blkarg_mark: '&' %prec '&' { $$ = @builder.unsupported(808) };
+blkarg_mark: '&' %prec '&' { $$ = nil };
 /* upstream parse.y:6526: blkarg_mark: "&" */
-blkarg_mark: tAMPER %prec tAMPER { $$ = @builder.unsupported(809) };
+blkarg_mark: tAMPER %prec tAMPER { $$ = nil };
 /* upstream parse.y:6530: f_block_arg: blkarg_mark "local variable or method" */
 f_block_arg: blkarg_mark tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(810) };
 /* upstream parse.y:6536: f_block_arg: blkarg_mark "'nil'" */
 f_block_arg: blkarg_mark keyword_nil %prec keyword_nil { $$ = @builder.unsupported(811) };
 /* upstream parse.y:6541: f_block_arg: blkarg_mark */
-f_block_arg: blkarg_mark { $$ = @builder.unsupported(812) };
+f_block_arg: blkarg_mark { $$ = $1 };
 /* upstream parse.y:6548: option_',': %empty */
-option____: %empty { $$ = @builder.unsupported(813) };
+option____: %empty { $$ = nil };
 /* upstream parse.y:6548: option_',': ',' */
-option____: ',' %prec ',' { $$ = @builder.unsupported(814) };
+option____: ',' %prec ',' { $$ = $1 };
 /* upstream parse.y:6549: opt_comma: option_',' */
-opt_comma: option____ { $$ = @builder.unsupported(815) };
+opt_comma: option____ { $$ = $1 };
 /* upstream parse.y:3161: value_expr_singleton_expr: singleton_expr */
-value_expr_singleton_expr: singleton_expr { $$ = @builder.unsupported(816) };
+value_expr_singleton_expr: singleton_expr { $$ = $1 };
 /* upstream parse.y:6557: singleton: value_expr_singleton_expr */
-singleton: value_expr_singleton_expr { $$ = @builder.unsupported(817) };
+singleton: value_expr_singleton_expr { $$ = $1 };
 /* upstream parse.y:6586: singleton_expr: var_ref */
-singleton_expr: var_ref { $$ = @builder.unsupported(818) };
+singleton_expr: var_ref { $$ = $1 };
 /* upstream parse.y:6588: $@41: %empty */
 midrule_41: %empty { $$ = @builder.unsupported(819) };
 /* upstream parse.y:6593: singleton_expr: '(' $@41 expr rparen */

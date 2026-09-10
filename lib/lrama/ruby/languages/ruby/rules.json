@@ -4839,19 +4839,19 @@
     "id": 807,
     "rule": "f_rest_arg: restarg_mark",
     "line": 6518,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 808,
     "rule": "blkarg_mark: '&'",
     "line": 6525,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 809,
     "rule": "blkarg_mark: \"&\"",
     "line": 6526,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 810,
@@ -4869,43 +4869,43 @@
     "id": 812,
     "rule": "f_block_arg: blkarg_mark",
     "line": 6541,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 813,
     "rule": "option_',': %empty",
     "line": 6548,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 814,
     "rule": "option_',': ','",
     "line": 6548,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 815,
     "rule": "opt_comma: option_','",
     "line": 6549,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 816,
     "rule": "value_expr_singleton_expr: singleton_expr",
     "line": 3161,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 817,
     "rule": "singleton: value_expr_singleton_expr",
     "line": 6557,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 818,
     "rule": "singleton_expr: var_ref",
     "line": 6586,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 819,
