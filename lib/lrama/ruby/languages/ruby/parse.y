@@ -1062,7 +1062,7 @@ f_margs: f_rest_marg { $$ = $1 };
 /* upstream parse.y:4963: f_margs: f_rest_marg ',' mlhs_items_f_marg */
 f_margs: f_rest_marg ',' mlhs_items_f_marg %prec ',' { $$ = @builder.unsupported(438) };
 /* upstream parse.y:4970: f_rest_marg: "*" f_norm_arg */
-f_rest_marg: tSTAR f_norm_arg %prec tSTAR { $$ = @builder.unsupported(439) };
+f_rest_marg: tSTAR f_norm_arg %prec tSTAR { $$ = $2 };
 /* upstream parse.y:4976: f_rest_marg: "*" */
 f_rest_marg: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:4982: f_any_kwrest: f_kwrest */

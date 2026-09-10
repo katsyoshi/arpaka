@@ -2631,7 +2631,7 @@
     "id": 439,
     "rule": "f_rest_marg: \"*\" f_norm_arg",
     "line": 4970,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 440,
