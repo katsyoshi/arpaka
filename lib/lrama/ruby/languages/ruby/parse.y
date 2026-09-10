@@ -894,7 +894,7 @@ primary: tLPAREN_ARG compstmt_stmts midrule_15 ')' %prec ')' { $$ = @builder.par
 /* upstream parse.y:4411: primary: "(" compstmt_stmts ')' */
 primary: tLPAREN compstmt_stmts ')' %prec ')' { $$ = @builder.parentheses($2, 354) };
 /* upstream parse.y:4417: primary: primary_value "::" "constant" */
-primary: primary_value tCOLON2 tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(355) };
+primary: primary_value tCOLON2 tCONSTANT %prec tCONSTANT { $$ = @builder.variable(:constant, $3) };
 /* upstream parse.y:4422: primary: ":: at EXPR_BEG" "constant" */
 primary: tCOLON3 tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(356) };
 /* upstream parse.y:4427: primary: "[" aref_args ']' */

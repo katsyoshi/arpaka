@@ -2127,7 +2127,7 @@
     "id": 355,
     "rule": "primary: primary_value \"::\" \"constant\"",
     "line": 4417,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 356,
