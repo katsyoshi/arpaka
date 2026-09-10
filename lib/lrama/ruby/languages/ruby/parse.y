@@ -1048,43 +1048,43 @@ f_marg: f_norm_arg { $$ = $1 };
 /* upstream parse.y:4935: f_marg: "(" f_margs rparen */
 f_marg: tLPAREN f_margs rparen %prec tLPAREN { $$ = @builder.unsupported(431) };
 /* upstream parse.y:3048: mlhs_items_f_marg: f_marg */
-mlhs_items_f_marg: f_marg { $$ = @builder.unsupported(432) };
+mlhs_items_f_marg: f_marg { $$ = $1 };
 /* upstream parse.y:3053: mlhs_items_f_marg: mlhs_items_f_marg ',' f_marg */
 mlhs_items_f_marg: mlhs_items_f_marg ',' f_marg %prec ',' { $$ = @builder.unsupported(433) };
 /* upstream parse.y:4943: f_margs: mlhs_items_f_marg */
-f_margs: mlhs_items_f_marg { $$ = @builder.unsupported(434) };
+f_margs: mlhs_items_f_marg { $$ = $1 };
 /* upstream parse.y:4948: f_margs: mlhs_items_f_marg ',' f_rest_marg */
 f_margs: mlhs_items_f_marg ',' f_rest_marg %prec ',' { $$ = @builder.unsupported(435) };
 /* upstream parse.y:4953: f_margs: mlhs_items_f_marg ',' f_rest_marg ',' mlhs_items_f_marg */
 f_margs: mlhs_items_f_marg ',' f_rest_marg ',' mlhs_items_f_marg %prec ',' { $$ = @builder.unsupported(436) };
 /* upstream parse.y:4958: f_margs: f_rest_marg */
-f_margs: f_rest_marg { $$ = @builder.unsupported(437) };
+f_margs: f_rest_marg { $$ = $1 };
 /* upstream parse.y:4963: f_margs: f_rest_marg ',' mlhs_items_f_marg */
 f_margs: f_rest_marg ',' mlhs_items_f_marg %prec ',' { $$ = @builder.unsupported(438) };
 /* upstream parse.y:4970: f_rest_marg: "*" f_norm_arg */
 f_rest_marg: tSTAR f_norm_arg %prec tSTAR { $$ = @builder.unsupported(439) };
 /* upstream parse.y:4976: f_rest_marg: "*" */
-f_rest_marg: tSTAR %prec tSTAR { $$ = @builder.unsupported(440) };
+f_rest_marg: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:4982: f_any_kwrest: f_kwrest */
-f_any_kwrest: f_kwrest { $$ = @builder.unsupported(441) };
+f_any_kwrest: f_kwrest { $$ = $1 };
 /* upstream parse.y:4984: f_any_kwrest: f_no_kwarg */
-f_any_kwrest: f_no_kwarg { $$ = @builder.unsupported(442) };
+f_any_kwrest: f_no_kwarg { $$ = $1 };
 /* upstream parse.y:4990: $@25: %empty */
-midrule_25: %empty { $$ = @builder.unsupported(443) };
+midrule_25: %empty { $$ = nil };
 /* upstream parse.y:4990: f_eq: $@25 '=' */
 f_eq: midrule_25 '=' %prec '=' { $$ = @builder.unsupported(444) };
 /* upstream parse.y:3020: f_kw_primary_value: f_label primary_value */
 f_kw_primary_value: f_label primary_value { $$ = @builder.unsupported(445) };
 /* upstream parse.y:3026: f_kw_primary_value: f_label */
-f_kw_primary_value: f_label { $$ = @builder.unsupported(446) };
+f_kw_primary_value: f_label { $$ = $1 };
 /* upstream parse.y:3035: f_kwarg_primary_value: f_kw_primary_value */
-f_kwarg_primary_value: f_kw_primary_value { $$ = @builder.unsupported(447) };
+f_kwarg_primary_value: f_kw_primary_value { $$ = $1 };
 /* upstream parse.y:3040: f_kwarg_primary_value: f_kwarg_primary_value ',' f_kw_primary_value */
 f_kwarg_primary_value: f_kwarg_primary_value ',' f_kw_primary_value %prec ',' { $$ = @builder.unsupported(448) };
 /* upstream parse.y:2957: opt_f_block_arg_none: ',' f_block_arg */
 opt_f_block_arg_none: ',' f_block_arg %prec ',' { $$ = @builder.unsupported(449) };
 /* upstream parse.y:4992: opt_f_block_arg_none: none */
-opt_f_block_arg_none: none { $$ = @builder.unsupported(450) };
+opt_f_block_arg_none: none { $$ = nil };
 /* upstream parse.y:2934: args_tail_basic_primary_value_none: f_kwarg_primary_value ',' f_kwrest opt_f_block_arg_none */
 args_tail_basic_primary_value_none: f_kwarg_primary_value ',' f_kwrest opt_f_block_arg_none %prec ',' { $$ = @builder.unsupported(451) };
 /* upstream parse.y:2939: args_tail_basic_primary_value_none: f_kwarg_primary_value opt_f_block_arg_none */
@@ -1092,21 +1092,21 @@ args_tail_basic_primary_value_none: f_kwarg_primary_value opt_f_block_arg_none {
 /* upstream parse.y:2944: args_tail_basic_primary_value_none: f_any_kwrest opt_f_block_arg_none */
 args_tail_basic_primary_value_none: f_any_kwrest opt_f_block_arg_none { $$ = @builder.unsupported(453) };
 /* upstream parse.y:2949: args_tail_basic_primary_value_none: f_block_arg */
-args_tail_basic_primary_value_none: f_block_arg { $$ = @builder.unsupported(454) };
+args_tail_basic_primary_value_none: f_block_arg { $$ = $1 };
 /* upstream parse.y:4992: block_args_tail: args_tail_basic_primary_value_none */
-block_args_tail: args_tail_basic_primary_value_none { $$ = @builder.unsupported(455) };
+block_args_tail: args_tail_basic_primary_value_none { $$ = $1 };
 /* upstream parse.y:4996: excessed_comma: ',' */
-excessed_comma: ',' %prec ',' { $$ = @builder.unsupported(456) };
+excessed_comma: ',' %prec ',' { $$ = nil };
 /* upstream parse.y:2998: f_opt_primary_value: f_arg_asgn f_eq primary_value */
 f_opt_primary_value: f_arg_asgn f_eq primary_value { $$ = @builder.unsupported(457) };
 /* upstream parse.y:3007: f_opt_arg_primary_value: f_opt_primary_value */
-f_opt_arg_primary_value: f_opt_primary_value { $$ = @builder.unsupported(458) };
+f_opt_arg_primary_value: f_opt_primary_value { $$ = $1 };
 /* upstream parse.y:3012: f_opt_arg_primary_value: f_opt_arg_primary_value ',' f_opt_primary_value */
 f_opt_arg_primary_value: f_opt_arg_primary_value ',' f_opt_primary_value %prec ',' { $$ = @builder.unsupported(459) };
 /* upstream parse.y:3107: opt_args_tail_block_args_tail_none: ',' block_args_tail */
 opt_args_tail_block_args_tail_none: ',' block_args_tail %prec ',' { $$ = @builder.unsupported(460) };
 /* upstream parse.y:3112: opt_args_tail_block_args_tail_none: none */
-opt_args_tail_block_args_tail_none: none { $$ = @builder.unsupported(461) };
+opt_args_tail_block_args_tail_none: none { $$ = nil };
 /* upstream parse.y:6277: args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_opt_arg_primary_value ',' f_rest_arg opt_args_tail_block_args_tail_none */
 args_list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_opt_arg_primary_value ',' f_rest_arg opt_args_tail_block_args_tail_none %prec ',' { $$ = @builder.unsupported(462) };
 /* upstream parse.y:6282: args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_opt_arg_primary_value ',' f_rest_arg ',' f_arg opt_args_tail_block_args_tail_none */
@@ -1132,17 +1132,17 @@ args_list_primary_value_opt_args_tail_block_args_tail_none: f_rest_arg opt_args_
 /* upstream parse.y:6332: args-list_primary_value_opt_args_tail_block_args_tail_none: f_rest_arg ',' f_arg opt_args_tail_block_args_tail_none */
 args_list_primary_value_opt_args_tail_block_args_tail_none: f_rest_arg ',' f_arg opt_args_tail_block_args_tail_none %prec ',' { $$ = @builder.unsupported(473) };
 /* upstream parse.y:5003: block_param: args-list_primary_value_opt_args_tail_block_args_tail_none */
-block_param: args_list_primary_value_opt_args_tail_block_args_tail_none { $$ = @builder.unsupported(474) };
+block_param: args_list_primary_value_opt_args_tail_block_args_tail_none { $$ = $1 };
 /* upstream parse.y:5005: block_param: f_arg excessed_comma */
 block_param: f_arg excessed_comma { $$ = @builder.unsupported(475) };
 /* upstream parse.y:5011: block_param: f_arg opt_args_tail_block_args_tail_none */
 block_param: f_arg opt_args_tail_block_args_tail_none { $$ = @builder.unsupported(476) };
 /* upstream parse.y:6340: tail-only-args_block_args_tail: block_args_tail */
-tail_only_args_block_args_tail: block_args_tail { $$ = @builder.unsupported(477) };
+tail_only_args_block_args_tail: block_args_tail { $$ = $1 };
 /* upstream parse.y:5015: block_param: tail-only-args_block_args_tail */
-block_param: tail_only_args_block_args_tail { $$ = @builder.unsupported(478) };
+block_param: tail_only_args_block_args_tail { $$ = $1 };
 /* upstream parse.y:5018: opt_block_param_def: none */
-opt_block_param_def: none { $$ = @builder.unsupported(479) };
+opt_block_param_def: none { $$ = nil };
 /* upstream parse.y:5020: opt_block_param_def: block_param_def */
 opt_block_param_def: block_param_def { $$ = @builder.unsupported(480) };
 /* upstream parse.y:5026: block_param_def: '|' opt_block_param opt_bv_decl '|' */
