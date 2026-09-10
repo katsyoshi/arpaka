@@ -408,11 +408,11 @@ command: keyword_next call_args %prec keyword_next { $$ = @builder.call(:next, $
 /* upstream parse.y:3670: mlhs: mlhs_basic */
 mlhs: mlhs_basic { $$ = $1 };
 /* upstream parse.y:3672: mlhs: "(" mlhs_inner rparen */
-mlhs: tLPAREN mlhs_inner rparen %prec tLPAREN { $$ = @builder.unsupported(112) };
+mlhs: tLPAREN mlhs_inner rparen %prec tLPAREN { $$ = $2 };
 /* upstream parse.y:3678: mlhs_inner: mlhs_basic */
 mlhs_inner: mlhs_basic { $$ = $1 };
 /* upstream parse.y:3680: mlhs_inner: "(" mlhs_inner rparen */
-mlhs_inner: tLPAREN mlhs_inner rparen %prec tLPAREN { $$ = @builder.unsupported(114) };
+mlhs_inner: tLPAREN mlhs_inner rparen %prec tLPAREN { $$ = $2 };
 /* upstream parse.y:3687: mlhs_basic: mlhs_head */
 mlhs_basic: mlhs_head { $$ = $1 };
 /* upstream parse.y:3692: mlhs_basic: mlhs_head mlhs_item */
@@ -440,7 +440,7 @@ mlhs_basic: tSTAR ',' mlhs_items_mlhs_item %prec ',' { $$ = @builder.unsupported
 /* upstream parse.y:3738: mlhs_item: mlhs_node */
 mlhs_item: mlhs_node { $$ = $1 };
 /* upstream parse.y:3740: mlhs_item: "(" mlhs_inner rparen */
-mlhs_item: tLPAREN mlhs_inner rparen %prec tLPAREN { $$ = @builder.unsupported(128) };
+mlhs_item: tLPAREN mlhs_inner rparen %prec tLPAREN { $$ = $2 };
 /* upstream parse.y:3747: mlhs_head: mlhs_item ',' */
 mlhs_head: mlhs_item ',' %prec ',' { $$ = @builder.unsupported(129) };
 /* upstream parse.y:3752: mlhs_head: mlhs_head mlhs_item ',' */

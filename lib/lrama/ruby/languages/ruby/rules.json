@@ -669,7 +669,7 @@
     "id": 112,
     "rule": "mlhs: \"(\" mlhs_inner rparen",
     "line": 3672,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 113,
@@ -681,7 +681,7 @@
     "id": 114,
     "rule": "mlhs_inner: \"(\" mlhs_inner rparen",
     "line": 3680,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 115,
@@ -765,7 +765,7 @@
     "id": 128,
     "rule": "mlhs_item: \"(\" mlhs_inner rparen",
     "line": 3740,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 129,
