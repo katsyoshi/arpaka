@@ -416,7 +416,7 @@ mlhs_inner: tLPAREN mlhs_inner rparen %prec tLPAREN { $$ = $2 };
 /* upstream parse.y:3687: mlhs_basic: mlhs_head */
 mlhs_basic: mlhs_head { $$ = $1 };
 /* upstream parse.y:3692: mlhs_basic: mlhs_head mlhs_item */
-mlhs_basic: mlhs_head mlhs_item { $$ = @builder.unsupported(116) };
+mlhs_basic: mlhs_head mlhs_item { $$ = ($1 + [$2]).freeze };
 /* upstream parse.y:3697: mlhs_basic: mlhs_head "*" mlhs_node */
 mlhs_basic: mlhs_head tSTAR mlhs_node %prec tSTAR { $$ = @builder.unsupported(117) };
 /* upstream parse.y:3048: mlhs_items_mlhs_item: mlhs_item */
