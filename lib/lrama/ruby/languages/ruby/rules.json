@@ -3129,7 +3129,7 @@
     "id": 522,
     "rule": "case_args: \"*\" arg_value",
     "line": 5312,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 523,

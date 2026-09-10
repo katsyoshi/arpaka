@@ -1228,7 +1228,7 @@ do_body: midrule_30 max_numparam numparam it_id allow_exits opt_block_param_def 
 /* upstream parse.y:5306: case_args: arg_value */
 case_args: arg_value { $$ = [$1].freeze };
 /* upstream parse.y:5312: case_args: "*" arg_value */
-case_args: tSTAR arg_value %prec tSTAR { $$ = @builder.unsupported(522) };
+case_args: tSTAR arg_value %prec tSTAR { $$ = $2 };
 /* upstream parse.y:5317: case_args: case_args ',' arg_value */
 case_args: case_args ',' arg_value %prec ',' { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:5323: case_args: case_args ',' "*" arg_value */
