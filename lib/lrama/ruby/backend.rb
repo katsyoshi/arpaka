@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "lrama"
-require "prism"
 require "erb"
 
 module Lrama
@@ -39,10 +38,6 @@ module Lrama
           class_name: class_name, context: context, tokens: tokens, actions: actions,
           recognizer: recognizer
         )
-        errors = Prism.parse(result).errors
-        unless errors.empty?
-          raise Error, "Invalid generated Ruby for #{filename}: #{errors.map(&:message).join('; ')}"
-        end
         result
       end
 
@@ -57,10 +52,10 @@ module Lrama
           else
             "values[#{reference.index - position - 1}]"
           end
-          if code.byteslice(reference.first_column - 1, 1) == "#"
+          if rule.token_code.ruby_short_reference?(reference.first_column)
             replacement = "{#{replacement}}"
           end
-          # Lrama and Prism locations are byte offsets, including for UTF-8.
+          # Lrama and action scanner locations are byte offsets, including UTF-8.
           code = code.byteslice(0, reference.first_column) + replacement +
             code.byteslice(reference.last_column..)
         end
