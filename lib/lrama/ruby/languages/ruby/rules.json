@@ -825,7 +825,7 @@
     "id": 138,
     "rule": "mlhs_node: \":: at EXPR_BEG\" \"constant\"",
     "line": 3786,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 139,

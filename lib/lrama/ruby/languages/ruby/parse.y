@@ -460,7 +460,7 @@ mlhs_node: primary_value tCOLON2 tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.u
 /* upstream parse.y:3781: mlhs_node: primary_value "::" "constant" */
 mlhs_node: primary_value tCOLON2 tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(137) };
 /* upstream parse.y:3786: mlhs_node: ":: at EXPR_BEG" "constant" */
-mlhs_node: tCOLON3 tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(138) };
+mlhs_node: tCOLON3 tCONSTANT %prec tCONSTANT { $$ = @builder.variable(:constant, $2) };
 /* upstream parse.y:3791: mlhs_node: backref */
 mlhs_node: backref { $$ = $1 };
 /* upstream parse.y:3799: lhs: user_variable */
