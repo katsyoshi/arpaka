@@ -4473,7 +4473,7 @@
     "id": 746,
     "rule": "opt_args_tail_args_tail_opt_comma: ',' args_tail",
     "line": 3107,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 747,

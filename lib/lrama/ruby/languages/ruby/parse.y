@@ -1676,7 +1676,7 @@ f_opt_arg_arg_value: f_opt_arg_value { $$ = $1 };
 /* upstream parse.y:3012: f_opt_arg_arg_value: f_opt_arg_arg_value ',' f_opt_arg_value */
 f_opt_arg_arg_value: f_opt_arg_arg_value ',' f_opt_arg_value %prec ',' { $$ = @builder.unsupported(745) };
 /* upstream parse.y:3107: opt_args_tail_args_tail_opt_comma: ',' args_tail */
-opt_args_tail_args_tail_opt_comma: ',' args_tail %prec ',' { $$ = @builder.unsupported(746) };
+opt_args_tail_args_tail_opt_comma: ',' args_tail %prec ',' { $$ = $2 };
 /* upstream parse.y:3112: opt_args_tail_args_tail_opt_comma: opt_comma */
 opt_args_tail_args_tail_opt_comma: opt_comma { $$ = $1 };
 /* upstream parse.y:6277: args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg opt_args_tail_args_tail_opt_comma */
