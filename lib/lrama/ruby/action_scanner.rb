@@ -153,7 +153,12 @@ module Lrama
             if @scanner.check(/['"]/)
               quote = @scanner.getch
               literal(quote, interpolate: quote != "'", offset: offset)
-            elsif !@scanner.scan(/[@$]?[a-zA-Z_\x80-\xff][a-zA-Z_0-9\x80-\xff]*[!?]?/n) &&
+            elsif @scanner.scan(/#\{/)
+              @interpolation_depth += 1
+              code("}")
+              @scanner.getch
+              @interpolation_depth -= 1
+            elsif !@scanner.scan(/(?:@{1,2}|\$?)[a-zA-Z_\x80-\xff][a-zA-Z_0-9\x80-\xff]*[!?]?/n) &&
               !@scanner.scan(/(?:\[\]=?|<=>|===|==|=~|!~|!=|<=|>=|<<|>>|\*\*|[+\-~]@?|[!*\/%&|^<>`])/)
               fail_at("Unsupported symbol literal", offset)
             end
