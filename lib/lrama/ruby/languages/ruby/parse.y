@@ -1082,7 +1082,7 @@ f_kwarg_primary_value: f_kw_primary_value { $$ = $1 };
 /* upstream parse.y:3040: f_kwarg_primary_value: f_kwarg_primary_value ',' f_kw_primary_value */
 f_kwarg_primary_value: f_kwarg_primary_value ',' f_kw_primary_value %prec ',' { $$ = @builder.unsupported(448) };
 /* upstream parse.y:2957: opt_f_block_arg_none: ',' f_block_arg */
-opt_f_block_arg_none: ',' f_block_arg %prec ',' { $$ = @builder.unsupported(449) };
+opt_f_block_arg_none: ',' f_block_arg %prec ',' { $$ = $2 };
 /* upstream parse.y:4992: opt_f_block_arg_none: none */
 opt_f_block_arg_none: none { $$ = nil };
 /* upstream parse.y:2934: args_tail_basic_primary_value_none: f_kwarg_primary_value ',' f_kwrest opt_f_block_arg_none */

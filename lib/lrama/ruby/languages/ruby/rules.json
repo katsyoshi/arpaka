@@ -2691,7 +2691,7 @@
     "id": 449,
     "rule": "opt_f_block_arg_none: ',' f_block_arg",
     "line": 2957,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 450,
