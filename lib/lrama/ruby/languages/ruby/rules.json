@@ -3297,7 +3297,7 @@
     "id": 550,
     "rule": "p_lparen: '(' p_pktbl",
     "line": 5453,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 551,
