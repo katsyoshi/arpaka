@@ -4809,7 +4809,7 @@
     "id": 802,
     "rule": "f_kwrest: kwrest_mark \"local variable or method\"",
     "line": 6494,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 803,

@@ -1788,7 +1788,7 @@ kwrest_mark: tDSTAR %prec tDSTAR { $$ = nil };
 /* upstream parse.y:6488: f_no_kwarg: p_kwnorest */
 f_no_kwarg: p_kwnorest { $$ = $1 };
 /* upstream parse.y:6494: f_kwrest: kwrest_mark "local variable or method" */
-f_kwrest: kwrest_mark tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(802) };
+f_kwrest: kwrest_mark tIDENTIFIER %prec tIDENTIFIER { $$ = $2 };
 /* upstream parse.y:6500: f_kwrest: kwrest_mark */
 f_kwrest: kwrest_mark { $$ = $1 };
 /* upstream parse.y:6507: restarg_mark: '*' */
