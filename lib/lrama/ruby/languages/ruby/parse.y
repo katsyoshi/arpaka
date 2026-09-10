@@ -428,7 +428,7 @@ mlhs_basic: mlhs_head tSTAR mlhs_node ',' mlhs_items_mlhs_item %prec ',' { $$ = 
 /* upstream parse.y:3707: mlhs_basic: mlhs_head "*" */
 mlhs_basic: mlhs_head tSTAR %prec tSTAR { $$ = $1 };
 /* upstream parse.y:3712: mlhs_basic: mlhs_head "*" ',' mlhs_items_mlhs_item */
-mlhs_basic: mlhs_head tSTAR ',' mlhs_items_mlhs_item %prec ',' { $$ = @builder.unsupported(122) };
+mlhs_basic: mlhs_head tSTAR ',' mlhs_items_mlhs_item %prec ',' { $$ = $1 };
 /* upstream parse.y:3717: mlhs_basic: "*" mlhs_node */
 mlhs_basic: tSTAR mlhs_node %prec tSTAR { $$ = $2 };
 /* upstream parse.y:3722: mlhs_basic: "*" mlhs_node ',' mlhs_items_mlhs_item */
