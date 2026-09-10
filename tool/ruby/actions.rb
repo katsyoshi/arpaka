@@ -384,6 +384,7 @@ module RubyGrammarActions
     838 => ["ported", "@builder.operator(\".\")"], 839 => ["ported", "@builder.operator(\"::\")"],
     840 => ["ported", "@builder.operator(\".\")"], 841 => ["ported", "@builder.operator(\"&.\")"],
     842 => ["pass_through", "$1"], 843 => ["ported", "@builder.operator(\"::\")"],
+    398 => ["empty", "nil"],
     716 => ["pass_through", "$3"], 717 => ["empty", "nil"],
     493 => ["empty", "nil"], 494 => ["empty", "nil"],
     495 => ["ported", "@builder.lambda_node($7, $8)"],

@@ -980,7 +980,7 @@ value_expr_primary: primary { $$ = $1 };
 /* upstream parse.y:4723: primary_value: value_expr_primary */
 primary_value: value_expr_primary { $$ = $1 };
 /* upstream parse.y:4727: k_begin: "'begin'" */
-k_begin: keyword_begin %prec keyword_begin { $$ = @builder.unsupported(398) };
+k_begin: keyword_begin %prec keyword_begin { $$ = nil };
 /* upstream parse.y:4734: k_if: "'if'" */
 k_if: keyword_if %prec keyword_if { $$ = nil };
 /* upstream parse.y:4752: k_unless: "'unless'" */

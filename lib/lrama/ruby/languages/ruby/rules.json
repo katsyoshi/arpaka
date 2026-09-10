@@ -2385,7 +2385,7 @@
     "id": 398,
     "rule": "k_begin: \"'begin'\"",
     "line": 4727,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 399,
