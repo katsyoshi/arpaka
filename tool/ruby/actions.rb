@@ -118,6 +118,7 @@ module RubyGrammarActions
     412 => ["pass_through", "nil"],
     419 => ["pass_through", "nil"], 420 => ["pass_through", "nil"], 421 => ["pass_through", "nil"],
     426 => ["empty", "nil"],
+    453 => ["pass_through", "$1"],
     452 => ["pass_through", "$1"],
     451 => ["pass_through", "$1"],
     448 => ["pass_through", "$1"],
