@@ -4917,7 +4917,7 @@
     "id": 820,
     "rule": "singleton_expr: '(' $@41 expr rparen",
     "line": 6593,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 821,

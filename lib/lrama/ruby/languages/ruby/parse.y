@@ -1824,7 +1824,7 @@ singleton_expr: var_ref { $$ = $1 };
 /* upstream parse.y:6588: $@41: %empty */
 midrule_41: %empty { $$ = nil };
 /* upstream parse.y:6593: singleton_expr: '(' $@41 expr rparen */
-singleton_expr: '(' midrule_41 expr rparen %prec '(' { $$ = @builder.unsupported(820) };
+singleton_expr: '(' midrule_41 expr rparen %prec '(' { $$ = $3 };
 /* upstream parse.y:6600: assoc_list: none */
 assoc_list: none { $$ = [].freeze };
 /* upstream parse.y:6602: assoc_list: assocs trailer */
