@@ -127,6 +127,8 @@ module RubyGrammarActions
     321 => ["pass_through", "$1"], 325 => ["empty", "nil"],
     329 => ["pass_through", "$1"], 333 => ["empty", "nil"],
     334 => ["pass_through", "$1"],
+    335 => ["pass_through", "$1"], 350 => ["empty", "nil"],
+    352 => ["empty", "nil"], 390 => ["empty", "nil"],
     296 => ["pass_through", "nil"],
     109 => ["ported", "@builder.call(:break, $2 || [])"],
     110 => ["ported", "@builder.call(:next, $2 || [])"],

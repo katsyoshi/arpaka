@@ -854,7 +854,7 @@ arg_splat: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:4350: mrhs_arg: mrhs */
 mrhs_arg: mrhs { $$ = $1 };
 /* upstream parse.y:4351: mrhs_arg: arg_value */
-mrhs_arg: arg_value { $$ = @builder.unsupported(335) };
+mrhs_arg: arg_value { $$ = $1 };
 /* upstream parse.y:4356: mrhs: args ',' arg_value */
 mrhs: args ',' arg_value %prec ',' { $$ = @builder.unsupported(336) };
 /* upstream parse.y:4361: mrhs: args ',' "*" arg_value */
@@ -884,11 +884,11 @@ primary: backref { $$ = $1 };
 /* upstream parse.y:4387: primary: "method" */
 primary: tFID %prec tFID { $$ = @builder.unsupported(349) };
 /* upstream parse.y:4392: $@14: %empty */
-midrule_14: %empty { $$ = @builder.unsupported(350) };
+midrule_14: %empty { $$ = nil };
 /* upstream parse.y:4397: primary: k_begin $@14 bodystmt k_end */
 primary: k_begin midrule_14 bodystmt k_end { $$ = @builder.unsupported(351) };
 /* upstream parse.y:4404: $@15: %empty */
-midrule_15: %empty { $$ = @builder.unsupported(352) };
+midrule_15: %empty { $$ = nil };
 /* upstream parse.y:4405: primary: "( arg" compstmt_stmts $@15 ')' */
 primary: tLPAREN_ARG compstmt_stmts midrule_15 ')' %prec ')' { $$ = @builder.parentheses($2, 353) };
 /* upstream parse.y:4411: primary: "(" compstmt_stmts ')' */
@@ -964,7 +964,7 @@ midrule_23: %empty { $$ = nil };
 /* upstream parse.y:4670: primary: defn_head f_arglist $@23 bodystmt k_end */
 primary: defn_head f_arglist midrule_23 bodystmt k_end { $$ = @builder.def_node($1, $2, @builder.body_nodes($4)) };
 /* upstream parse.y:4680: $@24: %empty */
-midrule_24: %empty { $$ = @builder.unsupported(390) };
+midrule_24: %empty { $$ = nil };
 /* upstream parse.y:4685: primary: defs_head f_arglist $@24 bodystmt k_end */
 primary: defs_head f_arglist midrule_24 bodystmt k_end { $$ = @builder.unsupported(391) };
 /* upstream parse.y:4694: primary: "'break'" */
