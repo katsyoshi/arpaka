@@ -609,25 +609,25 @@
     "id": 102,
     "rule": "command: primary_value call_op operation2 command_args cmd_brace_block",
     "line": 3617,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 103,
     "rule": "command: primary_value \"::\" operation2 command_args",
     "line": 3622,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 104,
     "rule": "command: primary_value \"::\" operation2 command_args cmd_brace_block",
     "line": 3627,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 105,
     "rule": "command: primary_value \"::\" \"constant\" '{' brace_body '}'",
     "line": 3632,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 106,
@@ -801,19 +801,19 @@
     "id": 134,
     "rule": "mlhs_node: primary_value call_op \"local variable or method\"",
     "line": 3770,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 135,
     "rule": "mlhs_node: primary_value call_op \"constant\"",
     "line": 3770,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 136,
     "rule": "mlhs_node: primary_value \"::\" \"local variable or method\"",
     "line": 3776,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 137,
@@ -849,25 +849,25 @@
     "id": 142,
     "rule": "lhs: primary_value '[' opt_call_args rbracket",
     "line": 3804,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 143,
     "rule": "lhs: primary_value call_op \"local variable or method\"",
     "line": 3809,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 144,
     "rule": "lhs: primary_value call_op \"constant\"",
     "line": 3809,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 145,
     "rule": "lhs: primary_value \"::\" \"local variable or method\"",
     "line": 3814,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 146,
@@ -1419,49 +1419,49 @@
     "id": 237,
     "rule": "op_asgn_arg_rhs: var_lhs \"operator-assignment\" lex_ctxt arg_rhs",
     "line": 3061,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 238,
     "rule": "op_asgn_arg_rhs: primary_value '[' opt_call_args rbracket \"operator-assignment\" lex_ctxt arg_rhs",
     "line": 3066,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 239,
     "rule": "op_asgn_arg_rhs: primary_value call_op \"local variable or method\" \"operator-assignment\" lex_ctxt arg_rhs",
     "line": 3071,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 240,
     "rule": "op_asgn_arg_rhs: primary_value call_op \"constant\" \"operator-assignment\" lex_ctxt arg_rhs",
     "line": 3076,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 241,
     "rule": "op_asgn_arg_rhs: primary_value \"::\" \"local variable or method\" \"operator-assignment\" lex_ctxt arg_rhs",
     "line": 3081,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 242,
     "rule": "op_asgn_arg_rhs: primary_value \"::\" \"constant\" \"operator-assignment\" lex_ctxt arg_rhs",
     "line": 3086,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 243,
     "rule": "op_asgn_arg_rhs: \":: at EXPR_BEG\" \"constant\" \"operator-assignment\" lex_ctxt arg_rhs",
     "line": 3092,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 244,
     "rule": "op_asgn_arg_rhs: backref \"operator-assignment\" lex_ctxt arg_rhs",
     "line": 3098,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 245,
@@ -1671,13 +1671,13 @@
     "id": 279,
     "rule": "def_endless_method_endless_arg: defn_head f_opt_paren_args '=' endless_arg",
     "line": 2966,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 280,
     "rule": "def_endless_method_endless_arg: defs_head f_opt_paren_args '=' endless_arg",
     "line": 2977,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 281,
@@ -1875,7 +1875,7 @@
     "id": 313,
     "rule": "opt_call_args: args ',' assocs ','",
     "line": 4207,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 314,
@@ -2133,7 +2133,7 @@
     "id": 356,
     "rule": "primary: \":: at EXPR_BEG\" \"constant\"",
     "line": 4422,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 357,
@@ -2193,7 +2193,7 @@
     "id": 366,
     "rule": "primary: fcall brace_block",
     "line": 4475,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 367,
@@ -2205,7 +2205,7 @@
     "id": 368,
     "rule": "primary: method_call brace_block",
     "line": 4481,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 369,
@@ -2667,7 +2667,7 @@
     "id": 445,
     "rule": "f_kw_primary_value: f_label primary_value",
     "line": 3020,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 446,

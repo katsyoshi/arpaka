@@ -388,13 +388,13 @@ command: fcall command_args cmd_brace_block { $$ = $1 };
 /* upstream parse.y:3612: command: primary_value call_op operation2 command_args */
 command: primary_value call_op operation2 command_args %prec tLOWEST { $$ = $1 };
 /* upstream parse.y:3617: command: primary_value call_op operation2 command_args cmd_brace_block */
-command: primary_value call_op operation2 command_args cmd_brace_block { $$ = @builder.unsupported(102) };
+command: primary_value call_op operation2 command_args cmd_brace_block { $$ = $1 };
 /* upstream parse.y:3622: command: primary_value "::" operation2 command_args */
-command: primary_value tCOLON2 operation2 command_args %prec tLOWEST { $$ = @builder.unsupported(103) };
+command: primary_value tCOLON2 operation2 command_args %prec tLOWEST { $$ = $1 };
 /* upstream parse.y:3627: command: primary_value "::" operation2 command_args cmd_brace_block */
-command: primary_value tCOLON2 operation2 command_args cmd_brace_block %prec tCOLON2 { $$ = @builder.unsupported(104) };
+command: primary_value tCOLON2 operation2 command_args cmd_brace_block %prec tCOLON2 { $$ = $1 };
 /* upstream parse.y:3632: command: primary_value "::" "constant" '{' brace_body '}' */
-command: primary_value tCOLON2 tCONSTANT '{' brace_body '}' %prec '}' { $$ = @builder.unsupported(105) };
+command: primary_value tCOLON2 tCONSTANT '{' brace_body '}' %prec '}' { $$ = $1 };
 /* upstream parse.y:3638: command: "'super'" command_args */
 command: keyword_super command_args %prec keyword_super { $$ = @builder.call(:super, $2 || []) };
 /* upstream parse.y:3644: command: k_yield command_args */
@@ -452,11 +452,11 @@ mlhs_node: keyword_variable { $$ = $1 };
 /* upstream parse.y:3765: mlhs_node: primary_value '[' opt_call_args rbracket */
 mlhs_node: primary_value '[' opt_call_args rbracket %prec '[' { $$ = @builder.index($1, $3 || []) };
 /* upstream parse.y:3770: mlhs_node: primary_value call_op "local variable or method" */
-mlhs_node: primary_value call_op tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(134) };
+mlhs_node: primary_value call_op tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:3770: mlhs_node: primary_value call_op "constant" */
-mlhs_node: primary_value call_op tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(135) };
+mlhs_node: primary_value call_op tCONSTANT %prec tCONSTANT { $$ = $1 };
 /* upstream parse.y:3776: mlhs_node: primary_value "::" "local variable or method" */
-mlhs_node: primary_value tCOLON2 tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(136) };
+mlhs_node: primary_value tCOLON2 tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:3781: mlhs_node: primary_value "::" "constant" */
 mlhs_node: primary_value tCOLON2 tCONSTANT %prec tCONSTANT { $$ = @builder.variable(:constant, $3) };
 /* upstream parse.y:3786: mlhs_node: ":: at EXPR_BEG" "constant" */
@@ -468,13 +468,13 @@ lhs: user_variable { $$ = @builder.declare_local($1) };
 /* upstream parse.y:3799: lhs: keyword_variable */
 lhs: keyword_variable { $$ = $1 };
 /* upstream parse.y:3804: lhs: primary_value '[' opt_call_args rbracket */
-lhs: primary_value '[' opt_call_args rbracket %prec '[' { $$ = @builder.unsupported(142) };
+lhs: primary_value '[' opt_call_args rbracket %prec '[' { $$ = @builder.index($1, $3 || []) };
 /* upstream parse.y:3809: lhs: primary_value call_op "local variable or method" */
-lhs: primary_value call_op tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(143) };
+lhs: primary_value call_op tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:3809: lhs: primary_value call_op "constant" */
-lhs: primary_value call_op tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(144) };
+lhs: primary_value call_op tCONSTANT %prec tCONSTANT { $$ = $1 };
 /* upstream parse.y:3814: lhs: primary_value "::" "local variable or method" */
-lhs: primary_value tCOLON2 tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(145) };
+lhs: primary_value tCOLON2 tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:3819: lhs: primary_value "::" "constant" */
 lhs: primary_value tCOLON2 tCONSTANT %prec tCONSTANT { $$ = @builder.variable(:constant, $3) };
 /* upstream parse.y:3824: lhs: ":: at EXPR_BEG" "constant" */
@@ -658,21 +658,21 @@ asgn_arg_rhs: lhs '=' lex_ctxt arg_rhs %prec '=' { $$ = @builder.assign($1, $4) 
 /* upstream parse.y:3940: arg: asgn_arg_rhs */
 arg: asgn_arg_rhs { $$ = $1 };
 /* upstream parse.y:3061: op_asgn_arg_rhs: var_lhs "operator-assignment" lex_ctxt arg_rhs */
-op_asgn_arg_rhs: var_lhs tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = @builder.unsupported(237) };
+op_asgn_arg_rhs: var_lhs tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3066: op_asgn_arg_rhs: primary_value '[' opt_call_args rbracket "operator-assignment" lex_ctxt arg_rhs */
-op_asgn_arg_rhs: primary_value '[' opt_call_args rbracket tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = @builder.unsupported(238) };
+op_asgn_arg_rhs: primary_value '[' opt_call_args rbracket tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3071: op_asgn_arg_rhs: primary_value call_op "local variable or method" "operator-assignment" lex_ctxt arg_rhs */
-op_asgn_arg_rhs: primary_value call_op tIDENTIFIER tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = @builder.unsupported(239) };
+op_asgn_arg_rhs: primary_value call_op tIDENTIFIER tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3076: op_asgn_arg_rhs: primary_value call_op "constant" "operator-assignment" lex_ctxt arg_rhs */
-op_asgn_arg_rhs: primary_value call_op tCONSTANT tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = @builder.unsupported(240) };
+op_asgn_arg_rhs: primary_value call_op tCONSTANT tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3081: op_asgn_arg_rhs: primary_value "::" "local variable or method" "operator-assignment" lex_ctxt arg_rhs */
-op_asgn_arg_rhs: primary_value tCOLON2 tIDENTIFIER tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = @builder.unsupported(241) };
+op_asgn_arg_rhs: primary_value tCOLON2 tIDENTIFIER tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3086: op_asgn_arg_rhs: primary_value "::" "constant" "operator-assignment" lex_ctxt arg_rhs */
-op_asgn_arg_rhs: primary_value tCOLON2 tCONSTANT tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = @builder.unsupported(242) };
+op_asgn_arg_rhs: primary_value tCOLON2 tCONSTANT tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3092: op_asgn_arg_rhs: ":: at EXPR_BEG" "constant" "operator-assignment" lex_ctxt arg_rhs */
-op_asgn_arg_rhs: tCOLON3 tCONSTANT tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = @builder.unsupported(243) };
+op_asgn_arg_rhs: tCOLON3 tCONSTANT tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = nil };
 /* upstream parse.y:3098: op_asgn_arg_rhs: backref "operator-assignment" lex_ctxt arg_rhs */
-op_asgn_arg_rhs: backref tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = @builder.unsupported(244) };
+op_asgn_arg_rhs: backref tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3941: arg: op_asgn_arg_rhs */
 arg: op_asgn_arg_rhs { $$ = $1 };
 /* upstream parse.y:3120: range_expr_arg: arg ".." arg */
@@ -742,9 +742,9 @@ arg: arg tOROP arg %prec tOROP { $$ = @builder.binary(:"||", $1, $3) };
 /* upstream parse.y:4065: arg: "'defined?'" option_'\n' begin_defined arg */
 arg: keyword_defined option_newline begin_defined arg %prec keyword_defined { $$ = @builder.call(:defined, [$4]) };
 /* upstream parse.y:2966: def_endless_method_endless_arg: defn_head f_opt_paren_args '=' endless_arg */
-def_endless_method_endless_arg: defn_head f_opt_paren_args '=' endless_arg %prec '=' { $$ = @builder.unsupported(279) };
+def_endless_method_endless_arg: defn_head f_opt_paren_args '=' endless_arg %prec '=' { $$ = $1 };
 /* upstream parse.y:2977: def_endless_method_endless_arg: defs_head f_opt_paren_args '=' endless_arg */
-def_endless_method_endless_arg: defs_head f_opt_paren_args '=' endless_arg %prec '=' { $$ = @builder.unsupported(280) };
+def_endless_method_endless_arg: defs_head f_opt_paren_args '=' endless_arg %prec '=' { $$ = $1 };
 /* upstream parse.y:4071: arg: def_endless_method_endless_arg */
 arg: def_endless_method_endless_arg { $$ = $1 };
 /* upstream parse.y:4072: arg: ternary */
@@ -810,7 +810,7 @@ opt_call_args: call_args { $$ = $1 };
 /* upstream parse.y:4205: opt_call_args: args ',' */
 opt_call_args: args ',' %prec ',' { $$ = $1 };
 /* upstream parse.y:4207: opt_call_args: args ',' assocs ',' */
-opt_call_args: args ',' assocs ',' %prec ',' { $$ = @builder.unsupported(313) };
+opt_call_args: args ',' assocs ',' %prec ',' { $$ = $1 };
 /* upstream parse.y:4212: opt_call_args: assocs ',' */
 opt_call_args: assocs ',' %prec ',' { $$ = $1 };
 /* upstream parse.y:3161: value_expr_command: command */
@@ -896,7 +896,7 @@ primary: tLPAREN compstmt_stmts ')' %prec ')' { $$ = @builder.parentheses($2, 35
 /* upstream parse.y:4417: primary: primary_value "::" "constant" */
 primary: primary_value tCOLON2 tCONSTANT %prec tCONSTANT { $$ = @builder.variable(:constant, $3) };
 /* upstream parse.y:4422: primary: ":: at EXPR_BEG" "constant" */
-primary: tCOLON3 tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(356) };
+primary: tCOLON3 tCONSTANT %prec tCONSTANT { $$ = $2 };
 /* upstream parse.y:4427: primary: "[" aref_args ']' */
 primary: tLBRACK aref_args ']' %prec ']' { $$ = @builder.array($2) };
 /* upstream parse.y:4432: primary: "{" assoc_list '}' */
@@ -916,11 +916,11 @@ primary: keyword_not '(' expr rparen %prec '(' { $$ = @builder.unary(:"!", $3) }
 /* upstream parse.y:4470: primary: "'not'" '(' rparen */
 primary: keyword_not '(' rparen %prec '(' { $$ = @builder.reserved_word("not") };
 /* upstream parse.y:4475: primary: fcall brace_block */
-primary: fcall brace_block { $$ = @builder.unsupported(366) };
+primary: fcall brace_block { $$ = $1 };
 /* upstream parse.y:4479: primary: method_call */
 primary: method_call { $$ = $1 };
 /* upstream parse.y:4481: primary: method_call brace_block */
-primary: method_call brace_block { $$ = @builder.unsupported(368) };
+primary: method_call brace_block { $$ = $1 };
 /* upstream parse.y:4486: primary: lambda */
 primary: lambda { $$ = $1 };
 /* upstream parse.y:4491: primary: k_if expr_value then compstmt_stmts if_tail k_end */
@@ -1074,7 +1074,7 @@ midrule_25: %empty { $$ = nil };
 /* upstream parse.y:4990: f_eq: $@25 '=' */
 f_eq: midrule_25 '=' %prec '=' { $$ = @builder.unsupported(444) };
 /* upstream parse.y:3020: f_kw_primary_value: f_label primary_value */
-f_kw_primary_value: f_label primary_value { $$ = @builder.unsupported(445) };
+f_kw_primary_value: f_label primary_value { $$ = $1 };
 /* upstream parse.y:3026: f_kw_primary_value: f_label */
 f_kw_primary_value: f_label { $$ = $1 };
 /* upstream parse.y:3035: f_kwarg_primary_value: f_kw_primary_value */
