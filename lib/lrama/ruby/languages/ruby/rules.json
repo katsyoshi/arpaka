@@ -975,7 +975,7 @@
     "id": 163,
     "rule": "undef_list: undef_list ',' $@12 fitem",
     "line": 3887,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 164,

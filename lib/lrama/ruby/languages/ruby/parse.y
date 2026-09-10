@@ -510,7 +510,7 @@ undef_list: fitem { $$ = $1 };
 /* upstream parse.y:3886: $@12: %empty */
 midrule_12: %empty { $$ = nil };
 /* upstream parse.y:3887: undef_list: undef_list ',' $@12 fitem */
-undef_list: undef_list ',' midrule_12 fitem %prec ',' { $$ = @builder.unsupported(163) };
+undef_list: undef_list ',' midrule_12 fitem %prec ',' { $$ = ($1 + [$4]).freeze };
 /* upstream parse.y:3894: op: '|' */
 op: '|' %prec '|' { $$ = @builder.operator("|") };
 /* upstream parse.y:3895: op: '^' */
