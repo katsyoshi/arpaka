@@ -717,7 +717,7 @@
     "id": 120,
     "rule": "mlhs_basic: mlhs_head \"*\" mlhs_node ',' mlhs_items_mlhs_item",
     "line": 3702,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 121,
