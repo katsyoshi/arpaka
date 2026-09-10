@@ -384,7 +384,7 @@ fcall: tFID %prec tFID { $$ = $1 };
 /* upstream parse.y:3596: command: fcall command_args */
 command: fcall command_args %prec tLOWEST { $$ = @builder.call($1, $2 || []) };
 /* upstream parse.y:3603: command: fcall command_args cmd_brace_block */
-command: fcall command_args cmd_brace_block { $$ = @builder.unsupported(100) };
+command: fcall command_args cmd_brace_block { $$ = $1 };
 /* upstream parse.y:3612: command: primary_value call_op operation2 command_args */
 command: primary_value call_op operation2 command_args %prec tLOWEST { $$ = @builder.unsupported(101) };
 /* upstream parse.y:3617: command: primary_value call_op operation2 command_args cmd_brace_block */

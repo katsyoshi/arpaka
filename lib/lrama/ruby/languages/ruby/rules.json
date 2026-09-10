@@ -597,7 +597,7 @@
     "id": 100,
     "rule": "command: fcall command_args cmd_brace_block",
     "line": 3603,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 101,
