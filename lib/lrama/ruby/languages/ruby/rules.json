@@ -5037,25 +5037,25 @@
     "id": 840,
     "rule": "call_op: '.'",
     "line": 6687,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 841,
     "rule": "call_op: \"&.\"",
     "line": 6688,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 842,
     "rule": "call_op2: call_op",
     "line": 6691,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 843,
     "rule": "call_op2: \"::\"",
     "line": 6692,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 844,

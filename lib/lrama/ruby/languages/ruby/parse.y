@@ -1864,13 +1864,13 @@ dot_or_colon: '.' %prec '.' { $$ = @builder.operator(".") };
 /* upstream parse.y:6684: dot_or_colon: "::" */
 dot_or_colon: tCOLON2 %prec tCOLON2 { $$ = @builder.operator("::") };
 /* upstream parse.y:6687: call_op: '.' */
-call_op: '.' %prec '.' { $$ = @builder.unsupported(840) };
+call_op: '.' %prec '.' { $$ = @builder.operator(".") };
 /* upstream parse.y:6688: call_op: "&." */
-call_op: tANDDOT %prec tANDDOT { $$ = @builder.unsupported(841) };
+call_op: tANDDOT %prec tANDDOT { $$ = @builder.operator("&.") };
 /* upstream parse.y:6691: call_op2: call_op */
-call_op2: call_op { $$ = @builder.unsupported(842) };
+call_op2: call_op { $$ = $1 };
 /* upstream parse.y:6692: call_op2: "::" */
-call_op2: tCOLON2 %prec tCOLON2 { $$ = @builder.unsupported(843) };
+call_op2: tCOLON2 %prec tCOLON2 { $$ = @builder.operator("::") };
 /* upstream parse.y:6695: rparen: option_'\n' ')' */
 rparen: option_newline ')' %prec ')' { $$ = nil };
 /* upstream parse.y:6698: rbracket: option_'\n' ']' */
