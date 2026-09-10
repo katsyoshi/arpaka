@@ -4,7 +4,7 @@ require "strscan"
 
 module Lrama
   module Ruby
-    # A lexer for the supported Ruby action dialect, not a Ruby syntax checker.
+    # A Ruby source lexer used for action boundary detection and references.
     # All positions are bytes in the original source; literals are never decoded.
     class ActionScanner
       Reference = Data.define(:name, :number, :first_column, :last_column, :short_interpolation)
@@ -112,15 +112,10 @@ module Lrama
               :begin
             elsif END_WORDS.include?(word)
               :end
-            elsif ["def", "alias", "undef"].include?(word)
-              fail_at("#{word} is not supported in Ruby actions", offset)
             else
               :bare
             end
           elsif char == "/" || char == "%" || @scanner.check(/<</)
-            if state == :bare && spaced
-              fail_at("Ambiguous #{char} after a bare name; use call(%r{...}), (value) / 2, or assign the heredoc first", offset)
-            end
             if state == :method
               @scanner.scan(/(?:<<|\/|%)/)
               state = :bare

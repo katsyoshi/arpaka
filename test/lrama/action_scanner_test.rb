@@ -81,10 +81,15 @@ class ActionScannerTest < Test::Unit::TestCase
     end
   end
 
-  test "bare command ambiguity is rejected rather than guessed" do
-    ["call /}/", "value / 2", "value % 2", "value << 2", "puts <<TEXT\nhello\nTEXT\n"].each do |source|
-      error = assert_raise(Scanner::Error, source) { scan(source) }
-      assert_include(error.message, "Ambiguous")
+  test "ordinary Ruby declarations and operators are supported" do
+    ["value / 2", "value % 2", "value << 2", "def value; end", "alias other value", "undef value"].each do |source|
+      assert_nothing_raised(source) { scan(source) }
+    end
+  end
+
+  test "the lexer can scan its own Ruby source" do
+    [__FILE__, File.expand_path("../../lib/lrama/ruby/action_scanner.rb", __dir__)].each do |path|
+      assert_nothing_raised(path) { scan(File.binread(path)) }
     end
   end
 
@@ -140,7 +145,7 @@ class ActionScannerTest < Test::Unit::TestCase
 
   test "unclosed constructs and mismatched brackets report source positions" do
     ["'text", '"text', '%q{text', '/[abc/', '"#{ $1', "([)]", "(1", "$$ = <<X\nno end\n",
-     "=begin\nno end\n", "?\\", "%Q", "def foo; end", "__END__"].each do |source|
+      "=begin\nno end\n", "?\\", "%Q", "__END__"].each do |source|
       error = assert_raise(Scanner::Error, source) { scan(source) }
       assert_include(error.message, "(grammar):")
     end
