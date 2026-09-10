@@ -3399,7 +3399,7 @@
     "id": 567,
     "rule": "p_expr_basic: \"{\" rbrace",
     "line": 5550,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 568,

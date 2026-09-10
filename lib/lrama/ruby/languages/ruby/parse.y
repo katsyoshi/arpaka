@@ -1318,7 +1318,7 @@ midrule_33: %empty { $$ = nil };
 /* upstream parse.y:5543: p_expr_basic: "{" p_pktbl lex_ctxt $@33 p_kwargs rbrace */
 p_expr_basic: tLBRACE p_pktbl lex_ctxt midrule_33 p_kwargs rbrace %prec tLBRACE { $$ = @builder.unsupported(566) };
 /* upstream parse.y:5550: p_expr_basic: "{" rbrace */
-p_expr_basic: tLBRACE rbrace %prec tLBRACE { $$ = @builder.unsupported(567) };
+p_expr_basic: tLBRACE rbrace %prec tLBRACE { $$ = nil };
 /* upstream parse.y:5556: p_expr_basic: "(" p_pktbl p_expr rparen */
 p_expr_basic: tLPAREN p_pktbl p_expr rparen %prec tLPAREN { $$ = @builder.unsupported(568) };
 /* upstream parse.y:5564: p_args: p_expr */
