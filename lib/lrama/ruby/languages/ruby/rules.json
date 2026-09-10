@@ -3447,7 +3447,7 @@
     "id": 575,
     "rule": "p_args_head: p_arg ','",
     "line": 5592,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 576,

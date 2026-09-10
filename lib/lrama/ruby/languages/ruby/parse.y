@@ -1334,7 +1334,7 @@ p_args: p_args_head p_rest ',' p_args_post %prec ',' { $$ = @builder.unsupported
 /* upstream parse.y:5589: p_args: p_args_tail */
 p_args: p_args_tail { $$ = $1 };
 /* upstream parse.y:5592: p_args_head: p_arg ',' */
-p_args_head: p_arg ',' %prec ',' { $$ = @builder.unsupported(575) };
+p_args_head: p_arg ',' %prec ',' { $$ = $1 };
 /* upstream parse.y:5594: p_args_head: p_args_head p_arg ',' */
 p_args_head: p_args_head p_arg ',' %prec ',' { $$ = @builder.unsupported(576) };
 /* upstream parse.y:5601: p_args_tail: p_rest */
