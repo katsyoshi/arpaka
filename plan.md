@@ -1,26 +1,25 @@
-# `lrama-ruby` に言語別の AST 生成を統合する
+# `arpaka` にRuby frontendを統合する
 
 ## 目的と公開 API
 
 汎用の Ruby パーサー生成基盤と、対象言語ごとの文法・意味アクション・AST を、この gem 内で提供する。最初に既存の Ruby 用試作を統合する。
 
 ```ruby
-require "lrama/ruby"
+require "arpaka"
 
-ast = Lrama::Ruby.parse(
+ast = Arpaka.parse(
   [[:tIDENTIFIER, :a], ["=", nil], [:tINTEGER, 1]],
-  language: :ruby
 )
 ```
 
-- `language:` は必須。初期版は `:ruby` のみ対応し、それ以外は `ArgumentError`。
+- frontend APIはRuby専用のため、`language:` の指定は不要。
 - `generate`／`compile` は引き続き任意の文法を扱う汎用 API として維持する。
 - 入力はトークン列。lexer、C 用アクション、新しい Ruby 構文への対応は今回追加しない。
 - `RubyVM` の AST 機能による代替処理は設けない。
 
 ## 統合と読みやすさ
 
-- `~/Program/Ruby/ruby-frontend` の試作をこのリポジトリに取り込み、言語固有コードは `Lrama::Ruby::Languages::Ruby` 以下へ配置する。既存の別ディレクトリは削除しない。
+- `~/Program/Ruby/ruby-frontend` の試作をこのリポジトリに取り込み、言語固有コードは `Arpaka` として公開する。既存の別ディレクトリは削除しない。
 - AST は同名前空間の `AST` に置き、既存の `Program`、`Literal`、`Binary`、`Unary`、`LocalRead`、`LocalWrite`、`BareCall` を維持する。将来の C 用 AST に同じ形式を強制しない。
 - 対応範囲は既存の数値・nil/真偽値・四則演算・単項演算・括弧・単純代入・文の並び。代入前の名前は `BareCall`、代入後は `LocalRead` とする。
 - 初回の `parse` で同梱文法を `compile` し、生成クラスをプロセス内でキャッシュする。初期化は排他制御し、失敗時はキャッシュを残さない。呼び出しごとにパーサーとビルダーを新規作成する。
@@ -34,7 +33,7 @@ ast = Lrama::Ruby.parse(
 - 試作と同様、Lrama で展開した全文法を保持する。規則ごとの移植状況と元の位置を記録し、未対応規則も明示的なアクションを持たせる。
 - 文法変換とアクション定義を管理元にし、巨大な全置換パッチをビルド入力にする方式は整理する。配布用の Ruby アクション付き文法と軽量な規則メタデータを再生成可能な成果物として保存する。
 - gem には実行用コード・文法・必要なメタデータとライセンスを含める。上流の全文ファイル、開発ツール、C アクション全文の調査資料は開発用として配布対象から除外する。
-- `Lrama::Ruby::Languages::Ruby::ParseError` は token/state、`UnsupportedSyntax` は元の規則名と上流位置を公開する。どちらも既存の `Lrama::Ruby::Error` を継承する。
+- `Arpaka::ParseError` は token/state、`UnsupportedSyntax` は元の規則名と上流位置を公開する。どちらも既存の `Lrama::Ruby::Error` を継承する。
 - 未対応構文を省略した AST は返さない。既存のエラー回復なしの動作と、予約 error トークンの拒否を維持する。
 - README・AGENTS.md・RBS を新しい位置づけと API に更新する。`DESIGN.md` の別プロジェクト前提も修正するが、引き続きコミット対象外とする。
 

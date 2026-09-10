@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class Lrama::CalculatorAstTest < Test::Unit::TestCase
+class Arpaka::CalculatorAstTest < Test::Unit::TestCase
   GRAMMAR = File.read(File.expand_path("../../examples/calculator_ast.y", __dir__))
 
   def setup

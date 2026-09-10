@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in lrama-ruby.gemspec
+# Specify your gem's dependencies in arpaka.gemspec
 gemspec
 
 gem "irb"
