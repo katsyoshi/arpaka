@@ -826,7 +826,7 @@ call_args: assocs opt_block_arg { $$ = @builder.unsupported(319) };
 /* upstream parse.y:4240: call_args: args ',' assocs opt_block_arg */
 call_args: args ',' assocs opt_block_arg %prec ',' { $$ = @builder.unsupported(320) };
 /* upstream parse.y:4245: call_args: block_arg */
-call_args: block_arg { $$ = @builder.unsupported(321) };
+call_args: block_arg { $$ = $1 };
 /* upstream parse.y:4249: $@13: %empty */
 midrule_13: %empty { $$ = nil };
 /* upstream parse.y:4267: command_args: $@13 call_args */
@@ -834,7 +834,7 @@ command_args: midrule_13 call_args { $$ = $2 };
 /* upstream parse.y:4288: block_arg: "&" arg_value */
 block_arg: tAMPER arg_value %prec tAMPER { $$ = @builder.unsupported(324) };
 /* upstream parse.y:4293: block_arg: "&" */
-block_arg: tAMPER %prec tAMPER { $$ = @builder.unsupported(325) };
+block_arg: tAMPER %prec tAMPER { $$ = nil };
 /* upstream parse.y:4301: opt_block_arg: ',' block_arg */
 opt_block_arg: ',' block_arg %prec ',' { $$ = @builder.unsupported(326) };
 /* upstream parse.y:4306: opt_block_arg: none */
@@ -842,7 +842,7 @@ opt_block_arg: none { $$ = nil };
 /* upstream parse.y:4314: args: arg_value */
 args: arg_value { $$ = [$1].freeze };
 /* upstream parse.y:4319: args: arg_splat */
-args: arg_splat { $$ = @builder.unsupported(329) };
+args: arg_splat { $$ = $1 };
 /* upstream parse.y:4324: args: args ',' arg_value */
 args: args ',' arg_value %prec ',' { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:4329: args: args ',' arg_splat */
@@ -850,9 +850,9 @@ args: args ',' arg_splat %prec ',' { $$ = @builder.unsupported(331) };
 /* upstream parse.y:4337: arg_splat: "*" arg_value */
 arg_splat: tSTAR arg_value %prec tSTAR { $$ = @builder.unsupported(332) };
 /* upstream parse.y:4342: arg_splat: "*" */
-arg_splat: tSTAR %prec tSTAR { $$ = @builder.unsupported(333) };
+arg_splat: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:4350: mrhs_arg: mrhs */
-mrhs_arg: mrhs { $$ = @builder.unsupported(334) };
+mrhs_arg: mrhs { $$ = $1 };
 /* upstream parse.y:4351: mrhs_arg: arg_value */
 mrhs_arg: arg_value { $$ = @builder.unsupported(335) };
 /* upstream parse.y:4356: mrhs: args ',' arg_value */

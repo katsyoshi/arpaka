@@ -1923,7 +1923,7 @@
     "id": 321,
     "rule": "call_args: block_arg",
     "line": 4245,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 322,
@@ -1947,7 +1947,7 @@
     "id": 325,
     "rule": "block_arg: \"&\"",
     "line": 4293,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 326,
@@ -1971,7 +1971,7 @@
     "id": 329,
     "rule": "args: arg_splat",
     "line": 4319,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 330,
@@ -1995,13 +1995,13 @@
     "id": 333,
     "rule": "arg_splat: \"*\"",
     "line": 4342,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 334,
     "rule": "mrhs_arg: mrhs",
     "line": 4350,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 335,
