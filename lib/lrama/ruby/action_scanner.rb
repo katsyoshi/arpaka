@@ -142,6 +142,9 @@ module Lrama
             state = :end
           elsif @scanner.scan(/&\.|::|\.(?!\.)/)
             state = :method
+          elsif char == ":" && state == :begin && @scanner.check(/:\s/)
+            @scanner.getch
+            state = :begin
           elsif char == ":" && state == :begin
             @scanner.getch
             if @scanner.check(/['"]/)
