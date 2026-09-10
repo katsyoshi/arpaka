@@ -1348,43 +1348,43 @@ p_rest: tSTAR tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(580) };
 /* upstream parse.y:5627: p_rest: "*" */
 p_rest: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:5633: p_args_post: p_arg */
-p_args_post: p_arg { $$ = @builder.unsupported(582) };
+p_args_post: p_arg { $$ = $1 };
 /* upstream parse.y:5635: p_args_post: p_args_post ',' p_arg */
 p_args_post: p_args_post ',' p_arg %prec ',' { $$ = @builder.unsupported(583) };
 /* upstream parse.y:5642: p_arg: p_expr */
-p_arg: p_expr { $$ = @builder.unsupported(584) };
+p_arg: p_expr { $$ = $1 };
 /* upstream parse.y:5649: p_kwargs: p_kwarg ',' p_any_kwrest */
 p_kwargs: p_kwarg ',' p_any_kwrest %prec ',' { $$ = @builder.unsupported(585) };
 /* upstream parse.y:5654: p_kwargs: p_kwarg */
-p_kwargs: p_kwarg { $$ = @builder.unsupported(586) };
+p_kwargs: p_kwarg { $$ = $1 };
 /* upstream parse.y:5659: p_kwargs: p_kwarg ',' */
 p_kwargs: p_kwarg ',' %prec ',' { $$ = @builder.unsupported(587) };
 /* upstream parse.y:5664: p_kwargs: p_any_kwrest */
-p_kwargs: p_any_kwrest { $$ = @builder.unsupported(588) };
+p_kwargs: p_any_kwrest { $$ = $1 };
 /* upstream parse.y:5670: p_kwarg: p_kw */
-p_kwarg: p_kw { $$ = @builder.unsupported(589) };
+p_kwarg: p_kw { $$ = $1 };
 /* upstream parse.y:5673: p_kwarg: p_kwarg ',' p_kw */
 p_kwarg: p_kwarg ',' p_kw %prec ',' { $$ = @builder.unsupported(590) };
 /* upstream parse.y:5680: p_kw: p_kw_label p_expr */
 p_kw: p_kw_label p_expr { $$ = @builder.unsupported(591) };
 /* upstream parse.y:5686: p_kw: p_kw_label */
-p_kw: p_kw_label { $$ = @builder.unsupported(592) };
+p_kw: p_kw_label { $$ = $1 };
 /* upstream parse.y:5697: p_kw_label: "label" */
-p_kw_label: tLABEL %prec tLABEL { $$ = @builder.unsupported(593) };
+p_kw_label: tLABEL %prec tLABEL { $$ = $1 };
 /* upstream parse.y:5699: p_kw_label: "string literal" string_contents tLABEL_END */
 p_kw_label: tSTRING_BEG string_contents tLABEL_END %prec tLABEL_END { $$ = @builder.unsupported(594) };
 /* upstream parse.y:5714: p_kwrest: kwrest_mark "local variable or method" */
 p_kwrest: kwrest_mark tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(595) };
 /* upstream parse.y:5719: p_kwrest: kwrest_mark */
-p_kwrest: kwrest_mark { $$ = @builder.unsupported(596) };
+p_kwrest: kwrest_mark { $$ = nil };
 /* upstream parse.y:5726: p_kwnorest: kwrest_mark "'nil'" */
 p_kwnorest: kwrest_mark keyword_nil %prec keyword_nil { $$ = @builder.unsupported(597) };
 /* upstream parse.y:5731: p_any_kwrest: p_kwrest */
-p_any_kwrest: p_kwrest { $$ = @builder.unsupported(598) };
+p_any_kwrest: p_kwrest { $$ = $1 };
 /* upstream parse.y:5733: p_any_kwrest: p_kwnorest */
-p_any_kwrest: p_kwnorest { $$ = @builder.unsupported(599) };
+p_any_kwrest: p_kwnorest { $$ = $1 };
 /* upstream parse.y:5739: p_value: p_primitive */
-p_value: p_primitive { $$ = @builder.unsupported(600) };
+p_value: p_primitive { $$ = $1 };
 /* upstream parse.y:3120: range_expr_p_primitive: p_primitive ".." p_primitive */
 range_expr_p_primitive: p_primitive tDOT2 p_primitive %prec tDOT2 { $$ = @builder.unsupported(601) };
 /* upstream parse.y:3127: range_expr_p_primitive: p_primitive "..." p_primitive */
@@ -1398,13 +1398,13 @@ range_expr_p_primitive: tBDOT2 p_primitive %prec tBDOT2 { $$ = @builder.unsuppor
 /* upstream parse.y:3152: range_expr_p_primitive: "(..." p_primitive */
 range_expr_p_primitive: tBDOT3 p_primitive %prec tBDOT3 { $$ = @builder.unsupported(606) };
 /* upstream parse.y:5740: p_value: range_expr_p_primitive */
-p_value: range_expr_p_primitive { $$ = @builder.unsupported(607) };
+p_value: range_expr_p_primitive { $$ = $1 };
 /* upstream parse.y:5741: p_value: p_var_ref */
-p_value: p_var_ref { $$ = @builder.unsupported(608) };
+p_value: p_var_ref { $$ = $1 };
 /* upstream parse.y:5742: p_value: p_expr_ref */
-p_value: p_expr_ref { $$ = @builder.unsupported(609) };
+p_value: p_expr_ref { $$ = $1 };
 /* upstream parse.y:5743: p_value: p_const */
-p_value: p_const { $$ = @builder.unsupported(610) };
+p_value: p_const { $$ = $1 };
 /* upstream parse.y:5746: p_primitive: literal */
 p_primitive: literal { $$ = $1 };
 /* upstream parse.y:5746: p_primitive: strings */

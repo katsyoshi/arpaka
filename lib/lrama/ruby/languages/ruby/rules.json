@@ -3489,7 +3489,7 @@
     "id": 582,
     "rule": "p_args_post: p_arg",
     "line": 5633,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 583,
@@ -3501,7 +3501,7 @@
     "id": 584,
     "rule": "p_arg: p_expr",
     "line": 5642,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 585,
@@ -3513,7 +3513,7 @@
     "id": 586,
     "rule": "p_kwargs: p_kwarg",
     "line": 5654,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 587,
@@ -3525,13 +3525,13 @@
     "id": 588,
     "rule": "p_kwargs: p_any_kwrest",
     "line": 5664,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 589,
     "rule": "p_kwarg: p_kw",
     "line": 5670,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 590,
@@ -3549,13 +3549,13 @@
     "id": 592,
     "rule": "p_kw: p_kw_label",
     "line": 5686,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 593,
     "rule": "p_kw_label: \"label\"",
     "line": 5697,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 594,
@@ -3573,7 +3573,7 @@
     "id": 596,
     "rule": "p_kwrest: kwrest_mark",
     "line": 5719,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 597,
@@ -3585,19 +3585,19 @@
     "id": 598,
     "rule": "p_any_kwrest: p_kwrest",
     "line": 5731,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 599,
     "rule": "p_any_kwrest: p_kwnorest",
     "line": 5733,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 600,
     "rule": "p_value: p_primitive",
     "line": 5739,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 601,
@@ -3639,25 +3639,25 @@
     "id": 607,
     "rule": "p_value: range_expr_p_primitive",
     "line": 5740,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 608,
     "rule": "p_value: p_var_ref",
     "line": 5741,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 609,
     "rule": "p_value: p_expr_ref",
     "line": 5742,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 610,
     "rule": "p_value: p_const",
     "line": 5743,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 611,
