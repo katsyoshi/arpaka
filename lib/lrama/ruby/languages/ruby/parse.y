@@ -418,7 +418,7 @@ mlhs_basic: mlhs_head { $$ = $1 };
 /* upstream parse.y:3692: mlhs_basic: mlhs_head mlhs_item */
 mlhs_basic: mlhs_head mlhs_item { $$ = ($1 + [$2]).freeze };
 /* upstream parse.y:3697: mlhs_basic: mlhs_head "*" mlhs_node */
-mlhs_basic: mlhs_head tSTAR mlhs_node %prec tSTAR { $$ = @builder.unsupported(117) };
+mlhs_basic: mlhs_head tSTAR mlhs_node %prec tSTAR { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:3048: mlhs_items_mlhs_item: mlhs_item */
 mlhs_items_mlhs_item: mlhs_item { $$ = $1 };
 /* upstream parse.y:3053: mlhs_items_mlhs_item: mlhs_items_mlhs_item ',' mlhs_item */

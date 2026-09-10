@@ -699,7 +699,7 @@
     "id": 117,
     "rule": "mlhs_basic: mlhs_head \"*\" mlhs_node",
     "line": 3697,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 118,
