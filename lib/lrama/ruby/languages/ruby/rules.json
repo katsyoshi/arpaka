@@ -4269,7 +4269,7 @@
     "id": 712,
     "rule": "var_lhs: keyword_variable",
     "line": 6189,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 713,
@@ -4287,7 +4287,7 @@
     "id": 715,
     "rule": "$@39: %empty",
     "line": 6200,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 716,
@@ -4305,13 +4305,13 @@
     "id": 718,
     "rule": "f_opt_paren_args: f_paren_args",
     "line": 6212,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 719,
     "rule": "f_opt_paren_args: f_empty_arg",
     "line": 6214,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 720,
@@ -4353,13 +4353,13 @@
     "id": 726,
     "rule": "f_kw_arg_value: f_label",
     "line": 3026,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 727,
     "rule": "f_kwarg_arg_value: f_kw_arg_value",
     "line": 3035,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 728,
@@ -4377,7 +4377,7 @@
     "id": 730,
     "rule": "opt_f_block_arg_opt_comma: opt_comma",
     "line": 6255,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 731,
@@ -4401,19 +4401,19 @@
     "id": 734,
     "rule": "args_tail_basic_arg_value_opt_comma: f_block_arg",
     "line": 2949,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 735,
     "rule": "args_tail: args_tail_basic_arg_value_opt_comma",
     "line": 6255,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 736,
     "rule": "args_tail: args_forward",
     "line": 6257,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 737,
@@ -4437,19 +4437,19 @@
     "id": 740,
     "rule": "args_tail_basic_arg_value_none: f_block_arg",
     "line": 2949,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 741,
     "rule": "largs_tail: args_tail_basic_arg_value_none",
     "line": 6265,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 742,
     "rule": "largs_tail: args_forward",
     "line": 6267,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 743,
