@@ -3519,7 +3519,7 @@
     "id": 587,
     "rule": "p_kwargs: p_kwarg ','",
     "line": 5659,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 588,

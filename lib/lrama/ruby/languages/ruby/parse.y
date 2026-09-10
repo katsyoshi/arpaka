@@ -1358,7 +1358,7 @@ p_kwargs: p_kwarg ',' p_any_kwrest %prec ',' { $$ = @builder.unsupported(585) };
 /* upstream parse.y:5654: p_kwargs: p_kwarg */
 p_kwargs: p_kwarg { $$ = $1 };
 /* upstream parse.y:5659: p_kwargs: p_kwarg ',' */
-p_kwargs: p_kwarg ',' %prec ',' { $$ = @builder.unsupported(587) };
+p_kwargs: p_kwarg ',' %prec ',' { $$ = $1 };
 /* upstream parse.y:5664: p_kwargs: p_any_kwrest */
 p_kwargs: p_any_kwrest { $$ = $1 };
 /* upstream parse.y:5670: p_kwarg: p_kw */
