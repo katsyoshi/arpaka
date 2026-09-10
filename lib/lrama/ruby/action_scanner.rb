@@ -80,6 +80,10 @@ module Lrama
             end
             fail_at("Unterminated block comment", offset) unless found
             next
+          elsif terminator.nil? && (offset.zero? || @source.getbyte(offset - 1) == 10) &&
+            @scanner.check(/__END__(?:\s|\z)/)
+            @scanner.terminate
+            return
           elsif char == terminator && brackets.empty?
             fail_at("Close the action/interpolation after the heredoc body", offset) unless heredocs.empty?
             return

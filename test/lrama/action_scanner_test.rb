@@ -145,7 +145,7 @@ class ActionScannerTest < Test::Unit::TestCase
 
   test "unclosed constructs and mismatched brackets report source positions" do
     ["'text", '"text', '%q{text', '/[abc/', '"#{ $1', "([)]", "(1", "$$ = <<X\nno end\n",
-      "=begin\nno end\n", "?\\", "%Q", "__END__"].each do |source|
+      "=begin\nno end\n", "?\\", "%Q"].each do |source|
       error = assert_raise(Scanner::Error, source) { scan(source) }
       assert_include(error.message, "(grammar):")
     end
