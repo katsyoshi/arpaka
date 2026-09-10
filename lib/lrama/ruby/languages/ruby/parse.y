@@ -886,7 +886,7 @@ primary: tFID %prec tFID { $$ = @builder.reserved_word("method") };
 /* upstream parse.y:4392: $@14: %empty */
 midrule_14: %empty { $$ = nil };
 /* upstream parse.y:4397: primary: k_begin $@14 bodystmt k_end */
-primary: k_begin midrule_14 bodystmt k_end { $$ = @builder.unsupported(351) };
+primary: k_begin midrule_14 bodystmt k_end { $$ = @builder.body_nodes($3) };
 /* upstream parse.y:4404: $@15: %empty */
 midrule_15: %empty { $$ = nil };
 /* upstream parse.y:4405: primary: "( arg" compstmt_stmts $@15 ')' */
