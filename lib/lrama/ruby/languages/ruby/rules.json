@@ -291,43 +291,43 @@
     "id": 49,
     "rule": "op_asgn_command_rhs: var_lhs \"operator-assignment\" lex_ctxt command_rhs",
     "line": 3061,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 50,
     "rule": "op_asgn_command_rhs: primary_value '[' opt_call_args rbracket \"operator-assignment\" lex_ctxt command_rhs",
     "line": 3066,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 51,
     "rule": "op_asgn_command_rhs: primary_value call_op \"local variable or method\" \"operator-assignment\" lex_ctxt command_rhs",
     "line": 3071,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 52,
     "rule": "op_asgn_command_rhs: primary_value call_op \"constant\" \"operator-assignment\" lex_ctxt command_rhs",
     "line": 3076,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 53,
     "rule": "op_asgn_command_rhs: primary_value \"::\" \"local variable or method\" \"operator-assignment\" lex_ctxt command_rhs",
     "line": 3081,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 54,
     "rule": "op_asgn_command_rhs: primary_value \"::\" \"constant\" \"operator-assignment\" lex_ctxt command_rhs",
     "line": 3086,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 55,
     "rule": "op_asgn_command_rhs: \":: at EXPR_BEG\" \"constant\" \"operator-assignment\" lex_ctxt command_rhs",
     "line": 3092,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 56,

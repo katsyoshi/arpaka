@@ -282,19 +282,19 @@ asgn_command_rhs: lhs '=' lex_ctxt command_rhs %prec '=' { $$ = $1 };
 /* upstream parse.y:3433: command_asgn: asgn_command_rhs */
 command_asgn: asgn_command_rhs { $$ = $1 };
 /* upstream parse.y:3061: op_asgn_command_rhs: var_lhs "operator-assignment" lex_ctxt command_rhs */
-op_asgn_command_rhs: var_lhs tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = @builder.unsupported(49) };
+op_asgn_command_rhs: var_lhs tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3066: op_asgn_command_rhs: primary_value '[' opt_call_args rbracket "operator-assignment" lex_ctxt command_rhs */
-op_asgn_command_rhs: primary_value '[' opt_call_args rbracket tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = @builder.unsupported(50) };
+op_asgn_command_rhs: primary_value '[' opt_call_args rbracket tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3071: op_asgn_command_rhs: primary_value call_op "local variable or method" "operator-assignment" lex_ctxt command_rhs */
-op_asgn_command_rhs: primary_value call_op tIDENTIFIER tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = @builder.unsupported(51) };
+op_asgn_command_rhs: primary_value call_op tIDENTIFIER tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3076: op_asgn_command_rhs: primary_value call_op "constant" "operator-assignment" lex_ctxt command_rhs */
-op_asgn_command_rhs: primary_value call_op tCONSTANT tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = @builder.unsupported(52) };
+op_asgn_command_rhs: primary_value call_op tCONSTANT tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3081: op_asgn_command_rhs: primary_value "::" "local variable or method" "operator-assignment" lex_ctxt command_rhs */
-op_asgn_command_rhs: primary_value tCOLON2 tIDENTIFIER tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = @builder.unsupported(53) };
+op_asgn_command_rhs: primary_value tCOLON2 tIDENTIFIER tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3086: op_asgn_command_rhs: primary_value "::" "constant" "operator-assignment" lex_ctxt command_rhs */
-op_asgn_command_rhs: primary_value tCOLON2 tCONSTANT tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = @builder.unsupported(54) };
+op_asgn_command_rhs: primary_value tCOLON2 tCONSTANT tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3092: op_asgn_command_rhs: ":: at EXPR_BEG" "constant" "operator-assignment" lex_ctxt command_rhs */
-op_asgn_command_rhs: tCOLON3 tCONSTANT tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = @builder.unsupported(55) };
+op_asgn_command_rhs: tCOLON3 tCONSTANT tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = $2 };
 /* upstream parse.y:3098: op_asgn_command_rhs: backref "operator-assignment" lex_ctxt command_rhs */
 op_asgn_command_rhs: backref tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = @builder.unsupported(56) };
 /* upstream parse.y:3434: command_asgn: op_asgn_command_rhs */
