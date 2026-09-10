@@ -422,7 +422,7 @@ mlhs_basic: mlhs_head tSTAR mlhs_node %prec tSTAR { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:3048: mlhs_items_mlhs_item: mlhs_item */
 mlhs_items_mlhs_item: mlhs_item { $$ = $1 };
 /* upstream parse.y:3053: mlhs_items_mlhs_item: mlhs_items_mlhs_item ',' mlhs_item */
-mlhs_items_mlhs_item: mlhs_items_mlhs_item ',' mlhs_item %prec ',' { $$ = @builder.unsupported(119) };
+mlhs_items_mlhs_item: mlhs_items_mlhs_item ',' mlhs_item %prec ',' { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:3702: mlhs_basic: mlhs_head "*" mlhs_node ',' mlhs_items_mlhs_item */
 mlhs_basic: mlhs_head tSTAR mlhs_node ',' mlhs_items_mlhs_item %prec ',' { $$ = @builder.unsupported(120) };
 /* upstream parse.y:3707: mlhs_basic: mlhs_head "*" */

@@ -173,6 +173,7 @@ module RubyGrammarActions
     129 => ["ported", "[$1].freeze"],
     116 => ["ported", "($1 + [$2]).freeze"],
     117 => ["ported", "($1 + [$3]).freeze"],
+    119 => ["ported", "($1 + [$3]).freeze"],
     121 => ["pass_through", "$1"],
     123 => ["pass_through", "$2"],
     124 => ["pass_through", "$2"],
