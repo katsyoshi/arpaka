@@ -1378,7 +1378,7 @@ p_kwrest: kwrest_mark tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(
 /* upstream parse.y:5719: p_kwrest: kwrest_mark */
 p_kwrest: kwrest_mark { $$ = nil };
 /* upstream parse.y:5726: p_kwnorest: kwrest_mark "'nil'" */
-p_kwnorest: kwrest_mark keyword_nil %prec keyword_nil { $$ = @builder.unsupported(597) };
+p_kwnorest: kwrest_mark keyword_nil %prec keyword_nil { $$ = $1 };
 /* upstream parse.y:5731: p_any_kwrest: p_kwrest */
 p_any_kwrest: p_kwrest { $$ = $1 };
 /* upstream parse.y:5733: p_any_kwrest: p_kwnorest */

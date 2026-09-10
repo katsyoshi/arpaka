@@ -3579,7 +3579,7 @@
     "id": 597,
     "rule": "p_kwnorest: kwrest_mark \"'nil'\"",
     "line": 5726,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 598,
