@@ -4731,7 +4731,7 @@
     "id": 789,
     "rule": "f_bad_arg: \"global variable\"",
     "line": 6389,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 790,
