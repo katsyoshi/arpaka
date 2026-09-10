@@ -1881,7 +1881,7 @@
     "id": 314,
     "rule": "opt_call_args: assocs ','",
     "line": 4212,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 315,

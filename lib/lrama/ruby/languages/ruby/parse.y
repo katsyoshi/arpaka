@@ -812,7 +812,7 @@ opt_call_args: args ',' %prec ',' { $$ = $1 };
 /* upstream parse.y:4207: opt_call_args: args ',' assocs ',' */
 opt_call_args: args ',' assocs ',' %prec ',' { $$ = @builder.unsupported(313) };
 /* upstream parse.y:4212: opt_call_args: assocs ',' */
-opt_call_args: assocs ',' %prec ',' { $$ = @builder.unsupported(314) };
+opt_call_args: assocs ',' %prec ',' { $$ = $1 };
 /* upstream parse.y:3161: value_expr_command: command */
 value_expr_command: command { $$ = $1 };
 /* upstream parse.y:4219: call_args: value_expr_command */
