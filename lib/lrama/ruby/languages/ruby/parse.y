@@ -1806,7 +1806,7 @@ blkarg_mark: tAMPER %prec tAMPER { $$ = nil };
 /* upstream parse.y:6530: f_block_arg: blkarg_mark "local variable or method" */
 f_block_arg: blkarg_mark tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(810) };
 /* upstream parse.y:6536: f_block_arg: blkarg_mark "'nil'" */
-f_block_arg: blkarg_mark keyword_nil %prec keyword_nil { $$ = @builder.unsupported(811) };
+f_block_arg: blkarg_mark keyword_nil %prec keyword_nil { $$ = nil };
 /* upstream parse.y:6541: f_block_arg: blkarg_mark */
 f_block_arg: blkarg_mark { $$ = $1 };
 /* upstream parse.y:6548: option_',': %empty */
