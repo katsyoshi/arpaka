@@ -2493,7 +2493,7 @@
     "id": 416,
     "rule": "k_end: \"dummy end\"",
     "line": 4878,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 417,

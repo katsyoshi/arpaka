@@ -1016,7 +1016,7 @@ k_elsif: keyword_elsif %prec keyword_elsif { $$ = nil };
 /* upstream parse.y:4873: k_end: "'end'" */
 k_end: keyword_end %prec keyword_end { $$ = nil };
 /* upstream parse.y:4878: k_end: "dummy end" */
-k_end: tDUMNY_END %prec tDUMNY_END { $$ = @builder.unsupported(416) };
+k_end: tDUMNY_END %prec tDUMNY_END { $$ = nil };
 /* upstream parse.y:4884: k_return: "'return'" */
 k_return: keyword_return %prec keyword_return { $$ = nil };
 /* upstream parse.y:4891: k_yield: "'yield'" */
