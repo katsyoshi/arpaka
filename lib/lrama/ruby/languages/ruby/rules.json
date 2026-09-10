@@ -1485,25 +1485,25 @@
     "id": 248,
     "rule": "range_expr_arg: arg \"..\"",
     "line": 3134,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 249,
     "rule": "range_expr_arg: arg \"...\"",
     "line": 3140,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 250,
     "rule": "range_expr_arg: \"(..\" arg",
     "line": 3146,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 251,
     "rule": "range_expr_arg: \"(...\" arg",
     "line": 3152,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 252,
@@ -1545,13 +1545,13 @@
     "id": 258,
     "rule": "arg: arg \"**\" arg",
     "line": 3969,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 259,
     "rule": "arg: tUMINUS_NUM simple_numeric \"**\" arg",
     "line": 3974,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 260,

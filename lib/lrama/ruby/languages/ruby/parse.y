@@ -680,13 +680,13 @@ range_expr_arg: arg tDOT2 arg %prec tDOT2 { $$ = @builder.range(:"..", $1, $3) }
 /* upstream parse.y:3127: range_expr_arg: arg "..." arg */
 range_expr_arg: arg tDOT3 arg %prec tDOT3 { $$ = @builder.range(:"...", $1, $3) };
 /* upstream parse.y:3134: range_expr_arg: arg ".." */
-range_expr_arg: arg tDOT2 %prec tDOT2 { $$ = @builder.unsupported(248) };
+range_expr_arg: arg tDOT2 %prec tDOT2 { $$ = @builder.range(:"..", $1, nil) };
 /* upstream parse.y:3140: range_expr_arg: arg "..." */
-range_expr_arg: arg tDOT3 %prec tDOT3 { $$ = @builder.unsupported(249) };
+range_expr_arg: arg tDOT3 %prec tDOT3 { $$ = @builder.range(:"...", $1, nil) };
 /* upstream parse.y:3146: range_expr_arg: "(.." arg */
-range_expr_arg: tBDOT2 arg %prec tBDOT2 { $$ = @builder.unsupported(250) };
+range_expr_arg: tBDOT2 arg %prec tBDOT2 { $$ = @builder.range(:"..", nil, $2) };
 /* upstream parse.y:3152: range_expr_arg: "(..." arg */
-range_expr_arg: tBDOT3 arg %prec tBDOT3 { $$ = @builder.unsupported(251) };
+range_expr_arg: tBDOT3 arg %prec tBDOT3 { $$ = @builder.range(:"...", nil, $2) };
 /* upstream parse.y:3942: arg: range_expr_arg */
 arg: range_expr_arg { $$ = $1 };
 /* upstream parse.y:3944: arg: arg '+' arg */
@@ -700,9 +700,9 @@ arg: arg '/' arg %prec '/' { $$ = @builder.binary(:/, $1, $3) };
 /* upstream parse.y:3964: arg: arg '%' arg */
 arg: arg '%' arg %prec '%' { $$ = @builder.binary(:%, $1, $3) };
 /* upstream parse.y:3969: arg: arg "**" arg */
-arg: arg tPOW arg %prec tPOW { $$ = @builder.unsupported(258) };
+arg: arg tPOW arg %prec tPOW { $$ = @builder.binary(:"**", $1, $3) };
 /* upstream parse.y:3974: arg: tUMINUS_NUM simple_numeric "**" arg */
-arg: tUMINUS_NUM simple_numeric tPOW arg %prec tPOW { $$ = @builder.unsupported(259) };
+arg: tUMINUS_NUM simple_numeric tPOW arg %prec tPOW { $$ = @builder.binary(:"**", @builder.unary(:-@, $2), $4) };
 /* upstream parse.y:3979: arg: "unary+" arg */
 arg: tUPLUS arg %prec tUPLUS { $$ = @builder.unary(:+, $2) };
 /* upstream parse.y:3984: arg: "unary-" arg */
