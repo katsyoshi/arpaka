@@ -1842,7 +1842,7 @@ assoc: tLABEL %prec tLABEL { $$ = $1 };
 /* upstream parse.y:6651: assoc: "string literal" string_contents tLABEL_END arg_value */
 assoc: tSTRING_BEG string_contents tLABEL_END arg_value %prec tLABEL_END { $$ = @builder.unsupported(828) };
 /* upstream parse.y:6657: assoc: "**arg" arg_value */
-assoc: tDSTAR arg_value %prec tDSTAR { $$ = @builder.unsupported(829) };
+assoc: tDSTAR arg_value %prec tDSTAR { $$ = $2 };
 /* upstream parse.y:6662: assoc: "**arg" */
 assoc: tDSTAR %prec tDSTAR { $$ = nil };
 /* upstream parse.y:6674: operation2: "local variable or method" */
