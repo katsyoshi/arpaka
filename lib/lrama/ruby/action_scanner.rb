@@ -131,8 +131,10 @@ module Lrama
                 @scanner.scan(/[a-z]*/)
               elsif char == "%"
                 percent_literal(offset)
-              else
+              elsif @scanner.check(/<<[-~]?(?:['"`][^\r\n]+['"`]|[a-zA-Z_][a-zA-Z_0-9]*)/n)
                 heredocs << heredoc_start(offset)
+              else
+                @scanner.scan(/<</)
               end
               state = :end
             else
