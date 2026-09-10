@@ -5007,7 +5007,7 @@
     "id": 835,
     "rule": "operation3: \"local variable or method\"",
     "line": 6678,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 836,

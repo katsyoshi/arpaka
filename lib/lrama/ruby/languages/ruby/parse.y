@@ -1854,7 +1854,7 @@ operation2: tFID %prec tFID { $$ = $1 };
 /* upstream parse.y:6675: operation2: op */
 operation2: op { $$ = $1 };
 /* upstream parse.y:6678: operation3: "local variable or method" */
-operation3: tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(835) };
+operation3: tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:6679: operation3: "method" */
 operation3: tFID %prec tFID { $$ = $1 };
 /* upstream parse.y:6680: operation3: op */
