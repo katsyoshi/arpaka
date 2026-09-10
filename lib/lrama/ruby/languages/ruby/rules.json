@@ -273,7 +273,7 @@
     "id": 46,
     "rule": "stmt: error",
     "line": 3427,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 47,
@@ -507,7 +507,7 @@
     "id": 85,
     "rule": "expr_value: error",
     "line": 3553,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 86,

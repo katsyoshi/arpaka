@@ -276,7 +276,7 @@ stmt: mlhs '=' lex_ctxt mrhs_arg %prec '=' { $$ = $1 };
 /* upstream parse.y:3425: stmt: expr */
 stmt: expr { $$ = $1 };
 /* upstream parse.y:3427: stmt: error */
-stmt: YYerror %prec YYerror { $$ = @builder.unsupported(46) };
+stmt: YYerror %prec YYerror { $$ = nil };
 /* upstream parse.y:2926: asgn_command_rhs: lhs '=' lex_ctxt command_rhs */
 asgn_command_rhs: lhs '=' lex_ctxt command_rhs %prec '=' { $$ = $1 };
 /* upstream parse.y:3433: command_asgn: asgn_command_rhs */
@@ -354,7 +354,7 @@ value_expr_expr: expr { $$ = $1 };
 /* upstream parse.y:3551: expr_value: value_expr_expr */
 expr_value: value_expr_expr { $$ = $1 };
 /* upstream parse.y:3553: expr_value: error */
-expr_value: YYerror %prec YYerror { $$ = @builder.unsupported(85) };
+expr_value: YYerror %prec YYerror { $$ = nil };
 /* upstream parse.y:3558: $@10: %empty */
 midrule_10: %empty { $$ = nil };
 /* upstream parse.y:3558: $@11: %empty */
