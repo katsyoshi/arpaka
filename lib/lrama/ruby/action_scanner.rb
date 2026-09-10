@@ -27,9 +27,11 @@ module Lrama
         @filename, @line, @column = filename, line, column
         @references = []
         @interpolation_depth = 0
+        @strict_references = false
       end
 
       def scan(action: false)
+        @strict_references = action
         code(action ? "}" : nil)
         Result.new(@scanner.pos, @references.sort_by(&:first_column).freeze)
       end
@@ -145,7 +147,8 @@ module Lrama
             if @scanner.check(/['"]/)
               quote = @scanner.getch
               literal(quote, interpolate: quote != "'", offset: offset)
-            elsif !@scanner.scan(IDENTIFIER) && !@scanner.scan(/(?:\[\]=?|<=>|===|==|=~|!~|!=|<=|>=|<<|>>|\*\*|[+\-~]@?|[!*\/%&|^<>`])/)
+            elsif !@scanner.scan(/[@$]?[a-zA-Z_\x80-\xff][a-zA-Z_0-9\x80-\xff]*[!?]?/n) &&
+              !@scanner.scan(/(?:\[\]=?|<=>|===|==|=~|!~|!=|<=|>=|<<|>>|\*\*|[+\-~]@?|[!*\/%&|^<>`])/)
               fail_at("Unsupported symbol literal", offset)
             end
             state = :end
@@ -163,13 +166,25 @@ module Lrama
 
       def reference(short: false)
         offset = @scanner.pos
+        @global_variable_start = offset
         value = @scanner.scan(/\$(?:\$|[0-9]+|[a-zA-Z_][a-zA-Z0-9_]*)/)
-        if !value || value.match?(/\A\$0/) || @scanner.check(/[a-zA-Z_0-9\x80-\xff]/n)
+        unless value
+          return scan_global_variable unless @strict_references
+          fail_at("Unsupported semantic reference", offset)
+        end
+        if value.match?(/\A\$0/) || @scanner.check(/[a-zA-Z_0-9\x80-\xff]/n)
+          return scan_global_variable unless @strict_references
           fail_at("Unsupported semantic reference", offset)
         end
         number = value.match?(/\A\$[0-9]+\z/) ? value.delete_prefix("$").to_i : nil
         @references << Reference.new(number ? nil : value.delete_prefix("$"), number,
           offset, @scanner.pos, short)
+      end
+
+      def scan_global_variable
+        @scanner.pos = @global_variable_start || @scanner.pos
+        @scanner.scan(/\$(?:[<>]?|[!@&`'++~?=\/\\;,.:$-][a-zA-Z]?|[<>][^>\n]*>|[0-9]+|[a-zA-Z_][a-zA-Z0-9_]*)/)
+        fail_at("Unsupported global variable", @scanner.pos) if @scanner.pos == (@global_variable_start || @scanner.pos)
       end
 
       def interpolation

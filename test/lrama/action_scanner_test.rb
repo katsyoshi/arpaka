@@ -137,8 +137,8 @@ class ActionScannerTest < Test::Unit::TestCase
 
   test "unsupported references fail in code and interpolation only" do
     %w[$0 $01 $& $~ $? $! $-w $<int>1 $[name] $1name $:].each do |ref|
-      assert_raise(Scanner::Error, ref) { scan(ref) }
-      assert_raise(Scanner::Error, ref) { scan('"#{' + ref + '}"') }
+      assert_raise(Scanner::Error, ref) { scan(ref + " }", action: true) }
+      assert_raise(Scanner::Error, ref) { scan('"#{' + ref + '}" }', action: true) }
       assert_empty(scan("'#{ref}'").references)
     end
   end
@@ -150,7 +150,7 @@ class ActionScannerTest < Test::Unit::TestCase
       assert_include(error.message, "(grammar):")
     end
     error = assert_raise(Scanner::Error) do
-      Scanner.new("\"日本語\"\r\n$0", filename: "test.y", line: 10, column: 5).scan
+      Scanner.new("\"日本語\"\r\n$0 }", filename: "test.y", line: 10, column: 5).scan(action: true)
     end
     assert_include(error.message, "test.y:11:0:")
     assert_raise(Scanner::Error) { scan("$$ = 1", action: true) }
