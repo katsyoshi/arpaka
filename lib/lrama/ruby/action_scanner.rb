@@ -118,7 +118,10 @@ module Lrama
               :bare
             end
           elsif char == "/" || char == "%" || @scanner.check(/<</)
-            if state == :method
+            if char == "%" && @scanner.check(/%[qQwWiIrsx]?[!-~]/n)
+              percent_literal(offset)
+              state = :end
+            elsif state == :method
               @scanner.scan(/(?:<<|\/|%)/)
               state = :bare
             elsif state == :begin
