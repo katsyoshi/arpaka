@@ -1716,7 +1716,7 @@ f_args_list_args_tail_opt_comma: f_empty_arg { $$ = [] };
 /* upstream parse.y:6357: f_args: f_args-list_args_tail_opt_comma */
 f_args: f_args_list_args_tail_opt_comma { $$ = $1 };
 /* upstream parse.y:3107: opt_args_tail_largs_tail_none: ',' largs_tail */
-opt_args_tail_largs_tail_none: ',' largs_tail %prec ',' { $$ = @builder.unsupported(766) };
+opt_args_tail_largs_tail_none: ',' largs_tail %prec ',' { $$ = $2 };
 /* upstream parse.y:3112: opt_args_tail_largs_tail_none: none */
 opt_args_tail_largs_tail_none: none { $$ = nil };
 /* upstream parse.y:6277: args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg opt_args_tail_largs_tail_none */

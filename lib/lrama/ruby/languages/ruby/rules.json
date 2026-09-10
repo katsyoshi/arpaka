@@ -4593,7 +4593,7 @@
     "id": 766,
     "rule": "opt_args_tail_largs_tail_none: ',' largs_tail",
     "line": 3107,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 767,
