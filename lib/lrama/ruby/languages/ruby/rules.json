@@ -3231,7 +3231,7 @@
     "id": 539,
     "rule": "p_top_expr_body: p_expr ','",
     "line": 5395,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 540,

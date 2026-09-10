@@ -1262,7 +1262,7 @@ p_top_expr: p_top_expr_body modifier_unless expr_value %prec modifier_unless { $
 /* upstream parse.y:5393: p_top_expr_body: p_expr */
 p_top_expr_body: p_expr { $$ = $1 };
 /* upstream parse.y:5395: p_top_expr_body: p_expr ',' */
-p_top_expr_body: p_expr ',' %prec ',' { $$ = @builder.unsupported(539) };
+p_top_expr_body: p_expr ',' %prec ',' { $$ = $1 };
 /* upstream parse.y:5401: p_top_expr_body: p_expr ',' p_args */
 p_top_expr_body: p_expr ',' p_args %prec ',' { $$ = @builder.unsupported(540) };
 /* upstream parse.y:5407: p_top_expr_body: p_find */
