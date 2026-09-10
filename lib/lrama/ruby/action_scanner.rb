@@ -127,7 +127,7 @@ module Lrama
                 !@scanner.peek(2).byteslice(1, 1).match?(/[a-zA-Z0-9_]/n))
               percent_literal(offset)
               state = :end
-            elsif (state != :bare || spaced) &&
+            elsif (state == :begin || (state == :bare && spaced)) &&
               @scanner.check(/<<[-~]?(?:['"`][^\r\n]+['"`]|[a-zA-Z_][a-zA-Z_0-9]*)/n)
               heredocs << heredoc_start(offset)
               state = :end
