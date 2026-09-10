@@ -3381,7 +3381,7 @@
     "id": 564,
     "rule": "p_expr_basic: \"[\" rbracket",
     "line": 5533,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 565,

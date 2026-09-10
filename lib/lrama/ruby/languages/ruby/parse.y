@@ -1312,7 +1312,7 @@ p_expr_basic: tLBRACK p_args rbracket %prec tLBRACK { $$ = @builder.unsupported(
 /* upstream parse.y:5528: p_expr_basic: "[" p_find rbracket */
 p_expr_basic: tLBRACK p_find rbracket %prec tLBRACK { $$ = @builder.unsupported(563) };
 /* upstream parse.y:5533: p_expr_basic: "[" rbracket */
-p_expr_basic: tLBRACK rbracket %prec tLBRACK { $$ = @builder.unsupported(564) };
+p_expr_basic: tLBRACK rbracket %prec tLBRACK { $$ = nil };
 /* upstream parse.y:5539: $@33: %empty */
 midrule_33: %empty { $$ = nil };
 /* upstream parse.y:5543: p_expr_basic: "{" p_pktbl lex_ctxt $@33 p_kwargs rbrace */
