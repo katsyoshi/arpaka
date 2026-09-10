@@ -1430,7 +1430,7 @@ p_variable: tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(621) };
 /* upstream parse.y:5764: p_var_ref: '^' "local variable or method" */
 p_var_ref: '^' tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(622) };
 /* upstream parse.y:5776: p_var_ref: '^' nonlocal_var */
-p_var_ref: '^' nonlocal_var %prec '^' { $$ = @builder.unsupported(623) };
+p_var_ref: '^' nonlocal_var %prec '^' { $$ = $2 };
 /* upstream parse.y:5783: p_expr_ref: '^' "(" expr_value rparen */
 p_expr_ref: '^' tLPAREN expr_value rparen %prec tLPAREN { $$ = @builder.unsupported(624) };
 /* upstream parse.y:5790: p_const: ":: at EXPR_BEG" cname */
