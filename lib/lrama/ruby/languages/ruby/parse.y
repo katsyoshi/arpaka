@@ -426,7 +426,7 @@ mlhs_items_mlhs_item: mlhs_items_mlhs_item ',' mlhs_item %prec ',' { $$ = @build
 /* upstream parse.y:3702: mlhs_basic: mlhs_head "*" mlhs_node ',' mlhs_items_mlhs_item */
 mlhs_basic: mlhs_head tSTAR mlhs_node ',' mlhs_items_mlhs_item %prec ',' { $$ = @builder.unsupported(120) };
 /* upstream parse.y:3707: mlhs_basic: mlhs_head "*" */
-mlhs_basic: mlhs_head tSTAR %prec tSTAR { $$ = @builder.unsupported(121) };
+mlhs_basic: mlhs_head tSTAR %prec tSTAR { $$ = $1 };
 /* upstream parse.y:3712: mlhs_basic: mlhs_head "*" ',' mlhs_items_mlhs_item */
 mlhs_basic: mlhs_head tSTAR ',' mlhs_items_mlhs_item %prec ',' { $$ = @builder.unsupported(122) };
 /* upstream parse.y:3717: mlhs_basic: "*" mlhs_node */
