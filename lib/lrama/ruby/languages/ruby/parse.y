@@ -1266,31 +1266,31 @@ p_top_expr_body: p_expr ',' %prec ',' { $$ = @builder.unsupported(539) };
 /* upstream parse.y:5401: p_top_expr_body: p_expr ',' p_args */
 p_top_expr_body: p_expr ',' p_args %prec ',' { $$ = @builder.unsupported(540) };
 /* upstream parse.y:5407: p_top_expr_body: p_find */
-p_top_expr_body: p_find { $$ = @builder.unsupported(541) };
+p_top_expr_body: p_find { $$ = $1 };
 /* upstream parse.y:5412: p_top_expr_body: p_args_tail */
-p_top_expr_body: p_args_tail { $$ = @builder.unsupported(542) };
+p_top_expr_body: p_args_tail { $$ = $1 };
 /* upstream parse.y:5417: p_top_expr_body: p_kwargs */
-p_top_expr_body: p_kwargs { $$ = @builder.unsupported(543) };
+p_top_expr_body: p_kwargs { $$ = $1 };
 /* upstream parse.y:5423: p_expr: p_as */
-p_expr: p_as { $$ = @builder.unsupported(544) };
+p_expr: p_as { $$ = $1 };
 /* upstream parse.y:5427: p_as: p_expr "=>" p_variable */
 p_as: p_expr tASSOC p_variable %prec tASSOC { $$ = @builder.unsupported(545) };
 /* upstream parse.y:5433: p_as: p_alt */
-p_as: p_alt { $$ = @builder.unsupported(546) };
+p_as: p_alt { $$ = $1 };
 /* upstream parse.y:5437: $@32: %empty */
-midrule_32: %empty { $$ = @builder.unsupported(547) };
+midrule_32: %empty { $$ = nil };
 /* upstream parse.y:5441: p_alt: p_alt '|' $@32 p_expr_basic */
 p_alt: p_alt '|' midrule_32 p_expr_basic %prec '|' { $$ = @builder.unsupported(548) };
 /* upstream parse.y:5449: p_alt: p_expr_basic */
-p_alt: p_expr_basic { $$ = @builder.unsupported(549) };
+p_alt: p_expr_basic { $$ = $1 };
 /* upstream parse.y:5453: p_lparen: '(' p_pktbl */
 p_lparen: '(' p_pktbl %prec '(' { $$ = @builder.unsupported(550) };
 /* upstream parse.y:5460: p_lbracket: '[' p_pktbl */
 p_lbracket: '[' p_pktbl %prec '[' { $$ = @builder.unsupported(551) };
 /* upstream parse.y:5466: p_expr_basic: p_value */
-p_expr_basic: p_value { $$ = @builder.unsupported(552) };
+p_expr_basic: p_value { $$ = $1 };
 /* upstream parse.y:5467: p_expr_basic: p_variable */
-p_expr_basic: p_variable { $$ = @builder.unsupported(553) };
+p_expr_basic: p_variable { $$ = $1 };
 /* upstream parse.y:5469: p_expr_basic: p_const p_lparen p_args rparen */
 p_expr_basic: p_const p_lparen p_args rparen { $$ = @builder.unsupported(554) };
 /* upstream parse.y:5476: p_expr_basic: p_const p_lparen p_find rparen */
@@ -1314,7 +1314,7 @@ p_expr_basic: tLBRACK p_find rbracket %prec tLBRACK { $$ = @builder.unsupported(
 /* upstream parse.y:5533: p_expr_basic: "[" rbracket */
 p_expr_basic: tLBRACK rbracket %prec tLBRACK { $$ = @builder.unsupported(564) };
 /* upstream parse.y:5539: $@33: %empty */
-midrule_33: %empty { $$ = @builder.unsupported(565) };
+midrule_33: %empty { $$ = nil };
 /* upstream parse.y:5543: p_expr_basic: "{" p_pktbl lex_ctxt $@33 p_kwargs rbrace */
 p_expr_basic: tLBRACE p_pktbl lex_ctxt midrule_33 p_kwargs rbrace %prec tLBRACE { $$ = @builder.unsupported(566) };
 /* upstream parse.y:5550: p_expr_basic: "{" rbrace */
@@ -1322,9 +1322,9 @@ p_expr_basic: tLBRACE rbrace %prec tLBRACE { $$ = @builder.unsupported(567) };
 /* upstream parse.y:5556: p_expr_basic: "(" p_pktbl p_expr rparen */
 p_expr_basic: tLPAREN p_pktbl p_expr rparen %prec tLPAREN { $$ = @builder.unsupported(568) };
 /* upstream parse.y:5564: p_args: p_expr */
-p_args: p_expr { $$ = @builder.unsupported(569) };
+p_args: p_expr { $$ = $1 };
 /* upstream parse.y:5570: p_args: p_args_head */
-p_args: p_args_head { $$ = @builder.unsupported(570) };
+p_args: p_args_head { $$ = $1 };
 /* upstream parse.y:5575: p_args: p_args_head p_arg */
 p_args: p_args_head p_arg { $$ = @builder.unsupported(571) };
 /* upstream parse.y:5580: p_args: p_args_head p_rest */
@@ -1332,13 +1332,13 @@ p_args: p_args_head p_rest { $$ = @builder.unsupported(572) };
 /* upstream parse.y:5585: p_args: p_args_head p_rest ',' p_args_post */
 p_args: p_args_head p_rest ',' p_args_post %prec ',' { $$ = @builder.unsupported(573) };
 /* upstream parse.y:5589: p_args: p_args_tail */
-p_args: p_args_tail { $$ = @builder.unsupported(574) };
+p_args: p_args_tail { $$ = $1 };
 /* upstream parse.y:5592: p_args_head: p_arg ',' */
 p_args_head: p_arg ',' %prec ',' { $$ = @builder.unsupported(575) };
 /* upstream parse.y:5594: p_args_head: p_args_head p_arg ',' */
 p_args_head: p_args_head p_arg ',' %prec ',' { $$ = @builder.unsupported(576) };
 /* upstream parse.y:5601: p_args_tail: p_rest */
-p_args_tail: p_rest { $$ = @builder.unsupported(577) };
+p_args_tail: p_rest { $$ = $1 };
 /* upstream parse.y:5606: p_args_tail: p_rest ',' p_args_post */
 p_args_tail: p_rest ',' p_args_post %prec ',' { $$ = @builder.unsupported(578) };
 /* upstream parse.y:5613: p_find: p_rest ',' p_args_post ',' p_rest */
@@ -1346,7 +1346,7 @@ p_find: p_rest ',' p_args_post ',' p_rest %prec ',' { $$ = @builder.unsupported(
 /* upstream parse.y:5621: p_rest: "*" "local variable or method" */
 p_rest: tSTAR tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(580) };
 /* upstream parse.y:5627: p_rest: "*" */
-p_rest: tSTAR %prec tSTAR { $$ = @builder.unsupported(581) };
+p_rest: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:5633: p_args_post: p_arg */
 p_args_post: p_arg { $$ = @builder.unsupported(582) };
 /* upstream parse.y:5635: p_args_post: p_args_post ',' p_arg */
