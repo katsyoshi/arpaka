@@ -674,7 +674,7 @@ op_asgn_arg_rhs: tCOLON3 tCONSTANT tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$
 /* upstream parse.y:3098: op_asgn_arg_rhs: backref "operator-assignment" lex_ctxt arg_rhs */
 op_asgn_arg_rhs: backref tOP_ASGN lex_ctxt arg_rhs %prec tOP_ASGN { $$ = @builder.unsupported(244) };
 /* upstream parse.y:3941: arg: op_asgn_arg_rhs */
-arg: op_asgn_arg_rhs { $$ = @builder.unsupported(245) };
+arg: op_asgn_arg_rhs { $$ = $1 };
 /* upstream parse.y:3120: range_expr_arg: arg ".." arg */
 range_expr_arg: arg tDOT2 arg %prec tDOT2 { $$ = @builder.range(:"..", $1, $3) };
 /* upstream parse.y:3127: range_expr_arg: arg "..." arg */
@@ -754,7 +754,7 @@ arg: primary { $$ = $1 };
 /* upstream parse.y:4077: ternary: arg '?' arg option_'\n' ':' arg */
 ternary: arg '?' arg option_newline ':' arg %prec ':' { $$ = @builder.ternary($1, $3, $6) };
 /* upstream parse.y:4085: endless_arg: arg */
-endless_arg: arg %prec modifier_rescue { $$ = @builder.unsupported(285) };
+endless_arg: arg %prec modifier_rescue { $$ = $1 };
 /* upstream parse.y:4087: endless_arg: endless_arg "'rescue' modifier" after_rescue arg */
 endless_arg: endless_arg modifier_rescue after_rescue arg %prec modifier_rescue { $$ = @builder.unsupported(286) };
 /* upstream parse.y:4093: endless_arg: "'not'" option_'\n' endless_arg */
@@ -814,11 +814,11 @@ opt_call_args: args ',' assocs ',' %prec ',' { $$ = @builder.unsupported(313) };
 /* upstream parse.y:4212: opt_call_args: assocs ',' */
 opt_call_args: assocs ',' %prec ',' { $$ = @builder.unsupported(314) };
 /* upstream parse.y:3161: value_expr_command: command */
-value_expr_command: command { $$ = @builder.unsupported(315) };
+value_expr_command: command { $$ = $1 };
 /* upstream parse.y:4219: call_args: value_expr_command */
-call_args: value_expr_command { $$ = @builder.unsupported(316) };
+call_args: value_expr_command { $$ = $1 };
 /* upstream parse.y:4224: call_args: def_endless_method_endless_command */
-call_args: def_endless_method_endless_command { $$ = @builder.unsupported(317) };
+call_args: def_endless_method_endless_command { $$ = $1 };
 /* upstream parse.y:4229: call_args: args opt_block_arg */
 call_args: args opt_block_arg { $$ = $1 };
 /* upstream parse.y:4234: call_args: assocs opt_block_arg */

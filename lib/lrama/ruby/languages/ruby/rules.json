@@ -1467,7 +1467,7 @@
     "id": 245,
     "rule": "arg: op_asgn_arg_rhs",
     "line": 3941,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 246,
@@ -1707,7 +1707,7 @@
     "id": 285,
     "rule": "endless_arg: arg",
     "line": 4085,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 286,
@@ -1887,19 +1887,19 @@
     "id": 315,
     "rule": "value_expr_command: command",
     "line": 3161,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 316,
     "rule": "call_args: value_expr_command",
     "line": 4219,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 317,
     "rule": "call_args: def_endless_method_endless_command",
     "line": 4224,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 318,
