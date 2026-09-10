@@ -3627,7 +3627,7 @@
     "id": 605,
     "rule": "range_expr_p_primitive: \"(..\" p_primitive",
     "line": 3146,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 606,

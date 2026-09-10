@@ -1394,7 +1394,7 @@ range_expr_p_primitive: p_primitive tDOT2 %prec tDOT2 { $$ = @builder.range(:"..
 /* upstream parse.y:3140: range_expr_p_primitive: p_primitive "..." */
 range_expr_p_primitive: p_primitive tDOT3 %prec tDOT3 { $$ = @builder.range(:"...", $1, nil) };
 /* upstream parse.y:3146: range_expr_p_primitive: "(.." p_primitive */
-range_expr_p_primitive: tBDOT2 p_primitive %prec tBDOT2 { $$ = @builder.unsupported(605) };
+range_expr_p_primitive: tBDOT2 p_primitive %prec tBDOT2 { $$ = @builder.range(:"..", nil, $2) };
 /* upstream parse.y:3152: range_expr_p_primitive: "(..." p_primitive */
 range_expr_p_primitive: tBDOT3 p_primitive %prec tBDOT3 { $$ = @builder.unsupported(606) };
 /* upstream parse.y:5740: p_value: range_expr_p_primitive */
