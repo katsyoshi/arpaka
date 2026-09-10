@@ -296,29 +296,29 @@ op_asgn_command_rhs: primary_value tCOLON2 tCONSTANT tOP_ASGN lex_ctxt command_r
 /* upstream parse.y:3092: op_asgn_command_rhs: ":: at EXPR_BEG" "constant" "operator-assignment" lex_ctxt command_rhs */
 op_asgn_command_rhs: tCOLON3 tCONSTANT tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = $2 };
 /* upstream parse.y:3098: op_asgn_command_rhs: backref "operator-assignment" lex_ctxt command_rhs */
-op_asgn_command_rhs: backref tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = @builder.unsupported(56) };
+op_asgn_command_rhs: backref tOP_ASGN lex_ctxt command_rhs %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3434: command_asgn: op_asgn_command_rhs */
 command_asgn: op_asgn_command_rhs { $$ = $1 };
 /* upstream parse.y:2966: def_endless_method_endless_command: defn_head f_opt_paren_args '=' endless_command */
-def_endless_method_endless_command: defn_head f_opt_paren_args '=' endless_command %prec '=' { $$ = @builder.unsupported(58) };
+def_endless_method_endless_command: defn_head f_opt_paren_args '=' endless_command %prec '=' { $$ = $1 };
 /* upstream parse.y:2977: def_endless_method_endless_command: defs_head f_opt_paren_args '=' endless_command */
-def_endless_method_endless_command: defs_head f_opt_paren_args '=' endless_command %prec '=' { $$ = @builder.unsupported(59) };
+def_endless_method_endless_command: defs_head f_opt_paren_args '=' endless_command %prec '=' { $$ = $1 };
 /* upstream parse.y:3435: command_asgn: def_endless_method_endless_command */
 command_asgn: def_endless_method_endless_command { $$ = $1 };
 /* upstream parse.y:3438: endless_command: command */
 endless_command: command { $$ = $1 };
 /* upstream parse.y:3440: endless_command: endless_command "'rescue' modifier" after_rescue arg */
-endless_command: endless_command modifier_rescue after_rescue arg %prec modifier_rescue { $$ = @builder.unsupported(62) };
+endless_command: endless_command modifier_rescue after_rescue arg %prec modifier_rescue { $$ = $1 };
 /* upstream parse.y:3445: option_'\n': %empty */
 option_newline: %empty { $$ = nil };
 /* upstream parse.y:3445: option_'\n': '\n' */
 option_newline: '\n' %prec '\n' { $$ = nil };
 /* upstream parse.y:3446: endless_command: "'not'" option_'\n' endless_command */
-endless_command: keyword_not option_newline endless_command %prec keyword_not { $$ = @builder.unsupported(65) };
+endless_command: keyword_not option_newline endless_command %prec keyword_not { $$ = $3 };
 /* upstream parse.y:3452: command_rhs: command_call_value */
 command_rhs: command_call_value %prec tOP_ASGN { $$ = $1 };
 /* upstream parse.y:3454: command_rhs: command_call_value "'rescue' modifier" after_rescue stmt */
-command_rhs: command_call_value modifier_rescue after_rescue stmt %prec modifier_rescue { $$ = @builder.unsupported(67) };
+command_rhs: command_call_value modifier_rescue after_rescue stmt %prec modifier_rescue { $$ = $1 };
 /* upstream parse.y:3460: command_rhs: command_asgn */
 command_rhs: command_asgn { $$ = $1 };
 /* upstream parse.y:3463: expr: command_call */
@@ -330,7 +330,7 @@ expr: expr keyword_or expr %prec keyword_or { $$ = @builder.binary(:or, $1, $3) 
 /* upstream parse.y:3475: expr: "'not'" option_'\n' expr */
 expr: keyword_not option_newline expr %prec keyword_not { $$ = @builder.unary(:"!", $3) };
 /* upstream parse.y:3480: expr: '!' command_call */
-expr: '!' command_call %prec '!' { $$ = @builder.unsupported(73) };
+expr: '!' command_call %prec '!' { $$ = @builder.unary(:"!", $2) };
 /* upstream parse.y:3485: $@7: %empty */
 midrule_7: %empty { $$ = nil };
 /* upstream parse.y:3490: expr: arg "=>" $@7 p_in_kwarg p_pvtbl p_pktbl p_top_expr_body */

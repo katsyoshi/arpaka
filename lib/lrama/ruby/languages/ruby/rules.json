@@ -333,7 +333,7 @@
     "id": 56,
     "rule": "op_asgn_command_rhs: backref \"operator-assignment\" lex_ctxt command_rhs",
     "line": 3098,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 57,
@@ -345,13 +345,13 @@
     "id": 58,
     "rule": "def_endless_method_endless_command: defn_head f_opt_paren_args '=' endless_command",
     "line": 2966,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 59,
     "rule": "def_endless_method_endless_command: defs_head f_opt_paren_args '=' endless_command",
     "line": 2977,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 60,
@@ -369,7 +369,7 @@
     "id": 62,
     "rule": "endless_command: endless_command \"'rescue' modifier\" after_rescue arg",
     "line": 3440,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 63,
@@ -387,7 +387,7 @@
     "id": 65,
     "rule": "endless_command: \"'not'\" option_'\\n' endless_command",
     "line": 3446,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 66,
@@ -399,7 +399,7 @@
     "id": 67,
     "rule": "command_rhs: command_call_value \"'rescue' modifier\" after_rescue stmt",
     "line": 3454,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 68,
@@ -435,7 +435,7 @@
     "id": 73,
     "rule": "expr: '!' command_call",
     "line": 3480,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 74,
