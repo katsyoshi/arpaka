@@ -447,7 +447,7 @@
     "id": 75,
     "rule": "expr: arg \"=>\" $@7 p_in_kwarg p_pvtbl p_pktbl p_top_expr_body",
     "line": 3490,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 76,
@@ -459,7 +459,7 @@
     "id": 77,
     "rule": "expr: arg \"'in'\" $@8 p_in_kwarg p_pvtbl p_pktbl p_top_expr_body",
     "line": 3505,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 78,
@@ -489,7 +489,7 @@
     "id": 82,
     "rule": "defs_head: k_def singleton dot_or_colon $@9 def_name",
     "line": 3542,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 83,
@@ -561,13 +561,13 @@
     "id": 94,
     "rule": "block_command: block_call call_op2 operation2 command_args",
     "line": 3574,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 95,
     "rule": "cmd_brace_block: \"{ arg\" brace_body '}'",
     "line": 3581,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 96,
@@ -2265,7 +2265,7 @@
     "id": 378,
     "rule": "primary: k_case expr_value option_terms p_case_body k_end",
     "line": 4556,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 379,
@@ -2307,7 +2307,7 @@
     "id": 385,
     "rule": "primary: k_class \"<<\" expr_value $@21 term bodystmt k_end",
     "line": 4634,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 386,
@@ -2343,7 +2343,7 @@
     "id": 391,
     "rule": "primary: defs_head f_arglist $@24 bodystmt k_end",
     "line": 4685,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 392,
@@ -2451,7 +2451,7 @@
     "id": 409,
     "rule": "k_do_block: \"'do' for block\"",
     "line": 4823,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 410,
@@ -2583,7 +2583,7 @@
     "id": 431,
     "rule": "f_marg: \"(\" f_margs rparen",
     "line": 4935,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 432,
@@ -2595,7 +2595,7 @@
     "id": 433,
     "rule": "mlhs_items_f_marg: mlhs_items_f_marg ',' f_marg",
     "line": 3053,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 434,
@@ -2607,13 +2607,13 @@
     "id": 435,
     "rule": "f_margs: mlhs_items_f_marg ',' f_rest_marg",
     "line": 4948,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 436,
     "rule": "f_margs: mlhs_items_f_marg ',' f_rest_marg ',' mlhs_items_f_marg",
     "line": 4953,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 437,
@@ -2625,7 +2625,7 @@
     "id": 438,
     "rule": "f_margs: f_rest_marg ',' mlhs_items_f_marg",
     "line": 4963,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 439,
@@ -2661,7 +2661,7 @@
     "id": 444,
     "rule": "f_eq: $@25 '='",
     "line": 4990,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 445,
@@ -2685,7 +2685,7 @@
     "id": 448,
     "rule": "f_kwarg_primary_value: f_kwarg_primary_value ',' f_kw_primary_value",
     "line": 3040,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 449,
@@ -2703,19 +2703,19 @@
     "id": 451,
     "rule": "args_tail_basic_primary_value_none: f_kwarg_primary_value ',' f_kwrest opt_f_block_arg_none",
     "line": 2934,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 452,
     "rule": "args_tail_basic_primary_value_none: f_kwarg_primary_value opt_f_block_arg_none",
     "line": 2939,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 453,
     "rule": "args_tail_basic_primary_value_none: f_any_kwrest opt_f_block_arg_none",
     "line": 2944,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 454,
@@ -2739,7 +2739,7 @@
     "id": 457,
     "rule": "f_opt_primary_value: f_arg_asgn f_eq primary_value",
     "line": 2998,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 458,
@@ -2751,7 +2751,7 @@
     "id": 459,
     "rule": "f_opt_arg_primary_value: f_opt_arg_primary_value ',' f_opt_primary_value",
     "line": 3012,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 460,
@@ -2769,73 +2769,73 @@
     "id": 462,
     "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_opt_arg_primary_value ',' f_rest_arg opt_args_tail_block_args_tail_none",
     "line": 6277,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 463,
     "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_opt_arg_primary_value ',' f_rest_arg ',' f_arg opt_args_tail_block_args_tail_none",
     "line": 6282,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 464,
     "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_opt_arg_primary_value opt_args_tail_block_args_tail_none",
     "line": 6287,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 465,
     "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_opt_arg_primary_value ',' f_arg opt_args_tail_block_args_tail_none",
     "line": 6292,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 466,
     "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_rest_arg opt_args_tail_block_args_tail_none",
     "line": 6297,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 467,
     "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_arg ',' f_rest_arg ',' f_arg opt_args_tail_block_args_tail_none",
     "line": 6302,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 468,
     "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_opt_arg_primary_value ',' f_rest_arg opt_args_tail_block_args_tail_none",
     "line": 6307,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 469,
     "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_opt_arg_primary_value ',' f_rest_arg ',' f_arg opt_args_tail_block_args_tail_none",
     "line": 6312,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 470,
     "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_opt_arg_primary_value opt_args_tail_block_args_tail_none",
     "line": 6317,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 471,
     "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_opt_arg_primary_value ',' f_arg opt_args_tail_block_args_tail_none",
     "line": 6322,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 472,
     "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_rest_arg opt_args_tail_block_args_tail_none",
     "line": 6327,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 473,
     "rule": "args-list_primary_value_opt_args_tail_block_args_tail_none: f_rest_arg ',' f_arg opt_args_tail_block_args_tail_none",
     "line": 6332,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 474,
@@ -2847,13 +2847,13 @@
     "id": 475,
     "rule": "block_param: f_arg excessed_comma",
     "line": 5005,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 476,
     "rule": "block_param: f_arg opt_args_tail_block_args_tail_none",
     "line": 5011,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 477,
@@ -2883,7 +2883,7 @@
     "id": 481,
     "rule": "block_param_def: '|' opt_block_param opt_bv_decl '|'",
     "line": 5026,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 482,
@@ -2907,7 +2907,7 @@
     "id": 485,
     "rule": "opt_bv_decl: option_'\\n' ';' bv_decls option_'\\n'",
     "line": 5048,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 486,
@@ -2919,13 +2919,13 @@
     "id": 487,
     "rule": "bv_decls: bv_decls ',' bvar",
     "line": 5056,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 488,
     "rule": "bvar: \"local variable or method\"",
     "line": 5061,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 489,
@@ -3003,37 +3003,37 @@
     "id": 501,
     "rule": "do_block: k_do_block do_body k_end",
     "line": 5153,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 502,
     "rule": "block_call: command do_block",
     "line": 5161,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 503,
     "rule": "block_call: block_call call_op2 operation2 opt_paren_args",
     "line": 5167,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 504,
     "rule": "block_call: block_call call_op2 operation2 opt_paren_args brace_block",
     "line": 5177,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 505,
     "rule": "block_call: block_call call_op2 operation2 command_args do_block",
     "line": 5183,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 506,
     "rule": "block_call: block_call call_op2 paren_args",
     "line": 5188,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 507,
@@ -3045,25 +3045,25 @@
     "id": 508,
     "rule": "method_call: primary_value call_op operation2 opt_paren_args",
     "line": 5203,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 509,
     "rule": "method_call: primary_value \"::\" operation2 paren_args",
     "line": 5214,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 510,
     "rule": "method_call: primary_value \"::\" operation3",
     "line": 5220,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 511,
     "rule": "method_call: primary_value call_op2 paren_args",
     "line": 5225,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 512,
@@ -3093,7 +3093,7 @@
     "id": 516,
     "rule": "brace_block: k_do do_body k_end",
     "line": 5260,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 517,
@@ -3105,7 +3105,7 @@
     "id": 518,
     "rule": "brace_body: @29 max_numparam numparam it_id allow_exits opt_block_param_def compstmt_stmts",
     "line": 5270,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 519,
@@ -3117,7 +3117,7 @@
     "id": 520,
     "rule": "do_body: @30 max_numparam numparam it_id allow_exits opt_block_param_def bodystmt",
     "line": 5290,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 521,
@@ -3141,7 +3141,7 @@
     "id": 524,
     "rule": "case_args: case_args ',' \"*\" arg_value",
     "line": 5323,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 525,
@@ -3189,7 +3189,7 @@
     "id": 532,
     "rule": "p_case_body: \"'in'\" p_in_kwarg p_pvtbl p_pktbl p_top_expr then $@31 compstmt_stmts p_cases",
     "line": 5368,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 533,
@@ -3213,13 +3213,13 @@
     "id": 536,
     "rule": "p_top_expr: p_top_expr_body \"'if' modifier\" expr_value",
     "line": 5380,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 537,
     "rule": "p_top_expr: p_top_expr_body \"'unless' modifier\" expr_value",
     "line": 5386,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 538,
@@ -3237,7 +3237,7 @@
     "id": 540,
     "rule": "p_top_expr_body: p_expr ',' p_args",
     "line": 5401,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 541,
@@ -3267,7 +3267,7 @@
     "id": 545,
     "rule": "p_as: p_expr \"=>\" p_variable",
     "line": 5427,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 546,
@@ -3285,7 +3285,7 @@
     "id": 548,
     "rule": "p_alt: p_alt '|' $@32 p_expr_basic",
     "line": 5441,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 549,
@@ -3321,61 +3321,61 @@
     "id": 554,
     "rule": "p_expr_basic: p_const p_lparen p_args rparen",
     "line": 5469,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 555,
     "rule": "p_expr_basic: p_const p_lparen p_find rparen",
     "line": 5476,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 556,
     "rule": "p_expr_basic: p_const p_lparen p_kwargs rparen",
     "line": 5483,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 557,
     "rule": "p_expr_basic: p_const '(' rparen",
     "line": 5490,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 558,
     "rule": "p_expr_basic: p_const p_lbracket p_args rbracket",
     "line": 5496,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 559,
     "rule": "p_expr_basic: p_const p_lbracket p_find rbracket",
     "line": 5503,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 560,
     "rule": "p_expr_basic: p_const p_lbracket p_kwargs rbracket",
     "line": 5510,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 561,
     "rule": "p_expr_basic: p_const '[' rbracket",
     "line": 5517,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 562,
     "rule": "p_expr_basic: \"[\" p_args rbracket",
     "line": 5523,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 563,
     "rule": "p_expr_basic: \"[\" p_find rbracket",
     "line": 5528,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 564,
@@ -3393,7 +3393,7 @@
     "id": 566,
     "rule": "p_expr_basic: \"{\" p_pktbl lex_ctxt $@33 p_kwargs rbrace",
     "line": 5543,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 567,
@@ -3405,7 +3405,7 @@
     "id": 568,
     "rule": "p_expr_basic: \"(\" p_pktbl p_expr rparen",
     "line": 5556,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 569,
@@ -3423,19 +3423,19 @@
     "id": 571,
     "rule": "p_args: p_args_head p_arg",
     "line": 5575,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 572,
     "rule": "p_args: p_args_head p_rest",
     "line": 5580,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 573,
     "rule": "p_args: p_args_head p_rest ',' p_args_post",
     "line": 5585,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 574,
@@ -3453,7 +3453,7 @@
     "id": 576,
     "rule": "p_args_head: p_args_head p_arg ','",
     "line": 5594,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 577,
@@ -3465,19 +3465,19 @@
     "id": 578,
     "rule": "p_args_tail: p_rest ',' p_args_post",
     "line": 5606,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 579,
     "rule": "p_find: p_rest ',' p_args_post ',' p_rest",
     "line": 5613,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 580,
     "rule": "p_rest: \"*\" \"local variable or method\"",
     "line": 5621,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 581,
@@ -3495,7 +3495,7 @@
     "id": 583,
     "rule": "p_args_post: p_args_post ',' p_arg",
     "line": 5635,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 584,
@@ -3507,7 +3507,7 @@
     "id": 585,
     "rule": "p_kwargs: p_kwarg ',' p_any_kwrest",
     "line": 5649,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 586,
@@ -3537,13 +3537,13 @@
     "id": 590,
     "rule": "p_kwarg: p_kwarg ',' p_kw",
     "line": 5673,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 591,
     "rule": "p_kw: p_kw_label p_expr",
     "line": 5680,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 592,
@@ -3561,13 +3561,13 @@
     "id": 594,
     "rule": "p_kw_label: \"string literal\" string_contents tLABEL_END",
     "line": 5699,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 595,
     "rule": "p_kwrest: kwrest_mark \"local variable or method\"",
     "line": 5714,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 596,
@@ -3603,13 +3603,13 @@
     "id": 601,
     "rule": "range_expr_p_primitive: p_primitive \"..\" p_primitive",
     "line": 3120,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 602,
     "rule": "range_expr_p_primitive: p_primitive \"...\" p_primitive",
     "line": 3127,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 603,
@@ -3723,13 +3723,13 @@
     "id": 621,
     "rule": "p_variable: \"local variable or method\"",
     "line": 5756,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 622,
     "rule": "p_var_ref: '^' \"local variable or method\"",
     "line": 5764,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 623,
@@ -3741,19 +3741,19 @@
     "id": 624,
     "rule": "p_expr_ref: '^' \"(\" expr_value rparen",
     "line": 5783,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 625,
     "rule": "p_const: \":: at EXPR_BEG\" cname",
     "line": 5790,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 626,
     "rule": "p_const: p_const \"::\" cname",
     "line": 5795,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 627,
@@ -3765,7 +3765,7 @@
     "id": 628,
     "rule": "opt_rescue: k_rescue exc_list exc_var then compstmt_stmts opt_rescue",
     "line": 5809,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 629,
@@ -3987,7 +3987,7 @@
     "id": 665,
     "rule": "qsym_list: qsym_list \"literal content\" nonempty_list_' '",
     "line": 5980,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 666,
@@ -4041,7 +4041,7 @@
     "id": 674,
     "rule": "string_content: tSTRING_DVAR @34 string_dvar",
     "line": 6051,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 675,
@@ -4071,7 +4071,7 @@
     "id": 679,
     "rule": "string_content: \"'#{'\" @35 @36 @37 @38 compstmt_stmts string_dend",
     "line": 6079,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 680,
@@ -4131,7 +4131,7 @@
     "id": 689,
     "rule": "dsym: \"symbol literal\" string_contents \"terminator\"",
     "line": 6131,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 690,
@@ -4347,7 +4347,7 @@
     "id": 725,
     "rule": "f_kw_arg_value: f_label arg_value",
     "line": 3020,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 726,
@@ -4365,7 +4365,7 @@
     "id": 728,
     "rule": "f_kwarg_arg_value: f_kwarg_arg_value ',' f_kw_arg_value",
     "line": 3040,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 729,
@@ -4383,19 +4383,19 @@
     "id": 731,
     "rule": "args_tail_basic_arg_value_opt_comma: f_kwarg_arg_value ',' f_kwrest opt_f_block_arg_opt_comma",
     "line": 2934,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 732,
     "rule": "args_tail_basic_arg_value_opt_comma: f_kwarg_arg_value opt_f_block_arg_opt_comma",
     "line": 2939,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 733,
     "rule": "args_tail_basic_arg_value_opt_comma: f_any_kwrest opt_f_block_arg_opt_comma",
     "line": 2944,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 734,
@@ -4419,19 +4419,19 @@
     "id": 737,
     "rule": "args_tail_basic_arg_value_none: f_kwarg_arg_value ',' f_kwrest opt_f_block_arg_none",
     "line": 2934,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 738,
     "rule": "args_tail_basic_arg_value_none: f_kwarg_arg_value opt_f_block_arg_none",
     "line": 2939,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 739,
     "rule": "args_tail_basic_arg_value_none: f_any_kwrest opt_f_block_arg_none",
     "line": 2944,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 740,
@@ -4455,7 +4455,7 @@
     "id": 743,
     "rule": "f_opt_arg_value: f_arg_asgn f_eq arg_value",
     "line": 2998,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 744,
@@ -4467,7 +4467,7 @@
     "id": 745,
     "rule": "f_opt_arg_arg_value: f_opt_arg_arg_value ',' f_opt_arg_value",
     "line": 3012,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 746,
@@ -4485,73 +4485,73 @@
     "id": 748,
     "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg opt_args_tail_args_tail_opt_comma",
     "line": 6277,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 749,
     "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg ',' f_arg opt_args_tail_args_tail_opt_comma",
     "line": 6282,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 750,
     "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_opt_arg_arg_value opt_args_tail_args_tail_opt_comma",
     "line": 6287,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 751,
     "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_opt_arg_arg_value ',' f_arg opt_args_tail_args_tail_opt_comma",
     "line": 6292,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 752,
     "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_rest_arg opt_args_tail_args_tail_opt_comma",
     "line": 6297,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 753,
     "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_arg ',' f_rest_arg ',' f_arg opt_args_tail_args_tail_opt_comma",
     "line": 6302,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 754,
     "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_opt_arg_arg_value ',' f_rest_arg opt_args_tail_args_tail_opt_comma",
     "line": 6307,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 755,
     "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_opt_arg_arg_value ',' f_rest_arg ',' f_arg opt_args_tail_args_tail_opt_comma",
     "line": 6312,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 756,
     "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_opt_arg_arg_value opt_args_tail_args_tail_opt_comma",
     "line": 6317,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 757,
     "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_opt_arg_arg_value ',' f_arg opt_args_tail_args_tail_opt_comma",
     "line": 6322,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 758,
     "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_rest_arg opt_args_tail_args_tail_opt_comma",
     "line": 6327,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 759,
     "rule": "args-list_arg_value_opt_args_tail_args_tail_opt_comma: f_rest_arg ',' f_arg opt_args_tail_args_tail_opt_comma",
     "line": 6332,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 760,
@@ -4563,7 +4563,7 @@
     "id": 761,
     "rule": "f_args-list_args_tail_opt_comma: f_arg opt_args_tail_args_tail_opt_comma",
     "line": 6349,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 762,
@@ -4605,73 +4605,73 @@
     "id": 768,
     "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg opt_args_tail_largs_tail_none",
     "line": 6277,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 769,
     "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_opt_arg_arg_value ',' f_rest_arg ',' f_arg opt_args_tail_largs_tail_none",
     "line": 6282,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 770,
     "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_opt_arg_arg_value opt_args_tail_largs_tail_none",
     "line": 6287,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 771,
     "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_opt_arg_arg_value ',' f_arg opt_args_tail_largs_tail_none",
     "line": 6292,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 772,
     "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_rest_arg opt_args_tail_largs_tail_none",
     "line": 6297,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 773,
     "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_arg ',' f_rest_arg ',' f_arg opt_args_tail_largs_tail_none",
     "line": 6302,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 774,
     "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_opt_arg_arg_value ',' f_rest_arg opt_args_tail_largs_tail_none",
     "line": 6307,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 775,
     "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_opt_arg_arg_value ',' f_rest_arg ',' f_arg opt_args_tail_largs_tail_none",
     "line": 6312,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 776,
     "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_opt_arg_arg_value opt_args_tail_largs_tail_none",
     "line": 6317,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 777,
     "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_opt_arg_arg_value ',' f_arg opt_args_tail_largs_tail_none",
     "line": 6322,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 778,
     "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_rest_arg opt_args_tail_largs_tail_none",
     "line": 6327,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 779,
     "rule": "args-list_arg_value_opt_args_tail_largs_tail_none: f_rest_arg ',' f_arg opt_args_tail_largs_tail_none",
     "line": 6332,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 780,
@@ -4683,7 +4683,7 @@
     "id": 781,
     "rule": "f_args-list_largs_tail_none: f_arg opt_args_tail_largs_tail_none",
     "line": 6349,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 782,
@@ -4749,7 +4749,7 @@
     "id": 792,
     "rule": "f_norm_arg: \"local variable or method\"",
     "line": 6410,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 793,
@@ -4767,7 +4767,7 @@
     "id": 795,
     "rule": "f_arg_item: \"(\" f_margs rparen",
     "line": 6432,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 796,
@@ -4779,7 +4779,7 @@
     "id": 797,
     "rule": "f_arg: f_arg ',' f_arg_item",
     "line": 6453,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 798,
