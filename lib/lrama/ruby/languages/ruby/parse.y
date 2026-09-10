@@ -1422,7 +1422,7 @@ p_primitive: symbols { $$ = $1 };
 /* upstream parse.y:5746: p_primitive: qsymbols */
 p_primitive: qsymbols { $$ = $1 };
 /* upstream parse.y:5748: p_primitive: keyword_variable */
-p_primitive: keyword_variable { $$ = @builder.unsupported(619) };
+p_primitive: keyword_variable { $$ = $1 };
 /* upstream parse.y:5752: p_primitive: lambda */
 p_primitive: lambda { $$ = $1 };
 /* upstream parse.y:5756: p_variable: "local variable or method" */
@@ -1438,7 +1438,7 @@ p_const: tCOLON3 cname %prec tCOLON3 { $$ = @builder.unsupported(625) };
 /* upstream parse.y:5795: p_const: p_const "::" cname */
 p_const: p_const tCOLON2 cname %prec tCOLON2 { $$ = @builder.unsupported(626) };
 /* upstream parse.y:5800: p_const: "constant" */
-p_const: tCONSTANT %prec tCONSTANT { $$ = @builder.unsupported(627) };
+p_const: tCONSTANT %prec tCONSTANT { $$ = $1 };
 /* upstream parse.y:5809: opt_rescue: k_rescue exc_list exc_var then compstmt_stmts opt_rescue */
 opt_rescue: k_rescue exc_list exc_var then compstmt_stmts opt_rescue { $$ = @builder.unsupported(628) };
 /* upstream parse.y:5827: opt_rescue: none */
@@ -1512,7 +1512,7 @@ qword_list: %empty { $$ = [] };
 /* upstream parse.y:5968: qword_list: qword_list "literal content" nonempty_list_' ' */
 qword_list: qword_list tSTRING_CONTENT nonempty_list____ %prec tSTRING_CONTENT { $$ = ($1 + [$2]).freeze };
 /* upstream parse.y:5975: qsym_list: %empty */
-qsym_list: %empty { $$ = @builder.unsupported(664) };
+qsym_list: %empty { $$ = nil };
 /* upstream parse.y:5980: qsym_list: qsym_list "literal content" nonempty_list_' ' */
 qsym_list: qsym_list tSTRING_CONTENT nonempty_list____ %prec tSTRING_CONTENT { $$ = @builder.unsupported(665) };
 /* upstream parse.y:5987: string_contents: %empty */
@@ -1530,27 +1530,27 @@ regexp_contents: regexp_contents string_content { $$ = ($1 + [$2]).freeze };
 /* upstream parse.y:6041: string_content: "literal content" */
 string_content: tSTRING_CONTENT %prec tSTRING_CONTENT { $$ = $1 };
 /* upstream parse.y:6044: @34: %empty */
-midrule_34: %empty { $$ = @builder.unsupported(673) };
+midrule_34: %empty { $$ = nil };
 /* upstream parse.y:6051: string_content: tSTRING_DVAR @34 string_dvar */
 string_content: tSTRING_DVAR midrule_34 string_dvar %prec tSTRING_DVAR { $$ = @builder.unsupported(674) };
 /* upstream parse.y:6058: @35: %empty */
-midrule_35: %empty { $$ = @builder.unsupported(675) };
+midrule_35: %empty { $$ = nil };
 /* upstream parse.y:6066: @36: %empty */
-midrule_36: %empty { $$ = @builder.unsupported(676) };
+midrule_36: %empty { $$ = nil };
 /* upstream parse.y:6070: @37: %empty */
-midrule_37: %empty { $$ = @builder.unsupported(677) };
+midrule_37: %empty { $$ = nil };
 /* upstream parse.y:6074: @38: %empty */
-midrule_38: %empty { $$ = @builder.unsupported(678) };
+midrule_38: %empty { $$ = nil };
 /* upstream parse.y:6079: string_content: "'#{'" @35 @36 @37 @38 compstmt_stmts string_dend */
 string_content: tSTRING_DBEG midrule_35 midrule_36 midrule_37 midrule_38 compstmt_stmts string_dend %prec tSTRING_DBEG { $$ = @builder.unsupported(679) };
 /* upstream parse.y:6094: string_dend: "'}'" */
-string_dend: tSTRING_DEND %prec tSTRING_DEND { $$ = @builder.unsupported(680) };
+string_dend: tSTRING_DEND %prec tSTRING_DEND { $$ = nil };
 /* upstream parse.y:6095: string_dend: "end-of-input" */
-string_dend: END_OF_INPUT %prec END_OF_INPUT { $$ = @builder.unsupported(681) };
+string_dend: END_OF_INPUT %prec END_OF_INPUT { $$ = nil };
 /* upstream parse.y:6099: string_dvar: nonlocal_var */
-string_dvar: nonlocal_var { $$ = @builder.unsupported(682) };
+string_dvar: nonlocal_var { $$ = $1 };
 /* upstream parse.y:6103: string_dvar: backref */
-string_dvar: backref { $$ = @builder.unsupported(683) };
+string_dvar: backref { $$ = $1 };
 /* upstream parse.y:6106: symbol: ssym */
 symbol: ssym { $$ = $1 };
 /* upstream parse.y:6107: symbol: dsym */
@@ -1606,7 +1606,7 @@ var_ref: user_variable { $$ = @builder.read_local($1) };
 /* upstream parse.y:6182: var_ref: keyword_variable */
 var_ref: keyword_variable { $$ = $1 };
 /* upstream parse.y:6189: var_lhs: user_variable */
-var_lhs: user_variable { $$ = @builder.unsupported(711) };
+var_lhs: user_variable { $$ = $1 };
 /* upstream parse.y:6189: var_lhs: keyword_variable */
 var_lhs: keyword_variable { $$ = @builder.unsupported(712) };
 /* upstream parse.y:6195: backref: "numbered reference" */

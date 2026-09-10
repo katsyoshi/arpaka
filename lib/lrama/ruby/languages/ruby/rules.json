@@ -3711,7 +3711,7 @@
     "id": 619,
     "rule": "p_primitive: keyword_variable",
     "line": 5748,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 620,
@@ -3759,7 +3759,7 @@
     "id": 627,
     "rule": "p_const: \"constant\"",
     "line": 5800,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 628,
@@ -3981,7 +3981,7 @@
     "id": 664,
     "rule": "qsym_list: %empty",
     "line": 5975,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 665,
@@ -4035,7 +4035,7 @@
     "id": 673,
     "rule": "@34: %empty",
     "line": 6044,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 674,
@@ -4047,25 +4047,25 @@
     "id": 675,
     "rule": "@35: %empty",
     "line": 6058,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 676,
     "rule": "@36: %empty",
     "line": 6066,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 677,
     "rule": "@37: %empty",
     "line": 6070,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 678,
     "rule": "@38: %empty",
     "line": 6074,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 679,
@@ -4077,25 +4077,25 @@
     "id": 680,
     "rule": "string_dend: \"'}'\"",
     "line": 6094,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 681,
     "rule": "string_dend: \"end-of-input\"",
     "line": 6095,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 682,
     "rule": "string_dvar: nonlocal_var",
     "line": 6099,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 683,
     "rule": "string_dvar: backref",
     "line": 6103,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 684,
@@ -4263,7 +4263,7 @@
     "id": 711,
     "rule": "var_lhs: user_variable",
     "line": 6189,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 712,
