@@ -163,6 +163,7 @@ module RubyGrammarActions
     336 => ["ported", "($1 + [$3]).freeze"],
     337 => ["ported", "($1 + [$4]).freeze"],
     338 => ["ported", "[$2].freeze"],
+    349 => ["ported", "@builder.reserved_word(\"method\")"],
     252 => ["pass_through", "$1"],
     284 => ["ported", "@builder.ternary($1, $3, $6)"],
     96 => ["pass_through", "$1"],

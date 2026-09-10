@@ -882,7 +882,7 @@ primary: var_ref { $$ = $1 };
 /* upstream parse.y:4385: primary: backref */
 primary: backref { $$ = $1 };
 /* upstream parse.y:4387: primary: "method" */
-primary: tFID %prec tFID { $$ = @builder.unsupported(349) };
+primary: tFID %prec tFID { $$ = @builder.reserved_word("method") };
 /* upstream parse.y:4392: $@14: %empty */
 midrule_14: %empty { $$ = nil };
 /* upstream parse.y:4397: primary: k_begin $@14 bodystmt k_end */

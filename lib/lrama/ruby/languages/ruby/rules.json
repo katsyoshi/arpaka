@@ -2091,7 +2091,7 @@
     "id": 349,
     "rule": "primary: \"method\"",
     "line": 4387,
-    "status": "unsupported"
+    "status": "ported"
   },
   {
     "id": 350,
