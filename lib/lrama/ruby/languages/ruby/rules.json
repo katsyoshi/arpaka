@@ -2877,7 +2877,7 @@
     "id": 480,
     "rule": "opt_block_param_def: block_param_def",
     "line": 5020,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 481,
@@ -2889,19 +2889,19 @@
     "id": 482,
     "rule": "opt_block_param: %empty",
     "line": 5035,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 483,
     "rule": "opt_block_param: block_param",
     "line": 5039,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 484,
     "rule": "opt_bv_decl: option_'\\n'",
     "line": 5043,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 485,
@@ -2913,7 +2913,7 @@
     "id": 486,
     "rule": "bv_decls: bvar",
     "line": 5054,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 487,
@@ -2931,25 +2931,25 @@
     "id": 489,
     "rule": "bvar: f_bad_arg",
     "line": 5065,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 490,
     "rule": "max_numparam: %empty",
     "line": 5068,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 491,
     "rule": "numparam: %empty",
     "line": 5074,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 492,
     "rule": "it_id: %empty",
     "line": 5079,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 493,
@@ -2979,7 +2979,7 @@
     "id": 497,
     "rule": "f_larglist: f_largs",
     "line": 5127,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 498,
@@ -3099,7 +3099,7 @@
     "id": 517,
     "rule": "@29: %empty",
     "line": 5267,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 518,
@@ -3111,7 +3111,7 @@
     "id": 519,
     "rule": "@30: %empty",
     "line": 5284,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 520,
@@ -3165,25 +3165,25 @@
     "id": 528,
     "rule": "p_pvtbl: %empty",
     "line": 5343,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 529,
     "rule": "p_pktbl: %empty",
     "line": 5344,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 530,
     "rule": "p_in_kwarg: %empty",
     "line": 5346,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 531,
     "rule": "$@31: %empty",
     "line": 5359,
-    "status": "unsupported"
+    "status": "empty"
   },
   {
     "id": 532,
@@ -3195,19 +3195,19 @@
     "id": 533,
     "rule": "p_cases: opt_else",
     "line": 5374,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 534,
     "rule": "p_cases: p_case_body",
     "line": 5375,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 535,
     "rule": "p_top_expr: p_top_expr_body",
     "line": 5378,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 536,
@@ -3225,7 +3225,7 @@
     "id": 538,
     "rule": "p_top_expr_body: p_expr",
     "line": 5393,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 539,

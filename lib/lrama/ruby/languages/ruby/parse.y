@@ -1144,31 +1144,31 @@ block_param: tail_only_args_block_args_tail { $$ = $1 };
 /* upstream parse.y:5018: opt_block_param_def: none */
 opt_block_param_def: none { $$ = nil };
 /* upstream parse.y:5020: opt_block_param_def: block_param_def */
-opt_block_param_def: block_param_def { $$ = @builder.unsupported(480) };
+opt_block_param_def: block_param_def { $$ = $1 };
 /* upstream parse.y:5026: block_param_def: '|' opt_block_param opt_bv_decl '|' */
 block_param_def: '|' opt_block_param opt_bv_decl '|' %prec '|' { $$ = @builder.unsupported(481) };
 /* upstream parse.y:5035: opt_block_param: %empty */
-opt_block_param: %empty { $$ = @builder.unsupported(482) };
+opt_block_param: %empty { $$ = nil };
 /* upstream parse.y:5039: opt_block_param: block_param */
-opt_block_param: block_param { $$ = @builder.unsupported(483) };
+opt_block_param: block_param { $$ = $1 };
 /* upstream parse.y:5043: opt_bv_decl: option_'\n' */
-opt_bv_decl: option_newline { $$ = @builder.unsupported(484) };
+opt_bv_decl: option_newline { $$ = $1 };
 /* upstream parse.y:5048: opt_bv_decl: option_'\n' ';' bv_decls option_'\n' */
 opt_bv_decl: option_newline ';' bv_decls option_newline %prec ';' { $$ = @builder.unsupported(485) };
 /* upstream parse.y:5054: bv_decls: bvar */
-bv_decls: bvar { $$ = @builder.unsupported(486) };
+bv_decls: bvar { $$ = $1 };
 /* upstream parse.y:5056: bv_decls: bv_decls ',' bvar */
 bv_decls: bv_decls ',' bvar %prec ',' { $$ = @builder.unsupported(487) };
 /* upstream parse.y:5061: bvar: "local variable or method" */
 bvar: tIDENTIFIER %prec tIDENTIFIER { $$ = @builder.unsupported(488) };
 /* upstream parse.y:5065: bvar: f_bad_arg */
-bvar: f_bad_arg { $$ = @builder.unsupported(489) };
+bvar: f_bad_arg { $$ = $1 };
 /* upstream parse.y:5068: max_numparam: %empty */
-max_numparam: %empty { $$ = @builder.unsupported(490) };
+max_numparam: %empty { $$ = nil };
 /* upstream parse.y:5074: numparam: %empty */
-numparam: %empty { $$ = @builder.unsupported(491) };
+numparam: %empty { $$ = nil };
 /* upstream parse.y:5079: it_id: %empty */
-it_id: %empty { $$ = @builder.unsupported(492) };
+it_id: %empty { $$ = nil };
 /* upstream parse.y:5086: @26: %empty */
 midrule_26: %empty { $$ = nil };
 /* upstream parse.y:5092: $@27: %empty */
@@ -1178,7 +1178,7 @@ lambda: tLAMBDA midrule_26 max_numparam numparam it_id allow_exits f_larglist mi
 /* upstream parse.y:5120: f_larglist: '(' f_largs opt_bv_decl ')' */
 f_larglist: '(' f_largs opt_bv_decl ')' %prec ')' { $$ = $2 };
 /* upstream parse.y:5127: f_larglist: f_largs */
-f_larglist: f_largs { $$ = @builder.unsupported(497) };
+f_larglist: f_largs { $$ = $1 };
 /* upstream parse.y:5136: lambda_body: tLAMBEG compstmt_stmts '}' */
 lambda_body: tLAMBEG compstmt_stmts '}' %prec '}' { $$ = $2 };
 /* upstream parse.y:5142: $@28: %empty */
@@ -1218,11 +1218,11 @@ brace_block: '{' brace_body '}' %prec '}' { $$ = @builder.unsupported(515) };
 /* upstream parse.y:5260: brace_block: k_do do_body k_end */
 brace_block: k_do do_body k_end { $$ = @builder.unsupported(516) };
 /* upstream parse.y:5267: @29: %empty */
-midrule_29: %empty { $$ = @builder.unsupported(517) };
+midrule_29: %empty { $$ = nil };
 /* upstream parse.y:5270: brace_body: @29 max_numparam numparam it_id allow_exits opt_block_param_def compstmt_stmts */
 brace_body: midrule_29 max_numparam numparam it_id allow_exits opt_block_param_def compstmt_stmts { $$ = @builder.unsupported(518) };
 /* upstream parse.y:5284: @30: %empty */
-midrule_30: %empty { $$ = @builder.unsupported(519) };
+midrule_30: %empty { $$ = nil };
 /* upstream parse.y:5290: do_body: @30 max_numparam numparam it_id allow_exits opt_block_param_def bodystmt */
 do_body: midrule_30 max_numparam numparam it_id allow_exits opt_block_param_def bodystmt { $$ = @builder.unsupported(520) };
 /* upstream parse.y:5306: case_args: arg_value */
@@ -1240,27 +1240,27 @@ cases: opt_else { $$ = $1 };
 /* upstream parse.y:5340: cases: case_body */
 cases: case_body { $$ = [$1].freeze };
 /* upstream parse.y:5343: p_pvtbl: %empty */
-p_pvtbl: %empty { $$ = @builder.unsupported(528) };
+p_pvtbl: %empty { $$ = nil };
 /* upstream parse.y:5344: p_pktbl: %empty */
-p_pktbl: %empty { $$ = @builder.unsupported(529) };
+p_pktbl: %empty { $$ = nil };
 /* upstream parse.y:5346: p_in_kwarg: %empty */
-p_in_kwarg: %empty { $$ = @builder.unsupported(530) };
+p_in_kwarg: %empty { $$ = nil };
 /* upstream parse.y:5359: $@31: %empty */
-midrule_31: %empty { $$ = @builder.unsupported(531) };
+midrule_31: %empty { $$ = nil };
 /* upstream parse.y:5368: p_case_body: "'in'" p_in_kwarg p_pvtbl p_pktbl p_top_expr then $@31 compstmt_stmts p_cases */
 p_case_body: keyword_in p_in_kwarg p_pvtbl p_pktbl p_top_expr then midrule_31 compstmt_stmts p_cases %prec keyword_in { $$ = @builder.unsupported(532) };
 /* upstream parse.y:5374: p_cases: opt_else */
-p_cases: opt_else { $$ = @builder.unsupported(533) };
+p_cases: opt_else { $$ = $1 };
 /* upstream parse.y:5375: p_cases: p_case_body */
-p_cases: p_case_body { $$ = @builder.unsupported(534) };
+p_cases: p_case_body { $$ = $1 };
 /* upstream parse.y:5378: p_top_expr: p_top_expr_body */
-p_top_expr: p_top_expr_body { $$ = @builder.unsupported(535) };
+p_top_expr: p_top_expr_body { $$ = $1 };
 /* upstream parse.y:5380: p_top_expr: p_top_expr_body "'if' modifier" expr_value */
 p_top_expr: p_top_expr_body modifier_if expr_value %prec modifier_if { $$ = @builder.unsupported(536) };
 /* upstream parse.y:5386: p_top_expr: p_top_expr_body "'unless' modifier" expr_value */
 p_top_expr: p_top_expr_body modifier_unless expr_value %prec modifier_unless { $$ = @builder.unsupported(537) };
 /* upstream parse.y:5393: p_top_expr_body: p_expr */
-p_top_expr_body: p_expr { $$ = @builder.unsupported(538) };
+p_top_expr_body: p_expr { $$ = $1 };
 /* upstream parse.y:5395: p_top_expr_body: p_expr ',' */
 p_top_expr_body: p_expr ',' %prec ',' { $$ = @builder.unsupported(539) };
 /* upstream parse.y:5401: p_top_expr_body: p_expr ',' p_args */
