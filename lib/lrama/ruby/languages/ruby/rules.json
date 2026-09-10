@@ -57,7 +57,7 @@
     "id": 10,
     "rule": "top_stmt: \"'BEGIN'\" begin_block",
     "line": 3225,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 11,
@@ -69,7 +69,7 @@
     "id": 12,
     "rule": "begin_block: block_open compstmt_top_stmts '}'",
     "line": 3234,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 13,
@@ -141,7 +141,7 @@
     "id": 24,
     "rule": "stmt_or_begin: \"'BEGIN'\" $@5 begin_block",
     "line": 3296,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 25,
@@ -153,7 +153,7 @@
     "id": 26,
     "rule": "k_END: \"'END'\" lex_ctxt",
     "line": 3304,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 27,
@@ -165,31 +165,31 @@
     "id": 28,
     "rule": "stmt: \"'alias'\" fitem $@6 fitem",
     "line": 3314,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 29,
     "rule": "stmt: \"'alias'\" \"global variable\" \"global variable\"",
     "line": 3319,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 30,
     "rule": "stmt: \"'alias'\" \"global variable\" \"back reference\"",
     "line": 3324,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 31,
     "rule": "stmt: \"'alias'\" \"global variable\" \"numbered reference\"",
     "line": 3332,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 32,
     "rule": "stmt: \"'undef'\" undef_list",
     "line": 3341,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 33,
@@ -225,7 +225,7 @@
     "id": 38,
     "rule": "stmt: k_END block_open compstmt_stmts '}'",
     "line": 3391,
-    "status": "unsupported"
+    "status": "pass_through"
   },
   {
     "id": 39,

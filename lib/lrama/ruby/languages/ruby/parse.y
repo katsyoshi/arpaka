@@ -204,11 +204,11 @@ top_stmts: top_stmts terms top_stmt { $$ = ($1 + [$3]).freeze };
 /* upstream parse.y:3220: top_stmt: stmt */
 top_stmt: stmt { $$ = $1 };
 /* upstream parse.y:3225: top_stmt: "'BEGIN'" begin_block */
-top_stmt: keyword_BEGIN begin_block %prec keyword_BEGIN { $$ = @builder.unsupported(10) };
+top_stmt: keyword_BEGIN begin_block %prec keyword_BEGIN { $$ = $2 };
 /* upstream parse.y:3231: block_open: '{' */
 block_open: '{' %prec '{' { $$ = nil };
 /* upstream parse.y:3234: begin_block: block_open compstmt_top_stmts '}' */
-begin_block: block_open compstmt_top_stmts '}' %prec '}' { $$ = @builder.unsupported(12) };
+begin_block: block_open compstmt_top_stmts '}' %prec '}' { $$ = $2 };
 /* upstream parse.y:2991: compstmt_stmts: stmts option_terms */
 compstmt_stmts: stmts option_terms { $$ = $1 };
 /* upstream parse.y:3247: $@2: %empty */
@@ -232,23 +232,23 @@ stmt_or_begin: stmt { $$ = $1 };
 /* upstream parse.y:3292: $@5: %empty */
 midrule_5: %empty { $$ = nil };
 /* upstream parse.y:3296: stmt_or_begin: "'BEGIN'" $@5 begin_block */
-stmt_or_begin: keyword_BEGIN midrule_5 begin_block %prec keyword_BEGIN { $$ = @builder.unsupported(24) };
+stmt_or_begin: keyword_BEGIN midrule_5 begin_block %prec keyword_BEGIN { $$ = $3 };
 /* upstream parse.y:3301: allow_exits: %empty */
 allow_exits: %empty { $$ = nil };
 /* upstream parse.y:3304: k_END: "'END'" lex_ctxt */
-k_END: keyword_END lex_ctxt %prec keyword_END { $$ = @builder.unsupported(26) };
+k_END: keyword_END lex_ctxt %prec keyword_END { $$ = $1 };
 /* upstream parse.y:3313: $@6: %empty */
 midrule_6: %empty { $$ = nil };
 /* upstream parse.y:3314: stmt: "'alias'" fitem $@6 fitem */
-stmt: keyword_alias fitem midrule_6 fitem %prec keyword_alias { $$ = @builder.unsupported(28) };
+stmt: keyword_alias fitem midrule_6 fitem %prec keyword_alias { $$ = $2 };
 /* upstream parse.y:3319: stmt: "'alias'" "global variable" "global variable" */
-stmt: keyword_alias tGVAR tGVAR %prec tGVAR { $$ = @builder.unsupported(29) };
+stmt: keyword_alias tGVAR tGVAR %prec tGVAR { $$ = $2 };
 /* upstream parse.y:3324: stmt: "'alias'" "global variable" "back reference" */
-stmt: keyword_alias tGVAR tBACK_REF %prec tBACK_REF { $$ = @builder.unsupported(30) };
+stmt: keyword_alias tGVAR tBACK_REF %prec tBACK_REF { $$ = $2 };
 /* upstream parse.y:3332: stmt: "'alias'" "global variable" "numbered reference" */
-stmt: keyword_alias tGVAR tNTH_REF %prec tNTH_REF { $$ = @builder.unsupported(31) };
+stmt: keyword_alias tGVAR tNTH_REF %prec tNTH_REF { $$ = $2 };
 /* upstream parse.y:3341: stmt: "'undef'" undef_list */
-stmt: keyword_undef undef_list %prec keyword_undef { $$ = @builder.unsupported(32) };
+stmt: keyword_undef undef_list %prec keyword_undef { $$ = $2 };
 /* upstream parse.y:3348: stmt: stmt "'if' modifier" expr_value */
 stmt: stmt modifier_if expr_value %prec modifier_if { $$ = @builder.if_node($3, [$1], nil) };
 /* upstream parse.y:3354: stmt: stmt "'unless' modifier" expr_value */
@@ -260,7 +260,7 @@ stmt: stmt modifier_until expr_value %prec modifier_until { $$ = @builder.loop(:
 /* upstream parse.y:3382: stmt: stmt "'rescue' modifier" after_rescue stmt */
 stmt: stmt modifier_rescue after_rescue stmt %prec modifier_rescue { $$ = @builder.rescue_modifier($1, $4) };
 /* upstream parse.y:3391: stmt: k_END block_open compstmt_stmts '}' */
-stmt: k_END block_open compstmt_stmts '}' %prec '}' { $$ = @builder.unsupported(38) };
+stmt: k_END block_open compstmt_stmts '}' %prec '}' { $$ = $3 };
 /* upstream parse.y:3402: stmt: command_asgn */
 stmt: command_asgn { $$ = $1 };
 /* upstream parse.y:3404: stmt: mlhs '=' lex_ctxt command_call_value */
