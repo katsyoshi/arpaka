@@ -414,6 +414,13 @@ class ArpakaTest < Test::Unit::TestCase
       Arpaka.parse_source("map(&:to_s)").statements.first)
   end
 
+  test "source lexer accepts argumentless command blocks" do
+    assert_equal(AST::Call.new(:included, []),
+      Arpaka.parse_source("included do\n  1\nend").statements.first)
+    assert_equal(AST::BareCall.new(:foo),
+      Arpaka.parse_source("foo.bar do\n  1\nend").statements.first)
+  end
+
   test "source lexer recognizes operator method names and top-level constants" do
     assert_equal(AST::Def.new(:[], [], [AST::BareCall.new(:x)]),
       Arpaka.parse_source("def [](x); x; end").statements.first)

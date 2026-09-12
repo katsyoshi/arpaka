@@ -55,6 +55,7 @@ module Lrama
             @index = 0
             @line = 1
             @column = 0
+            @previous_previous = nil
             @previous = nil
             @begin_expression = true
             @delimiter_depth = 0
@@ -103,6 +104,7 @@ module Lrama
           def next_token
             unless @pending.empty?
               value = @pending.shift
+              @previous_previous = @previous
               @previous = value[0]
               @begin_expression = expression_begin_after(value[0])
               return value
@@ -137,6 +139,7 @@ module Lrama
             else
               operator_or_punctuation(start)
             end
+            @previous_previous = @previous
             @previous = value && value[0]
             @begin_expression = expression_begin_after(value && value[0])
             value
@@ -198,6 +201,10 @@ module Lrama
               advance
               return [:tLABEL, word.to_sym]
             end
+            if word == "do" && no_argument_block?
+              @pending.unshift([:keyword_do_block, nil])
+              return [:tAMPER, nil]
+            end
             token = KEYWORDS[word]
             if !@begin_expression && { "if" => :modifier_if, "unless" => :modifier_unless,
               "while" => :modifier_while, "until" => :modifier_until,
@@ -226,6 +233,12 @@ module Lrama
             else
               :keyword_do_block
             end
+          end
+
+          def no_argument_block?
+            return false unless [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
+            return false if [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous_previous)
+            true
           end
 
           def number_token(start)
