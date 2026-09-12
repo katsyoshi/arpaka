@@ -317,6 +317,7 @@ module Lrama
           def variable_token(start)
             marker = byte
             advance
+            advance if marker == 64 && byte == 64
             if marker == 36 && byte && byte.between?(48, 57)
               advance while byte && byte.between?(48, 57)
               return [:tNTH_REF, @source.byteslice(start + 1, @index - start - 1).to_i]

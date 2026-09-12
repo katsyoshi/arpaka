@@ -558,6 +558,10 @@ class ArpakaTest < Test::Unit::TestCase
     end
   end
 
+  test "source lexer recognizes class variables" do
+    assert_nothing_raised { Arpaka.parse_source("@@templates = {}\n@@templates\n") }
+  end
+
   test "single quoted heredoc keeps interpolation literal" do
     assert_equal(AST::StringLiteral.new("\#{x}\n"),
       Arpaka.parse_source("<<'TEXT'\n\#{x}\nTEXT\n").statements.first)
