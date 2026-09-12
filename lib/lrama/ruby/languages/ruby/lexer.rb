@@ -213,6 +213,10 @@ module Lrama
               advance
               return [:tFID, (word + "=").to_sym]
             end
+            if byte == 61 && @previous == :tSYMBEG
+              advance
+              return [:tIDENTIFIER, (word + "=").to_sym]
+            end
             if byte == 58 && byte(1) != 58
               advance
               return [:tLABEL, word.to_sym]

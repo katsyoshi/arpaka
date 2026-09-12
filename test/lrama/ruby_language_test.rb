@@ -521,6 +521,7 @@ class ArpakaTest < Test::Unit::TestCase
 
   test "source lexer accepts symbols after predicate-like identifiers" do
     assert_nothing_raised { Arpaka.parse_source("alias :merge! :update\n") }
+    assert_nothing_raised { Arpaka.parse_source("alias :default_options= :default\n") }
   end
 
   test "source lexer accepts ampersand operator symbols" do
