@@ -463,9 +463,15 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal([:tIDENTIFIER, :tLSHFT, :tIDENTIFIER, :keyword_do_block], tokens[0, 4].map(&:first))
   end
 
+  test "source lexer preserves newlines before terminators" do
+    assert_nothing_raised { Arpaka.parse_source("def empty\nend\n") }
+    assert_nothing_raised { Arpaka.parse_source("if condition\nend\n") }
+    assert_nothing_raised { Arpaka.parse_source("foo do\nend\n") }
+  end
+
   test "source lexer uses ordinary do after parenthesized calls" do
     tokens = Arpaka.const_get(:Lexer, false).new("each(1) do\nend").each.to_a
-    assert_equal(:keyword_do, tokens.map(&:first)[-3])
+    assert_equal(:keyword_do, tokens.map(&:first)[-4])
     assert_instance_of(AST::Call, Arpaka.parse_source("each(1) do\nend").statements.first)
   end
 
