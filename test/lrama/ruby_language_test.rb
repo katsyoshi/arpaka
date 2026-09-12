@@ -462,6 +462,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal([:tIDENTIFIER, :tLSHFT, :tIDENTIFIER, :keyword_do_block], tokens[0, 4].map(&:first))
   end
 
+  test "source lexer uses ordinary do after parenthesized calls" do
+    tokens = Arpaka.const_get(:Lexer, false).new("each(1) do\nend").each.to_a
+    assert_equal(:keyword_do, tokens.map(&:first)[-3])
+    assert_instance_of(AST::Call, Arpaka.parse_source("each(1) do\nend").statements.first)
+  end
+
   test "source lexer recognizes operator method names and top-level constants" do
     assert_equal(AST::Def.new(:[], [], [AST::BareCall.new(:x)]),
       Arpaka.parse_source("def [](x); x; end").statements.first)

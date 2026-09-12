@@ -240,6 +240,8 @@ module Lrama
             if @condition_do
               @condition_do = false
               :keyword_do_cond
+            elsif @previous == ")"
+              :keyword_do
             elsif @previous == :tLAMBDA
               :keyword_do_LAMBDA
             else
