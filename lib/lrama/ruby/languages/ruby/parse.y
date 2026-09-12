@@ -1894,3 +1894,4 @@ terms: terms ';' %prec ';' { $$ = nil };
 none: %empty { $$ = nil };
 /* arpaka extension: block call as a parenthesized argument */
 call_args: block_call { $$ = [$1].freeze };
+call_args: args ',' block_call %prec tLOWEST { $$ = ($1 + [$3]).freeze };

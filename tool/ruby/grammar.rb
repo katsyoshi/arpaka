@@ -106,6 +106,7 @@ module RubyGrammar
     end
     lines << "/* arpaka extension: block call as a parenthesized argument */"
     lines << "call_args: block_call { $$ = [$1].freeze };"
+    lines << "call_args: args ',' block_call %prec tLOWEST { $$ = ($1 + [$3]).freeze };"
     source = lines.join("\n") + "\n"
     verify_structure(grammar, source, names)
     compact = rules.map do |rule|
@@ -133,7 +134,11 @@ module RubyGrammar
       end
     end
     expected_rules << ["call_args", ["block_call"], nil]
-    raise "Production structure changed" unless expected_rules.sort_by(&:inspect) == signature.call(port, {}).sort_by(&:inspect)
+    expected_rules << ["call_args", ["args", "','", "block_call"], "tLOWEST"]
+    actual_rules = signature.call(port, {})
+    unless expected_rules.sort_by(&:inspect) == actual_rules.sort_by(&:inspect)
+      raise "Production structure changed"
+    end
     terms = lambda do |grammar|
       grammar.terms.map { |symbol| [symbol.id.s_value, symbol.token_id, symbol.precedence&.type, symbol.precedence&.precedence] }.sort_by(&:inspect)
     end

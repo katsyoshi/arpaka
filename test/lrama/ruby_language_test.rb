@@ -471,6 +471,10 @@ class ArpakaTest < Test::Unit::TestCase
   test "grammar precedence accepts block calls as parenthesized arguments" do
     tree = Arpaka.parse_source("call(lambda do\nend)\n")
     assert_equal(AST::Call.new(:call, [AST::Call.new(:lambda, [])]), tree.statements.first)
+
+    assert_nothing_raised do
+      Arpaka.parse_source("subscribe(x, handler, lambda do\n  work\nend)\n")
+    end
   end
 
   test "source lexer uses brace blocks after parenthesized calls" do
