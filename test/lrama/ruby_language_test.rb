@@ -381,4 +381,20 @@ class ArpakaTest < Test::Unit::TestCase
       assert_raise(Arpaka::LexerError) { Arpaka.parse_source(source) }
     end
   end
+
+  test "source lexer handles heredoc indentation and line endings" do
+    assert_equal(AST::StringLiteral.new("one\n  two\n"),
+      Arpaka.parse_source("<<~TEXT\n  one\n    two\n  TEXT\n").statements.first)
+    assert_equal(AST::StringLiteral.new("  one\n"),
+      Arpaka.parse_source("<<-TEXT\n  one\n    TEXT\n").statements.first)
+    assert_equal(AST::StringLiteral.new("one\r\ntwo\r\n"),
+      Arpaka.parse_source("<<TEXT\r\none\r\ntwo\r\nTEXT\r\n").statements.first)
+    assert_equal(AST::XStringLiteral.new("echo\n"),
+      Arpaka.parse_source("<<`TEXT`\necho\nTEXT\n").statements.first)
+  end
+
+  test "single quoted heredoc keeps interpolation literal" do
+    assert_equal(AST::StringLiteral.new("\#{x}\n"),
+      Arpaka.parse_source("<<'TEXT'\n\#{x}\nTEXT\n").statements.first)
+  end
 end

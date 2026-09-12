@@ -448,7 +448,9 @@ module Lrama
 
           def heredoc_token(start)
             advance(2)
-            advance if byte == 45 || byte == 126
+            indent = byte == 45 || byte == 126
+            squiggly = byte == 126
+            advance if indent
             quote = byte
             if quote == 39 || quote == 34 || quote == 96
               advance
@@ -466,20 +468,36 @@ module Lrama
             advance while byte && byte != 10
             advance if byte == 10
             body = +""
+            interpolate = quote != 39
             loop do
               line_start = @index
               advance while !eof? && byte != 10
               line = @source.byteslice(line_start, @index - line_start)
-              if line == delimiter
+              line_without_cr = line.delete_suffix("\r")
+              terminator = indent ? line_without_cr.sub(/\A[ \t]*/, "") : line_without_cr
+              if terminator == delimiter
                 advance if byte == 10
                 break
               end
+              fail!("string interpolation cannot be represented by the AST", start) if interpolate && line.include?("#" + "{")
               body << line << "\n"
               advance if byte == 10
               fail!("unterminated heredoc", start) if eof?
             end
+            body = dedent_heredoc(body) if squiggly
             @pending = [[:tSTRING_CONTENT, body], [:tSTRING_END, nil]]
-            [:tSTRING_BEG, nil]
+            [quote == 96 ? :tXSTRING_BEG : :tSTRING_BEG, nil]
+          end
+
+          def dedent_heredoc(body)
+            indents = body.lines.filter_map do |line|
+              next if line.strip.empty?
+              line[/\A[ \t]*/].bytesize
+            end
+            return body if indents.empty?
+
+            width = indents.min
+            body.lines.map { |line| line.sub(/\A[ \t]{0,#{width}}/, "") }.join
           end
 
           def operator_or_punctuation(start)
