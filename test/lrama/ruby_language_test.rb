@@ -536,6 +536,10 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("\"left\" \\\n\"right\"\n") }
   end
 
+  test "source lexer continues method chains after newlines" do
+    assert_nothing_raised { Arpaka.parse_source("value\n  .first\n  .to_s\n") }
+  end
+
   test "source lexer recognizes operator method names and top-level constants" do
     assert_equal(AST::Def.new(:[], [], [AST::BareCall.new(:x)]),
       Arpaka.parse_source("def [](x); x; end").statements.first)

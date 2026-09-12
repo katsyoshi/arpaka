@@ -170,7 +170,8 @@ module Lrama
           def newline_ignored?
             ignored = @delimiter_depth.positive? || @previous == "\n" ||
               ["+", "-", "*", "/", "%", "=", "?", ":", ",", ".", "&&", "||", "=>"].include?(@previous) ||
-              [:tANDOP, :tOROP, :tMATCH, :tNMATCH, :tASSOC, :tOP_ASGN].include?(@previous)
+              [:tANDOP, :tOROP, :tMATCH, :tNMATCH, :tASSOC, :tOP_ASGN].include?(@previous) ||
+              next_non_space_byte == 46
             @condition_line = false if ignored && @condition_line
             ignored
           end
@@ -182,6 +183,12 @@ module Lrama
               @source.byteslice(position, word.bytesize) == word &&
                 !identifier_byte?(@source.getbyte(position + word.bytesize))
             end
+          end
+
+          def next_non_space_byte
+            position = @index
+            position += 1 while [9, 11, 12, 13, 32].include?(@source.getbyte(position))
+            @source.getbyte(position)
           end
 
           def expression_begin_after(token)
