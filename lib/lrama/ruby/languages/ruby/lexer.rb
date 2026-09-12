@@ -414,6 +414,7 @@ module Lrama
           end
 
           def regexp_or_operator(start)
+            return operator_or_punctuation(start) if @previous == :keyword_def
             if @begin_expression
               advance
               value = read_regexp(start)
