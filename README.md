@@ -132,6 +132,19 @@ values are Floats, and `tIDENTIFIER` values are Symbols or Strings. Operators an
 keywords may carry `nil`. Parentheses use Ruby's context-dependent token names
 (for example `tLPAREN` followed by `")"`), not a source string tokenizer.
 
+For source input, use `Arpaka.parse_source`:
+
+```ruby
+tree = Arpaka.parse_source("a = 1\na + 2", filename: "example.rb")
+```
+
+The source lexer is byte-oriented and context-sensitive. It supports the same
+frontend slice as the token API, including numbers, variables, calls, arrays,
+hashes, control flow, definitions, strings, regular expressions, percent
+literals and static heredocs. Lexer failures include filename, line and byte
+column. Ruby interpolation and syntax whose value cannot be represented by the
+current AST raises an explicit lexer error.
+
 The supported slice includes numeric and nil/boolean literals, binary `+ - * /`,
 unary `+ -`, single-expression parentheses, simple local assignments, and
 statements separated by semicolons or newlines. Every successful parse returns

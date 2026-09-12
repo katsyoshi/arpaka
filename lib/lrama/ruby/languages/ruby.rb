@@ -24,6 +24,9 @@ module Lrama
           end
         end
 
+        class LexerError < ::Lrama::Ruby::Error
+        end
+
         PARSER_MUTEX = Mutex.new
         private_constant :PARSER_MUTEX
 
@@ -36,6 +39,11 @@ module Lrama
           rescue parser_class::ParseError => error
             raise ParseError.new(error)
           end
+        end
+
+        def self.parse_source(source, filename: "(ruby)")
+          lexer = Lexer.new(source, filename: filename)
+          parse(lexer.each)
         end
 
         def self.generated_parser
@@ -55,3 +63,4 @@ end
 
 require_relative "ruby/ast"
 require_relative "ruby/builder"
+require_relative "ruby/lexer"

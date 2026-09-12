@@ -18,6 +18,7 @@ module Lrama
     module Languages
       module Ruby
         def self.parse: (Enumerable[[String | Symbol | Integer, untyped]] tokens) -> AST::Program
+        def self.parse_source: (String source, ?filename: String) -> AST::Program
 
         class ParseError < ::Lrama::Ruby::Error
           attr_reader token: untyped
@@ -29,6 +30,9 @@ module Lrama
           attr_reader rule: String
           attr_reader line: Integer
           def initialize: (String rule, Integer line) -> void
+        end
+
+        class LexerError < ::Lrama::Ruby::Error
         end
 
         module AST

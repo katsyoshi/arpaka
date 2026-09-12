@@ -1,0 +1,516 @@
+# frozen_string_literal: true
+
+module Lrama
+  module Ruby
+    module Languages
+      module Ruby
+        # Lexer for Ruby source input.  This deliberately does not use Prism:
+        # the parser needs the same small amount of lexical context that CRuby
+        # keeps in its parser (EXPR_BEG/EXPR_END and delimiter nesting).
+        class Lexer
+          Error = LexerError
+
+          KEYWORDS = {
+            "class" => :keyword_class, "module" => :keyword_module,
+            "def" => :keyword_def, "begin" => :keyword_begin,
+            "rescue" => :keyword_rescue, "ensure" => :keyword_ensure,
+            "end" => :keyword_end, "if" => :keyword_if,
+            "unless" => :keyword_unless, "then" => :keyword_then,
+            "elsif" => :keyword_elsif, "else" => :keyword_else,
+            "case" => :keyword_case, "when" => :keyword_when,
+            "while" => :keyword_while, "until" => :keyword_until,
+            "for" => :keyword_for, "break" => :keyword_break,
+            "next" => :keyword_next, "redo" => :keyword_redo,
+            "retry" => :keyword_retry, "return" => :keyword_return,
+            "yield" => :keyword_yield, "super" => :keyword_super,
+            "self" => :keyword_self, "nil" => :keyword_nil,
+            "true" => :keyword_true, "false" => :keyword_false,
+            "and" => :keyword_and, "or" => :keyword_or,
+            "not" => :keyword_not, "alias" => :keyword_alias,
+            "defined?" => :keyword_defined, "in" => :keyword_in,
+            "BEGIN" => :keyword_BEGIN, "END" => :keyword_END,
+            "__LINE__" => :keyword__LINE__, "__FILE__" => :keyword__FILE__,
+            "__ENCODING__" => :keyword__ENCODING__
+          }.freeze
+
+          OPERATORS = %w[... .. <=> === == != =~ !~ >= <= && || << >> ** => :: &. -> += -= *= /= %= **= <<= >>= &&= ||=].freeze
+          OP_TOKENS = {
+            "**" => :tPOW, "<=>" => :tCMP, "==" => :tEQ, "===" => :tEQQ,
+            "!=" => :tNEQ, ">=" => :tGEQ, "<=" => :tLEQ, "&&" => :tANDOP,
+            "||" => :tOROP, "=~" => :tMATCH, "!~" => :tNMATCH,
+            ".." => :tDOT2, "..." => :tDOT3, "<<" => :tLSHFT,
+            ">>" => :tRSHFT, "&." => :tANDDOT, "::" => :tCOLON2,
+            "=>" => :tASSOC, "->" => :tLAMBDA
+          }.freeze
+
+          def initialize(source, filename: "(ruby)")
+            unless source.is_a?(String)
+              raise ArgumentError, "source must be a String"
+            end
+            unless [Encoding::UTF_8, Encoding::US_ASCII].include?(source.encoding) && source.valid_encoding?
+              raise Error, "#{filename}:1:0: invalid UTF-8 source"
+            end
+            @source = source.b
+            @filename = filename
+            @index = 0
+            @line = 1
+            @column = 0
+            @previous = nil
+            @begin_expression = true
+            @delimiter_depth = 0
+            @pending = []
+            @condition_do = false
+            @condition_line = false
+          end
+
+          def each
+            return enum_for(__method__) unless block_given?
+            until eof? && @pending.empty?
+              token = next_token
+              yield token if token
+            end
+            yield [0, nil]
+          end
+
+          private
+
+          def eof?
+            @index >= @source.bytesize
+          end
+
+          def byte(offset = 0)
+            @source.getbyte(@index + offset)
+          end
+
+          def advance(count = 1)
+            count.times do
+              value = byte
+              @index += 1
+              if value == 10
+                @line += 1
+                @column = 0
+              else
+                @column += 1
+              end
+            end
+          end
+
+          def fail!(message, index = @index, line = @line, column = @column)
+            raise Error, "#{@filename}:#{line}:#{column}: #{message}"
+          end
+
+          def next_token
+            unless @pending.empty?
+              value = @pending.shift
+              @previous = value[0]
+              @begin_expression = expression_begin_after(value[0])
+              return value
+            end
+            skip_space_and_comments
+            return nil if eof?
+
+            start = @index
+            value = case byte
+            when 10
+              advance
+              return next_token if newline_ignored?
+              ["\n", nil]
+            when 39, 34, 96
+              string_token(byte, start)
+            when 47
+              regexp_or_operator(start)
+            when 37
+              percent_token(start)
+            when 60
+              heredoc_or_operator(start)
+            when 48..57
+              number_token(start)
+            when 36, 64
+              variable_token(start)
+            when 63
+              character_or_question(start)
+            when 58
+              symbol_or_colon(start)
+            when 65..90, 95, 97..122, 128..255
+              identifier_token(start)
+            else
+              operator_or_punctuation(start)
+            end
+            @previous = value && value[0]
+            @begin_expression = expression_begin_after(value && value[0])
+            value
+          end
+
+          def skip_space_and_comments
+            loop do
+              while [9, 11, 12, 13, 32].include?(byte)
+                advance
+              end
+              break unless byte == 35
+              advance
+              advance while !eof? && byte != 10
+            end
+          end
+
+          def newline_ignored?
+            ignored = @delimiter_depth.positive? || @previous == "\n" ||
+              ["+", "-", "*", "/", "%", "=", "?", ":", ",", ".", "&&", "||", "=>"].include?(@previous) ||
+              next_word_is_terminator?
+            @condition_line = false if ignored && @condition_line
+            ignored
+          end
+
+          def next_word_is_terminator?
+            position = @index
+            position += 1 while [9, 11, 12, 13, 32].include?(@source.getbyte(position))
+            %w[else elsif end when].any? do |word|
+              @source.byteslice(position, word.bytesize) == word &&
+                !identifier_byte?(@source.getbyte(position + word.bytesize))
+            end
+          end
+
+          def expression_begin_after(token)
+            return true if token.nil? || token == "\n"
+            return false if token == ")" || token == "]" || token == "}"
+            return false if token == :tINTEGER || token == :tFLOAT || token == :tRATIONAL || token == :tIMAGINARY
+            return false if token == :tIDENTIFIER || token == :tCONSTANT || token == :tSTRING_END || token == :tREGEXP_END
+            return false if token == :keyword_true || token == :keyword_false || token == :keyword_nil || token == :keyword_self
+            return false if token == :tIVAR || token == :tGVAR || token == :tCVAR || token == :tNTH_REF
+            true
+          end
+
+          def identifier_token(start)
+            while identifier_byte?(byte)
+              advance
+            end
+            word = @source.byteslice(start, @index - start).force_encoding(Encoding::UTF_8)
+            if byte == 63 && word == "defined"
+              advance
+              word = "defined?"
+            end
+            if byte == 58 && byte(1) != 58
+              advance
+              return [:tLABEL, word.to_sym]
+            end
+            token = KEYWORDS[word]
+            if !@begin_expression && { "if" => :modifier_if, "unless" => :modifier_unless,
+              "while" => :modifier_while, "until" => :modifier_until,
+              "rescue" => :modifier_rescue }.key?(word)
+              token = { "if" => :modifier_if, "unless" => :modifier_unless,
+                "while" => :modifier_while, "until" => :modifier_until,
+                "rescue" => :modifier_rescue }.fetch(word, token)
+            end
+            token ||= word == "do" ? do_token : (word.getbyte(0) == 65 ? :tCONSTANT : :tIDENTIFIER)
+            @condition_do = true if [:keyword_while, :keyword_until, :keyword_for].include?(token)
+            [token, word.to_sym]
+          rescue EncodingError
+            fail!("invalid UTF-8 identifier", start)
+          end
+
+          def identifier_byte?(value)
+            value && (value == 95 || value.between?(65, 90) || value.between?(97, 122) || value >= 128 || value.between?(48, 57))
+          end
+
+          def do_token
+            if @condition_do
+              @condition_do = false
+              :keyword_do_cond
+            elsif @previous == :tLAMBDA
+              :keyword_do_LAMBDA
+            else
+              :keyword_do_block
+            end
+          end
+
+          def number_token(start)
+            base = 10
+            if byte == 48 && [120, 88, 98, 66, 111, 79].include?(byte(1))
+              base = { 120 => 16, 88 => 16, 98 => 2, 66 => 2, 111 => 8, 79 => 8 }.fetch(byte(1))
+              advance(2)
+              digit_start = @index
+              advance while digit_byte?(byte, base) || byte == 95
+              fail!("invalid numeric literal", start) if @index == digit_start
+              text = @source.byteslice(digit_start, @index - digit_start).delete("_")
+              return [:tINTEGER, text.to_i(base)]
+            end
+            advance while digit_byte?(byte, 10) || byte == 95
+            float = false
+            if byte == 46 && digit_byte?(byte(1), 10)
+              float = true
+              advance
+              advance while digit_byte?(byte, 10) || byte == 95
+            end
+            if byte == 101 || byte == 69
+              float = true
+              advance
+              advance if byte == 43 || byte == 45
+              fail!("invalid numeric literal", start) unless digit_byte?(byte, 10)
+              advance while digit_byte?(byte, 10) || byte == 95
+            end
+            suffix = byte
+            advance if [105, 114].include?(suffix)
+            text = @source.byteslice(start, @index - start).delete("_")
+            return [:tRATIONAL, Rational(text.delete_suffix("r"))] if suffix == 114
+            return [:tIMAGINARY, Complex(0, text.delete_suffix("i").to_f)] if suffix == 105
+            [float ? :tFLOAT : :tINTEGER, float ? text.to_f : text.to_i]
+          rescue ArgumentError, ZeroDivisionError
+            fail!("invalid numeric literal", start)
+          end
+
+          def digit_byte?(value, base)
+            return false unless value
+            value.between?(48, 57) && value - 48 < base || base == 16 && value.between?(65, 70) || base == 16 && value.between?(97, 102)
+          end
+
+          def variable_token(start)
+            marker = byte
+            advance
+            if marker == 36 && byte && byte.between?(48, 57)
+              advance while byte && byte.between?(48, 57)
+              return [:tNTH_REF, @source.byteslice(start + 1, @index - start - 1).to_i]
+            end
+            advance while identifier_byte?(byte)
+            text = @source.byteslice(start, @index - start)
+            token = marker == 36 ? :tGVAR : (text.start_with?("@@") ? :tCVAR : :tIVAR)
+            [token, text.to_sym]
+          end
+
+          def character_or_question(start)
+            return operator_or_punctuation(start) unless @begin_expression && byte(1) && byte(1) != 32 && byte(1) != 10
+            advance
+            value = if byte == 92
+              escape_sequence(start)
+            else
+              character = byte
+              advance
+              character.chr
+            end
+            [:tCHAR, value]
+          end
+
+          def symbol_or_colon(start)
+            return operator_or_punctuation(start) unless @begin_expression && byte(1) && byte(1) != 58
+            advance
+            if byte == 39 || byte == 34
+              quote = byte
+              advance
+              content = read_quoted(quote, interpolate: quote == 34, start: start)
+              @pending = [[:tSTRING_CONTENT, content], [:tSTRING_END, nil]]
+            end
+            [:tSYMBEG, nil]
+          end
+
+          def string_token(quote, start)
+            advance
+            content = read_quoted(quote, interpolate: quote != 39, start: start)
+            @pending = [[:tSTRING_CONTENT, content], [:tSTRING_END, nil]]
+            [quote == 96 ? :tXSTRING_BEG : :tSTRING_BEG, nil]
+          end
+
+          def read_quoted(quote, interpolate:, start:)
+            result = +""
+            until eof?
+              value = byte
+              if value == quote
+                advance
+                return result
+              elsif value == 92
+                result << escape_sequence(start)
+              elsif value == 35 && interpolate && byte(1) == 123
+                fail!("string interpolation cannot be represented by the AST", start)
+              else
+                result << value
+                advance
+              end
+            end
+            fail!("unterminated literal", start)
+          end
+
+          def escape_sequence(start)
+            advance
+            fail!("unterminated escape", start) if eof?
+            value = byte
+            advance
+            return "\n" if value == 110
+            return "\t" if value == 116
+            return "\r" if value == 114
+            return "\f" if value == 102
+            return "\a" if value == 97
+            return "\e" if value == 101
+            return value.chr if value == 92 || value == 34 || value == 39
+            value.chr
+          end
+
+          def regexp_or_operator(start)
+            if @begin_expression
+              advance
+              value = read_regexp(start)
+              @pending = [[:tSTRING_CONTENT, value], [:tREGEXP_END, nil]]
+              return [:tREGEXP_BEG, nil]
+            end
+            operator_or_punctuation(start)
+          end
+
+          def read_regexp(start)
+            result = +""
+            in_class = false
+            until eof?
+              value = byte
+              if value == 92
+                result << value.chr
+                advance
+                fail!("unterminated regexp", start) if eof?
+                result << byte.chr
+                advance
+              elsif value == 91
+                in_class = true
+                result << value.chr
+                advance
+              elsif value == 93
+                in_class = false
+                result << value.chr
+                advance
+              elsif value == 47 && !in_class
+                advance
+                advance while byte && byte.between?(97, 122)
+                return result
+              else
+                result << value.chr
+                advance
+              end
+            end
+            fail!("unterminated regexp", start)
+          end
+
+          def percent_token(start)
+            advance
+            kind = byte
+            if [113, 81, 119, 87, 105, 73, 114, 115, 120, 88].include?(kind)
+              advance
+            else
+              kind = 81
+            end
+            delimiter = byte
+            fail!("invalid percent literal", start) unless delimiter
+            advance
+            closing = { 40 => 41, 91 => 93, 123 => 125, 60 => 62 }.fetch(delimiter, delimiter)
+            content = read_delimited(closing, start, interpolate: [81, 87, 73, 114, 120, 88].include?(kind))
+            token = { 113 => :tSTRING_BEG, 81 => :tSTRING_BEG, 119 => :tWORDS_BEG, 87 => :tQWORDS_BEG,
+                      105 => :tSYMBOLS_BEG, 73 => :tQSYMBOLS_BEG, 114 => :tREGEXP_BEG,
+                      115 => :tSYMBEG, 120 => :tXSTRING_BEG, 88 => :tXSTRING_BEG }.fetch(kind)
+            terminator = kind == 114 ? :tREGEXP_END : :tSTRING_END
+            @pending = if [119, 87, 105, 73].include?(kind)
+              word_tokens(content, symbols: [105, 73].include?(kind)) + [[terminator, nil]]
+            else
+              [[:tSTRING_CONTENT, content], [terminator, nil]]
+            end
+            [token, nil]
+          end
+
+          def word_tokens(content, symbols:)
+            words = content.split(/[\t\n\f\r ]+/).reject(&:empty?)
+            tokens = [[" ", nil]]
+            words.each do |word|
+              tokens << [:tSTRING_CONTENT, symbols ? word.to_sym : word]
+              tokens << [" ", nil]
+            end
+            tokens
+          end
+
+          def read_delimited(closing, start, interpolate: false)
+            result = +""
+            depth = 0
+            until eof?
+              value = byte
+              if value == 92
+                result << escape_sequence(start)
+              elsif value == 35 && interpolate && byte(1) == 123
+                fail!("string interpolation cannot be represented by the AST", start)
+              elsif value == closing && depth.zero?
+                advance
+                return result
+              else
+                depth += 1 if value == ({ 41 => 40, 93 => 91, 125 => 123, 62 => 60 }.fetch(closing, -1))
+                depth -= 1 if value == closing && depth.positive?
+                result << value.chr
+                advance
+              end
+            end
+            fail!("unterminated percent literal", start)
+          end
+
+          def heredoc_or_operator(start)
+            if byte(1) == 60
+              return heredoc_token(start) if @begin_expression || @previous == :tIDENTIFIER
+            end
+            operator_or_punctuation(start)
+          end
+
+          def heredoc_token(start)
+            advance(2)
+            advance if byte == 45 || byte == 126
+            quote = byte
+            if quote == 39 || quote == 34 || quote == 96
+              advance
+              delimiter_start = @index
+              advance while byte && byte != quote
+              fail!("unterminated heredoc identifier", start) if eof?
+              delimiter = @source.byteslice(delimiter_start, @index - delimiter_start)
+              advance
+            else
+              delimiter_start = @index
+              advance while identifier_byte?(byte)
+              delimiter = @source.byteslice(delimiter_start, @index - delimiter_start)
+            end
+            fail!("invalid heredoc identifier", start) if delimiter.empty?
+            advance while byte && byte != 10
+            advance if byte == 10
+            body = +""
+            loop do
+              line_start = @index
+              advance while !eof? && byte != 10
+              line = @source.byteslice(line_start, @index - line_start)
+              if line == delimiter
+                advance if byte == 10
+                break
+              end
+              body << line << "\n"
+              advance if byte == 10
+              fail!("unterminated heredoc", start) if eof?
+            end
+            @pending = [[:tSTRING_CONTENT, body], [:tSTRING_END, nil]]
+            [:tSTRING_BEG, nil]
+          end
+
+          def operator_or_punctuation(start)
+            text = OPERATORS.sort_by(&:bytesize).find { |operator| @source.byteslice(@index, operator.bytesize) == operator }
+            if text
+              advance(text.bytesize)
+              return [OP_TOKENS.fetch(text, :tOP_ASGN), nil]
+            end
+            value = byte.chr
+            advance
+            if value == "(" || value == "[" || value == "{"
+              @delimiter_depth += 1
+              if value == "("
+                return [@begin_expression ? :tLPAREN : "(", nil]
+              end
+              return [:tLAMBEG, nil] if value == "{" && @previous == :tLAMBDA
+              return [value == "[" ? :tLBRACK : :tLBRACE, nil]
+            elsif value == ")" || value == "]" || value == "}"
+              @delimiter_depth -= 1 if @delimiter_depth.positive?
+            elsif value == "-" && @begin_expression
+              return [:tUMINUS, nil]
+            elsif value == "+" && @begin_expression
+              return [:tUPLUS, nil]
+            end
+            [value, nil]
+          rescue EncodingError
+            fail!("invalid byte", start)
+          end
+        end
+        private_constant :Lexer
+      end
+    end
+  end
+end

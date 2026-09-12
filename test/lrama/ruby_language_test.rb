@@ -347,4 +347,38 @@ class ArpakaTest < Test::Unit::TestCase
       assert_raise(Arpaka::ParseError) { Arpaka.parse(tokens) }
     end
   end
+
+  test "source input uses the Ruby lexer and preserves token parse results" do
+    expected = AST::Program.new([
+      AST::LocalWrite.new(:a, literal(1)),
+      AST::Binary.new(:+, AST::LocalRead.new(:a), literal(2))
+    ])
+    assert_equal(expected, Arpaka.parse_source("a = 1\na + 2", filename: "example.rb"))
+    assert_equal(AST::Program.new([AST::Call.new(:f, [literal(1), literal(2)])]),
+      Arpaka.parse_source("f(1, 2)"))
+    assert_equal(AST::Program.new([AST::StringLiteral.new("hello")]),
+      Arpaka.parse_source('"hello"'))
+  end
+
+  test "source lexer errors include source position" do
+    error = assert_raise(Arpaka::LexerError) { Arpaka.parse_source('"unterminated', filename: "broken.rb") }
+    assert_include(error.message, "broken.rb:1:")
+  end
+
+  test "source lexer preserves literal kinds" do
+    assert_equal(AST::XStringLiteral.new("echo"), Arpaka.parse_source("`echo`").statements.first)
+    assert_equal(AST::RegexpLiteral.new("a[b]"), Arpaka.parse_source("/a[b]/").statements.first)
+    assert_equal(AST::StringLiteral.new("quiet"), Arpaka.parse_source("%q(quiet)").statements.first)
+    assert_equal(AST::ArrayLiteral.new([AST::StringLiteral.new("one"), AST::StringLiteral.new("two")]),
+      Arpaka.parse_source("%w(one two)").statements.first)
+    assert_equal(AST::ArrayLiteral.new([:one, :two]),
+      Arpaka.parse_source("%i(one two)").statements.first)
+    assert_equal(AST::RegexpLiteral.new("a"), Arpaka.parse_source("%r(a)").statements.first)
+  end
+
+  test "source lexer rejects interpolation in static literals" do
+    ['"#{x}"', '%Q(#{x})', '%r(#{x})'].each do |source|
+      assert_raise(Arpaka::LexerError) { Arpaka.parse_source(source) }
+    end
+  end
 end
