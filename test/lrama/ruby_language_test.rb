@@ -485,6 +485,11 @@ class ArpakaTest < Test::Unit::TestCase
     assert_instance_of(AST::Call, Arpaka.parse_source("each(1) do\nend").statements.first)
   end
 
+  test "source lexer does not carry conditional do across statements" do
+    tokens = Arpaka.const_get(:Lexer, false).new("while condition\n  body\nend\nfoo do\nend\n").each.to_a
+    assert_equal(:keyword_do_block, tokens.map(&:first)[-5])
+  end
+
   test "grammar precedence accepts block calls as parenthesized arguments" do
     tree = Arpaka.parse_source("call(lambda do\nend)\n")
     assert_equal(AST::Call.new(:call, [AST::Call.new(:lambda, [])]), tree.statements.first)

@@ -124,6 +124,7 @@ module Lrama
               end
               @class_superclass = false
               return next_token if newline_ignored?
+              @condition_do = false
               ["\n", nil]
             when 39, 34, 96
               string_token(byte, start)
