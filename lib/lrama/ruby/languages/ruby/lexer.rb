@@ -550,9 +550,9 @@ module Lrama
               suffix_tokens = self.class.new(suffix, filename: @filename).each.to_a
               suffix_tokens.pop if suffix_tokens.last == [0, nil]
               @pending.concat(suffix_tokens)
-              @pending << ["\n", nil]
               @delimiter_depth -= suffix.count(")") - suffix.count("(")
             end
+            @pending << ["\n", nil]
             [quote == 96 ? :tXSTRING_BEG : :tSTRING_BEG, nil]
           end
 

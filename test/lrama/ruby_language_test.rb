@@ -420,6 +420,9 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised do
       Arpaka.parse_source("warn(<<~MSG.squish)\n  warning\nMSG\naddress\n")
     end
+    assert_nothing_raised do
+      Arpaka.parse_source("warn <<~MSG\n  warning\nMSG\naddress\n")
+    end
   end
 
   test "source lexer distinguishes shifts and command symbols" do
