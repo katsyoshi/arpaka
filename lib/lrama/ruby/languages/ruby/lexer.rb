@@ -565,7 +565,7 @@ module Lrama
             if value == "(" || value == "[" || value == "{"
               @delimiter_depth += 1
               if value == "("
-                return [@begin_expression && ![".", :tCOLON2].include?(@previous) ? :tLPAREN : "(", nil]
+                return [@begin_expression && ![".", :tCOLON2, :keyword_super].include?(@previous) ? :tLPAREN : "(", nil]
               end
               return [:tLAMBEG, nil] if value == "{" && @previous == :tLAMBDA
               return [value == "[" ? (@begin_expression ? :tLBRACK : "[") : :tLBRACE, nil]

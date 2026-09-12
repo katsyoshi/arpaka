@@ -233,6 +233,7 @@ class ArpakaTest < Test::Unit::TestCase
 
   test "super without arguments becomes a call node" do
     assert_equal(AST::Program.new([AST::Call.new(:super, [])]), parse([:keyword_super, nil]))
+    assert_equal(AST::Program.new([AST::Call.new(:super, [])]), Arpaka.parse_source("super()"))
   end
 
   test "parenthesized not becomes a logical negation" do
