@@ -458,6 +458,7 @@ class ArpakaTest < Test::Unit::TestCase
       Arpaka.parse_source("included do\n  1\nend").statements.first)
     assert_equal(AST::BareCall.new(:foo),
       Arpaka.parse_source("foo.bar do\n  1\nend").statements.first)
+    assert_nothing_raised { Arpaka.parse_source("foo before: :bar do |value| value end\n") }
     tokens = Arpaka.const_get(:Lexer, false).new("items << lambda do").each.to_a
     assert_equal([:tIDENTIFIER, :tLSHFT, :tIDENTIFIER, :keyword_do_block], tokens[0, 4].map(&:first))
   end

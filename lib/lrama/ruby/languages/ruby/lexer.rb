@@ -261,6 +261,7 @@ module Lrama
           def no_argument_block?
             return false unless [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
             return false if [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous_previous)
+            return false if [:tSYMBEG, :tLABEL].include?(@previous_previous)
             return false if @previous_previous == :tLSHFT
             true
           end
