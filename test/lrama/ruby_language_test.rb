@@ -506,6 +506,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("mutex.synchronize { 1 }\n") }
   end
 
+  test "source lexer preserves newlines inside command blocks" do
+    assert_nothing_raised do
+      Arpaka.parse_source("app = lambda { |env|\n  req = Request.new(env)\n  res = response(req)\n}\n")
+    end
+  end
+
   test "source lexer recognizes lambda bodies after lambda arguments" do
     tokens = Arpaka.const_get(:Lexer, false).new("->(value) { value }\n").each.to_a
     assert_includes(tokens.map(&:first), :tLAMBEG)

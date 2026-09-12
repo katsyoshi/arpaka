@@ -587,7 +587,6 @@ module Lrama
             value = byte.chr
             if value == "{" && no_argument_brace_block?
               advance
-              @delimiter_depth += 1
               @pending.unshift([:tLBRACE_ARG, nil])
               return [:tAMPER, nil]
             end
