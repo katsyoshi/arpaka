@@ -545,7 +545,7 @@ module Lrama
               advance(text.bytesize)
               token = if text == "**" && @begin_expression
                 :tDSTAR
-              elsif text == "..." && [:tLPAREN, "("].include?(@previous)
+              elsif text == "..." && [:tLPAREN, "(", ","].include?(@previous)
                 :tBDOT3
               elsif text == "::" && @begin_expression
                 :tCOLON3
