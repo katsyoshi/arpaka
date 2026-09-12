@@ -224,7 +224,7 @@ module Lrama
             token = KEYWORDS[word]
             if token && [".", :tCOLON2].include?(@previous)
               token = :tFID
-            elsif !@begin_expression && { "if" => :modifier_if, "unless" => :modifier_unless,
+            elsif (!@begin_expression || [:keyword_return, :keyword_break, :keyword_next].include?(@previous)) && { "if" => :modifier_if, "unless" => :modifier_unless,
               "while" => :modifier_while, "until" => :modifier_until,
               "rescue" => :modifier_rescue }.key?(word)
               token = { "if" => :modifier_if, "unless" => :modifier_unless,

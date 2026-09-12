@@ -500,6 +500,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("left ||\nright\n") }
   end
 
+  test "source lexer recognizes modifiers after argumentless control keywords" do
+    tokens = Arpaka.const_get(:Lexer, false).new("return unless value\n").each.to_a
+    assert_equal(:modifier_unless, tokens[1].first)
+    assert_nothing_raised { Arpaka.parse_source("def stop\n  return unless value\nend\n") }
+  end
+
   test "source lexer accepts escaped newlines between expressions" do
     tokens = Arpaka.const_get(:Lexer, false).new("\"left\" \\\n\"right\"\n").each.to_a
     assert_equal([:tSTRING_BEG, :tSTRING_CONTENT, :tSTRING_END, :tSTRING_BEG], tokens.map(&:first)[0, 4])
