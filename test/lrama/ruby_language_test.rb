@@ -448,6 +448,11 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(:tBDOT3, tokens[5].first)
   end
 
+  test "source lexer treats spaced empty brackets as an array literal" do
+    tokens = Arpaka.const_get(:Lexer, false).new("assert_equal [], value").each.to_a
+    assert_equal([:tIDENTIFIER, "[", "]", ",", :tIDENTIFIER, 0], tokens.map(&:first))
+  end
+
   test "source lexer treats predicate and bang methods as identifiers" do
     assert_equal(AST::Def.new(:stopping?, [], [literal(1)]),
       Arpaka.parse_source("def stopping?; 1; end").statements.first)

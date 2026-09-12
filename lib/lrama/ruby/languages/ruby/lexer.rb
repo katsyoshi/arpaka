@@ -658,7 +658,12 @@ module Lrama
               advance(2)
               return [value == "-@" ? :tUMINUS : :tUPLUS, nil]
             end
-            text = OPERATORS.sort_by { |operator| -operator.bytesize }.find { |operator| @source.byteslice(@index, operator.bytesize) == operator }
+            text = OPERATORS.sort_by { |operator| -operator.bytesize }.find do |operator|
+              next false if operator == "[]" && start.positive? &&
+                [9, 10, 11, 12, 13, 32].include?(@source.getbyte(start - 1)) &&
+                @previous != :keyword_def
+              @source.byteslice(@index, operator.bytesize) == operator
+            end
             operator_method = [:keyword_def, ".", :tCOLON2, :tANDDOT, :tSYMBEG].include?(@previous)
             if text && !(begin_expression? && !operator_method && ["[]", "[]="].include?(text))
               advance(text.bytesize)
