@@ -568,6 +568,11 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("@@templates = {}\n@@templates\n") }
   end
 
+  test "source lexer recognizes punctuation global variables" do
+    assert_nothing_raised { Arpaka.parse_source("-$`\n") }
+    assert_nothing_raised { Arpaka.parse_source("$&\n") }
+  end
+
   test "single quoted heredoc keeps interpolation literal" do
     assert_equal(AST::StringLiteral.new("\#{x}\n"),
       Arpaka.parse_source("<<'TEXT'\n\#{x}\nTEXT\n").statements.first)

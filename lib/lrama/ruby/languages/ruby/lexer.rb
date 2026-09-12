@@ -325,6 +325,11 @@ module Lrama
             marker = byte
             advance
             advance if marker == 64 && byte == 64
+            if marker == 36 && [33, 38, 39, 43, 60, 62, 61, 96, 126].include?(byte)
+              advance
+              text = @source.byteslice(start, @index - start)
+              return [:tGVAR, text.to_sym]
+            end
             if marker == 36 && byte && byte.between?(48, 57)
               advance while byte && byte.between?(48, 57)
               return [:tNTH_REF, @source.byteslice(start + 1, @index - start - 1).to_i]
