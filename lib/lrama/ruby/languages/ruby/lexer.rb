@@ -450,6 +450,7 @@ module Lrama
           end
 
           def percent_token(start)
+            return operator_or_punctuation(start) unless @begin_expression
             advance
             kind = byte
             if [113, 81, 119, 87, 105, 73, 114, 115, 120, 88].include?(kind)

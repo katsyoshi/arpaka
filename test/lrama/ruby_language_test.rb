@@ -573,6 +573,11 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("$&\n") }
   end
 
+  test "source lexer distinguishes modulo from percent literals" do
+    assert_nothing_raised { Arpaka.parse_source("value = (left + right) % 3\n") }
+    assert_nothing_raised { Arpaka.parse_source("value = %q(text)\n") }
+  end
+
   test "single quoted heredoc keeps interpolation literal" do
     assert_equal(AST::StringLiteral.new("\#{x}\n"),
       Arpaka.parse_source("<<'TEXT'\n\#{x}\nTEXT\n").statements.first)
