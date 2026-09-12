@@ -425,7 +425,7 @@ module Lrama
                 elsif value == quote
                   quote = nil
                 end
-              elsif [39, 34, 96].include?(value)
+              elsif [39, 34, 96].include?(value) && @source.getbyte(@index - 1) != 36
                 quote = value
               elsif value == 123
                 depth += 1
@@ -478,6 +478,7 @@ module Lrama
 
           def regexp_or_operator(start)
             return operator_or_punctuation(start) if @previous == :keyword_def
+            return operator_or_punctuation(start) if @previous == :tSYMBEG
             if @begin_expression
               advance
               value = read_regexp(start)
@@ -532,7 +533,7 @@ module Lrama
             advance
             closing = { 40 => 41, 91 => 93, 123 => 125, 60 => 62 }.fetch(delimiter, delimiter)
             interpolate = [81, 87, 73, 114, 120, 88].include?(kind)
-            content = interpolate && [81, 114, 120, 88].include?(kind) ?
+            content = interpolate ?
               read_interpolated_delimited(closing, start) :
               read_delimited(closing, start, interpolate: interpolate)
             advance while kind == 114 && byte && byte.between?(97, 122)
@@ -541,6 +542,7 @@ module Lrama
                       115 => :tSYMBEG, 120 => :tXSTRING_BEG, 88 => :tXSTRING_BEG }.fetch(kind)
             terminator = kind == 114 ? :tREGEXP_END : :tSTRING_END
             @pending = if [119, 87, 105, 73].include?(kind)
+              content = content.map { |token, value| value.to_s }.join if content.is_a?(Array)
               word_tokens(content, symbols: [105, 73].include?(kind)) + [[terminator, nil]]
             elsif content.is_a?(Array)
               content + [[terminator, nil]]

@@ -604,6 +604,7 @@ class ArpakaTest < Test::Unit::TestCase
 
   test "source lexer accepts interpolated symbols" do
     assert_nothing_raised { Arpaka.parse_source(':"#{name}_settings"') }
+    assert_nothing_raised { Arpaka.parse_source("super(:/, left, right)") }
   end
 
   test "source lexer accepts ampersand operator symbols" do
