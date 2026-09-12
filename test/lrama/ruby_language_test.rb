@@ -156,6 +156,8 @@ class ArpakaTest < Test::Unit::TestCase
     receiver = AST::ArrayLiteral.new([literal(1), literal(2)])
     expected = AST::Index.new(receiver, [literal(0)])
     assert_equal(AST::Program.new([expected]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil], ["[", nil], [:tINTEGER, 0], ["]", nil]))
+    assert_equal(AST::Index.new(AST::BareCall.new(:values), [literal(0)]),
+      Arpaka.parse_source("values[0]").statements.first)
   end
 
   test "label hash entries build the same pair AST" do
