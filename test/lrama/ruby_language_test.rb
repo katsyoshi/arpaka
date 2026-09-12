@@ -115,6 +115,10 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(expected, Arpaka.parse_source("def value=(value)\n  value\nend"))
   end
 
+  test "keywords after a receiver are method names" do
+    assert_nothing_raised { Arpaka.parse_source("self.class.to_s") }
+  end
+
   test "class and module definitions preserve name and body" do
     class_tokens = [[:keyword_class, nil], [:tCONSTANT, :Foo], [";", nil], [:tINTEGER, 1], [";", nil], [:keyword_end, nil]]
     module_tokens = [[:keyword_module, nil], [:tCONSTANT, :Bar], [";", nil], [:tINTEGER, 2], [";", nil], [:keyword_end, nil]]

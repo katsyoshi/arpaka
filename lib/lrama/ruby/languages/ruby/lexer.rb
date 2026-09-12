@@ -210,7 +210,9 @@ module Lrama
               return [:tAMPER, nil]
             end
             token = KEYWORDS[word]
-            if !@begin_expression && { "if" => :modifier_if, "unless" => :modifier_unless,
+            if token && [".", :tCOLON2].include?(@previous)
+              token = :tFID
+            elsif !@begin_expression && { "if" => :modifier_if, "unless" => :modifier_unless,
               "while" => :modifier_while, "until" => :modifier_until,
               "rescue" => :modifier_rescue }.key?(word)
               token = { "if" => :modifier_if, "unless" => :modifier_unless,
