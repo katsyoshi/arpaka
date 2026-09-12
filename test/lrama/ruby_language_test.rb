@@ -445,6 +445,7 @@ class ArpakaTest < Test::Unit::TestCase
       Arpaka.parse_source("f(*args)").statements.first)
     assert_equal(AST::Call.new(:map, AST::Literal.new(:to_s)),
       Arpaka.parse_source("map(&:to_s)").statements.first)
+    assert_nothing_raised { Arpaka.parse_source("f(1, *args)") }
   end
 
   test "symbols can be built from variable-shaped values" do

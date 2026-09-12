@@ -844,9 +844,9 @@ args: arg_value { $$ = [$1].freeze };
 /* upstream parse.y:4319: args: arg_splat */
 args: arg_splat { $$ = $1 };
 /* upstream parse.y:4324: args: args ',' arg_value */
-args: args ',' arg_value %prec ',' { $$ = ($1 + [$3]).freeze };
+args: args ',' arg_value %prec ',' { $$ = @builder.append_arguments($1, $3) };
 /* upstream parse.y:4329: args: args ',' arg_splat */
-args: args ',' arg_splat %prec ',' { $$ = ($1 + [$3]).freeze };
+args: args ',' arg_splat %prec ',' { $$ = @builder.append_arguments($1, $3) };
 /* upstream parse.y:4337: arg_splat: "*" arg_value */
 arg_splat: tSTAR arg_value %prec tSTAR { $$ = $2 };
 /* upstream parse.y:4342: arg_splat: "*" */
@@ -1796,9 +1796,9 @@ restarg_mark: '*' %prec '*' { $$ = nil };
 /* upstream parse.y:6508: restarg_mark: "*" */
 restarg_mark: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:6512: f_rest_arg: restarg_mark "local variable or method" */
-f_rest_arg: restarg_mark tIDENTIFIER %prec tIDENTIFIER { $$ = $2 };
+f_rest_arg: restarg_mark tIDENTIFIER %prec tIDENTIFIER { $$ = [$2].freeze };
 /* upstream parse.y:6518: f_rest_arg: restarg_mark */
-f_rest_arg: restarg_mark { $$ = $1 };
+f_rest_arg: restarg_mark { $$ = [] };
 /* upstream parse.y:6525: blkarg_mark: '&' */
 blkarg_mark: '&' %prec '&' { $$ = nil };
 /* upstream parse.y:6526: blkarg_mark: "&" */

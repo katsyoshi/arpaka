@@ -57,6 +57,11 @@ module Lrama
             AST::Call.new(name, arguments.freeze)
           end
 
+          def append_arguments(arguments, argument)
+            list = arguments.is_a?(Array) ? arguments : [arguments]
+            (list + [argument]).freeze
+          end
+
           def string(value)
             AST::StringLiteral.new(value.to_s)
           end
