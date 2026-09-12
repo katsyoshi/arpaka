@@ -171,6 +171,7 @@ module Lrama
           def newline_ignored?
             ignored = @delimiter_depth.positive? || @previous == "\n" ||
               ["+", "-", "*", "/", "%", "=", "?", ":", ",", ".", "&&", "||", "=>"].include?(@previous) ||
+              @previous == :tLABEL ||
               [:tANDOP, :tOROP, :tMATCH, :tNMATCH, :tASSOC, :tOP_ASGN].include?(@previous) ||
               next_non_space_byte == 46
             @condition_line = false if ignored && @condition_line
@@ -371,7 +372,10 @@ module Lrama
           def string_token(quote, start)
             advance
             content = read_quoted(quote, interpolate: quote != 39, start: start)
-            @pending = [[:tSTRING_CONTENT, content], [:tSTRING_END, nil]]
+            label = byte == 58
+            advance if label
+            terminator = label ? :tLABEL_END : :tSTRING_END
+            @pending = [[:tSTRING_CONTENT, content], [terminator, nil]]
             [quote == 96 ? :tXSTRING_BEG : :tSTRING_BEG, nil]
           end
 
