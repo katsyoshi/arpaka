@@ -7,6 +7,34 @@ module Lrama
         # Lexer for Ruby source input.  This deliberately does not use Prism:
         # the parser needs the same small amount of lexical context that CRuby
         # keeps in its parser (EXPR_BEG/EXPR_END and delimiter nesting).
+        class LexicalContext
+          attr_accessor :begin_expression, :condition_do, :condition_line,
+            :ternary_depth, :lambda_pending, :alias_context
+          attr_reader :delimiter_stack
+
+          def initialize
+            @begin_expression = true
+            @condition_do = false
+            @condition_line = false
+            @ternary_depth = 0
+            @lambda_pending = false
+            @alias_context = false
+            @delimiter_stack = []
+          end
+
+          def delimiter_depth
+            @delimiter_stack.length
+          end
+
+          def push_delimiter(value)
+            @delimiter_stack << value
+          end
+
+          def pop_delimiter(value)
+            @delimiter_stack.pop if @delimiter_stack.last == value
+          end
+        end
+
         class Lexer
           Error = LexerError
 
@@ -57,14 +85,10 @@ module Lrama
             @column = 0
             @previous_previous = nil
             @previous = nil
-            @begin_expression = true
-            @delimiter_depth = 0
+            @previous_value = nil
+            @context = LexicalContext.new
             @pending = []
-            @condition_do = false
-            @condition_line = false
-            @ternary_depth = 0
             @class_superclass = false
-            @lambda_pending = false
           end
 
           def each
@@ -106,9 +130,12 @@ module Lrama
           def next_token
             unless @pending.empty?
               value = @pending.shift
+              return next_token if value[0] == "\n" && newline_ignored?
               @previous_previous = @previous
               @previous = value[0]
-              @begin_expression = expression_begin_after(value[0])
+              @previous_value = value[1]
+              update_pending_delimiter(value[0])
+              @context.begin_expression = expression_begin_after(value[0])
               return value
             end
             skip_space_and_comments
@@ -118,13 +145,17 @@ module Lrama
             value = case byte
             when 10
               advance
+              if @context.alias_context && @previous == :tEQ
+                @context.alias_context = false
+                return ["\n", nil]
+              end
               if @class_superclass && next_word_is_terminator?
                 @class_superclass = false
                 return [";", nil]
               end
               @class_superclass = false
               return next_token if newline_ignored?
-              @condition_do = false
+              @context.condition_do = false
               ["\n", nil]
             when 39, 34, 96
               string_token(byte, start)
@@ -149,7 +180,8 @@ module Lrama
             end
             @previous_previous = @previous
             @previous = value && value[0]
-            @begin_expression = expression_begin_after(value && value[0])
+            @previous_value = value && value[1]
+            @context.begin_expression = expression_begin_after(value && value[0])
             value
           end
 
@@ -169,12 +201,13 @@ module Lrama
           end
 
           def newline_ignored?
-            ignored = @delimiter_depth.positive? || @previous == "\n" ||
+            ignored = @context.delimiter_depth.positive? || @previous == "\n" ||
               ["+", "-", "*", "/", "%", "=", "?", ":", ",", ".", "&", "|", "^", "<<", ">>", "&&", "||", "=>", :keyword_and, :keyword_or, :keyword_not, :tAMPER, :tPIPE, :tSTAR, :tDSTAR, :tDOT2, :tDOT3, :tPOW, :tCMP, :tEQ, :tEQQ, :tNEQ, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH, :tLSHFT, :tRSHFT, :tASSOC, :tLAMBDA, :tCOLON2, :tANDDOT].include?(@previous) ||
               @previous == :tLABEL ||
+              [:modifier_if, :modifier_unless, :modifier_while, :modifier_until].include?(@previous) ||
               [:tANDOP, :tOROP, :tMATCH, :tNMATCH, :tASSOC, :tOP_ASGN].include?(@previous) ||
               next_non_space_byte == 46
-            @condition_line = false if ignored && @condition_line
+            @context.condition_line = false if ignored && @context.condition_line
             ignored
           end
 
@@ -193,12 +226,23 @@ module Lrama
             @source.getbyte(position)
           end
 
+          def update_pending_delimiter(token)
+            if ["(", "["].include?(token)
+              @context.push_delimiter(token)
+            elsif [")", "]"].include?(token)
+              opener = {")" => "(", "]" => "["
+              }.fetch(token)
+              @context.pop_delimiter(opener)
+            end
+          end
+
           def expression_begin_after(token)
             return true if token.nil? || token == "\n"
             return false if token == ")" || token == "]" || token == "}"
             return false if token == :tINTEGER || token == :tFLOAT || token == :tRATIONAL || token == :tIMAGINARY
             return false if token == :tIDENTIFIER || token == :tCONSTANT || token == :tFID || token == :tSTRING_END || token == :tREGEXP_END
             return false if token == :keyword_true || token == :keyword_false || token == :keyword_nil || token == :keyword_self
+            return false if [:keyword__LINE__, :keyword__FILE__, :keyword__ENCODING__].include?(token)
             return false if token == :tIVAR || token == :tGVAR || token == :tCVAR || token == :tNTH_REF
             true
           end
@@ -236,7 +280,7 @@ module Lrama
             token = KEYWORDS[word]
             if token && [".", :tCOLON2, :tANDDOT].include?(@previous)
               token = :tFID
-            elsif (!@begin_expression || [:keyword_return, :keyword_break, :keyword_next, :keyword_end].include?(@previous)) && { "if" => :modifier_if, "unless" => :modifier_unless,
+            elsif (!@context.begin_expression || [:keyword_return, :keyword_break, :keyword_next, :keyword_end, :keyword_yield, :keyword_super].include?(@previous)) && { "if" => :modifier_if, "unless" => :modifier_unless,
               "while" => :modifier_while, "until" => :modifier_until,
               "rescue" => :modifier_rescue }.key?(word)
               token = { "if" => :modifier_if, "unless" => :modifier_unless,
@@ -244,7 +288,8 @@ module Lrama
                 "rescue" => :modifier_rescue }.fetch(word, token)
             end
             token ||= word == "do" ? do_token : (word.getbyte(0).between?(65, 90) ? :tCONSTANT : :tIDENTIFIER)
-            @condition_do = true if [:keyword_while, :keyword_until, :keyword_for].include?(token)
+            @context.condition_do = true if [:keyword_while, :keyword_until, :keyword_for].include?(token)
+            @context.alias_context = true if token == :keyword_alias
             [token, word.to_sym]
           rescue EncodingError
             fail!("invalid UTF-8 identifier", start)
@@ -255,11 +300,11 @@ module Lrama
           end
 
           def do_token
-            if @condition_do
-              @condition_do = false
+            if @context.condition_do
+              @context.condition_do = false
               :keyword_do_cond
-            elsif @lambda_pending
-              @lambda_pending = false
+            elsif @context.lambda_pending
+              @context.lambda_pending = false
               :keyword_do_LAMBDA
             elsif @previous == ")"
               :keyword_do
@@ -273,13 +318,14 @@ module Lrama
           def no_argument_block?
             return false unless [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
             return false if [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous_previous)
-            return false if [:tSYMBEG, :tLABEL].include?(@previous_previous)
-            return false if @previous_previous == :tLSHFT
+            return false if [:tSYMBEG, :tLABEL, :tCOLON2].include?(@previous_previous)
+            return false if [:tLSHFT, :tLAMBDA].include?(@previous_previous)
             true
           end
 
           def no_argument_brace_block?
             return false if [".", :tCOLON2].include?(@previous_previous)
+            return false if [:tLABEL, :tLSHFT, :tOROP, :tANDOP, :tASSOC, ","].include?(@previous_previous)
             no_argument_block?
           end
 
@@ -327,7 +373,7 @@ module Lrama
             marker = byte
             advance
             advance if marker == 64 && byte == 64
-            if marker == 36 && [33, 38, 39, 43, 60, 62, 61, 96, 126].include?(byte)
+            if marker == 36 && [33, 38, 39, 43, 60, 62, 61, 63, 96, 126].include?(byte)
               advance
               text = @source.byteslice(start, @index - start)
               return [:tGVAR, text.to_sym]
@@ -343,7 +389,7 @@ module Lrama
           end
 
           def character_or_question(start)
-            return operator_or_punctuation(start) unless @begin_expression && byte(1) && byte(1) != 32 && byte(1) != 10
+            return operator_or_punctuation(start) unless @context.begin_expression && byte(1) && byte(1) != 32 && byte(1) != 10
             advance
             value = if byte == 92
               escape_sequence(start)
@@ -356,7 +402,7 @@ module Lrama
           end
 
           def symbol_or_colon(start)
-            symbol_position = @begin_expression || ([:tIDENTIFIER, :tFID].include?(@previous) && @ternary_depth.zero?)
+            symbol_position = @context.begin_expression || ([:tIDENTIFIER, :tFID].include?(@previous) && @context.ternary_depth.zero?)
             return operator_or_punctuation(start) unless symbol_position && byte(1) &&
               ![9, 10, 11, 12, 13, 32].include?(byte(1)) && byte(1) != 58
             advance
@@ -479,7 +525,7 @@ module Lrama
           def regexp_or_operator(start)
             return operator_or_punctuation(start) if @previous == :keyword_def
             return operator_or_punctuation(start) if @previous == :tSYMBEG
-            if @begin_expression
+            if @context.begin_expression
               advance
               value = read_regexp(start)
               @pending = [[:tSTRING_CONTENT, value], [:tREGEXP_END, nil]]
@@ -520,7 +566,11 @@ module Lrama
           end
 
           def percent_token(start)
-            return operator_or_punctuation(start) unless @begin_expression
+            literal_kind = [113, 81, 119, 87, 105, 73, 114, 115, 120, 88].include?(byte(1))
+            command_argument = start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
+              [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) &&
+              ![:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous_previous)
+            return operator_or_punctuation(start) unless @context.begin_expression || (literal_kind && command_argument)
             advance
             kind = byte
             if [113, 81, 119, 87, 105, 73, 114, 115, 120, 88].include?(kind)
@@ -652,7 +702,7 @@ module Lrama
 
           def heredoc_or_operator(start)
             if byte(1) == 60 && heredoc_prefix?
-              return heredoc_token(start) if @begin_expression || @previous == :tIDENTIFIER
+              return heredoc_token(start) if @context.begin_expression || @previous == :tIDENTIFIER
             end
             operator_or_punctuation(start)
           end
@@ -708,7 +758,6 @@ module Lrama
               suffix_tokens = self.class.new(suffix, filename: @filename).each.to_a
               suffix_tokens.pop if suffix_tokens.last == [0, nil]
               @pending.concat(suffix_tokens)
-              @delimiter_depth -= suffix.count(")") - suffix.count("(")
             end
             @pending << ["\n", nil]
             [quote == 96 ? :tXSTRING_BEG : :tSTRING_BEG, nil]
@@ -740,16 +789,16 @@ module Lrama
             operator_method = [:keyword_def, ".", :tCOLON2, :tANDDOT, :tSYMBEG].include?(@previous)
             if text && !(begin_expression? && !operator_method && ["[]", "[]="].include?(text))
               advance(text.bytesize)
-              token = if text == "**" && @begin_expression
+              token = if text == "**" && @context.begin_expression
                 :tDSTAR
               elsif text == "..." && [:tLPAREN, "(", ","].include?(@previous)
                 :tBDOT3
-              elsif text == "::" && @begin_expression
+              elsif text == "::" && (@context.begin_expression || (start.positive? && [9, 32].include?(@source.getbyte(start - 1))))
                 :tCOLON3
               else
                 OP_TOKENS.fetch(text, :tOP_ASGN)
               end
-              @lambda_pending = true if token == :tLAMBDA
+              @context.lambda_pending = true if token == :tLAMBDA
               return [token, nil]
             end
             value = byte.chr
@@ -760,36 +809,41 @@ module Lrama
             end
             advance
             if value == "(" || value == "[" || value == "{"
-              brace_block = value == "{" && (@previous == ")" || [".", :tCOLON2].include?(@previous_previous))
-              lambda_block = value == "{" && @lambda_pending
-              @delimiter_depth += 1 unless brace_block || lambda_block
+              brace_block = value == "{" && (@previous == ")" || [".", :tCOLON2].include?(@previous_previous) || [:proc, :lambda].include?(@previous_value))
+              lambda_block = value == "{" && @context.lambda_pending
+              @context.push_delimiter(value) unless brace_block || lambda_block
               if value == "("
-                return [@begin_expression && ![".", :tCOLON2, :tANDDOT, :keyword_super, :keyword_yield].include?(@previous) ? :tLPAREN : "(", nil]
+                if !@context.begin_expression && start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
+                    [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
+                  return [:tLPAREN_ARG, nil]
+                end
+                return [@context.begin_expression && ![".", :tCOLON2, :tANDDOT, :keyword_super, :keyword_yield, :tLAMBDA, :tAREF].include?(@previous) ? :tLPAREN : "(", nil]
               end
-              if value == "{" && @lambda_pending
-                @lambda_pending = false
+              if value == "{" && @context.lambda_pending
+                @context.lambda_pending = false
                 return [:tLAMBEG, nil]
               end
               array_argument = value == "[" && start.positive? &&
                 [9, 10, 11, 12, 13, 32].include?(@source.getbyte(start - 1)) &&
                 [:tIDENTIFIER, :tFID, :tCONSTANT].include?(@previous)
-              return [value == "[" && (@begin_expression || array_argument) ? :tLBRACK : (value == "[" ? "[" : (brace_block ? "{" : :tLBRACE)), nil]
+              return [value == "[" && (@context.begin_expression || array_argument) ? :tLBRACK : (value == "[" ? "[" : (brace_block ? "{" : :tLBRACE)), nil]
             elsif value == ")" || value == "]" || value == "}"
-              @delimiter_depth -= 1 if @delimiter_depth.positive?
-            elsif value == "-" && @begin_expression
+              opener = { ")" => "(", "]" => "[", "}" => "{" }.fetch(value)
+              @context.pop_delimiter(opener)
+            elsif value == "-" && @context.begin_expression
               return [:tUMINUS, nil]
-            elsif value == "+" && @begin_expression
+            elsif value == "+" && @context.begin_expression
               return [:tUPLUS, nil]
-            elsif value == "*" && @begin_expression
+            elsif value == "*" && @context.begin_expression
               return [:tSTAR, nil]
             elsif value == "&" && @previous == :tSYMBEG
               return [value, nil]
-            elsif value == "&" && @begin_expression
+            elsif value == "&" && @context.begin_expression
               return [:tAMPER, nil]
-            elsif value == "?" && !@begin_expression
-              @ternary_depth += 1
-            elsif value == ":" && @ternary_depth.positive?
-              @ternary_depth -= 1
+            elsif value == "?" && !@context.begin_expression
+              @context.ternary_depth += 1
+            elsif value == ":" && @context.ternary_depth.positive?
+              @context.ternary_depth -= 1
             elsif value == "<" && @previous == :tCONSTANT && @previous_previous == :keyword_class
               @class_superclass = true
             end
@@ -799,7 +853,7 @@ module Lrama
           end
 
           def begin_expression?
-            @begin_expression
+            @context.begin_expression
           end
         end
         private_constant :Lexer

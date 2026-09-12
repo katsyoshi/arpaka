@@ -590,7 +590,7 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "source lexer recognizes operator method names and top-level constants" do
-    assert_equal(AST::Def.new(:[], [], [AST::BareCall.new(:x)]),
+    assert_equal(AST::Def.new(:[], :x, [AST::BareCall.new(:x)]),
       Arpaka.parse_source("def [](x); x; end").statements.first)
     assert_nothing_raised { Arpaka.parse_source("def /(other); other; end") }
     assert_equal(:Foo, Arpaka.parse_source("::Foo").statements.first)
@@ -646,6 +646,45 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("value = (left + right) % 3\n") }
     assert_nothing_raised { Arpaka.parse_source("value = %q(text)\n") }
     assert_nothing_raised { Arpaka.parse_source("value = %r{pattern}i\n") }
+  end
+
+  test "source lexer accepts percent literals as command arguments" do
+    assert_nothing_raised { Arpaka.parse_source("def f; assert_match %r{a}, value; end") }
+    assert_nothing_raised { Arpaka.parse_source("def f; assert_equal %w[a b], value; end") }
+    assert_nothing_raised { Arpaka.parse_source("test do; assert_equal %w[a b], value; end") }
+  end
+
+  test "source lexer keeps expression-ending keywords and globals together" do
+    assert_nothing_raised { Arpaka.parse_source("test do; f __LINE__ + 1; end") }
+    assert_nothing_raised { Arpaka.parse_source("module M; def f; yield if true; end; end") }
+    assert_nothing_raised { Arpaka.parse_source("class C; def f; super if true; end; end") }
+    assert_nothing_raised { Arpaka.parse_source("$?.exitstatus") }
+  end
+
+  test "source lexer distinguishes command argument delimiters and blocks" do
+    assert_nothing_raised { Arpaka.parse_source("f ::Time, value") }
+    assert_nothing_raised { Arpaka.parse_source("def f; assert_equal (count * 2) - 1, total; end") }
+    assert_nothing_raised { Arpaka.parse_source("value = { xml: lambda { 1 } }") }
+    assert_nothing_raised { Arpaka.parse_source("f(:x, proc { 1 })") }
+    assert_nothing_raised { Arpaka.parse_source("f :x, lambda { 1 }") }
+    assert_nothing_raised { Arpaka.parse_source("-> arg do; arg; end") }
+    assert_nothing_raised { Arpaka.parse_source("test do; f only: A::B do; 1; end; end") }
+    assert_nothing_raised { Arpaka.parse_source("value = left || proc { 1 }") }
+  end
+
+  test "source lexer accepts lambda argument defaults" do
+    assert_nothing_raised { Arpaka.parse_source("def [](x, y = nil); end") }
+    assert_nothing_raised { Arpaka.parse_source("->(x = nil) { x }") }
+  end
+
+  test "source lexer ignores pending heredoc newlines in delimiters" do
+    assert_nothing_raised { Arpaka.parse_source("f({a: <<~A,\nx\nA\nb: 1})") }
+    assert_nothing_raised { Arpaka.parse_source("f unless\n  predicate") }
+    assert_nothing_raised { Arpaka.parse_source("f(\nproc { 1 }\n)\n") }
+  end
+
+  test "source lexer terminates aliases whose target is an operator" do
+    assert_nothing_raised { Arpaka.parse_source("class C\n  alias eql? ==\n  def hash\n    1\n  end\nend\n") }
   end
 
   test "single quoted heredoc keeps interpolation literal" do
