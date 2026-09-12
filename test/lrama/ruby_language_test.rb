@@ -479,6 +479,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("each(1) { |value| value }\n") }
   end
 
+  test "source lexer uses brace blocks after receiver method calls" do
+    tokens = Arpaka.const_get(:Lexer, false).new("mutex.synchronize { 1 }\n").each.to_a
+    assert_equal("{", tokens.map(&:first)[3])
+    assert_nothing_raised { Arpaka.parse_source("mutex.synchronize { 1 }\n") }
+  end
+
   test "source lexer recognizes lambda bodies after lambda arguments" do
     tokens = Arpaka.const_get(:Lexer, false).new("->(value) { value }\n").each.to_a
     assert_includes(tokens.map(&:first), :tLAMBEG)

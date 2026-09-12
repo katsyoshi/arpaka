@@ -265,6 +265,11 @@ module Lrama
             true
           end
 
+          def no_argument_brace_block?
+            return false if [".", :tCOLON2].include?(@previous_previous)
+            no_argument_block?
+          end
+
           def number_token(start)
             base = 10
             if byte == 48 && [120, 88, 98, 66, 111, 79].include?(byte(1))
@@ -567,7 +572,7 @@ module Lrama
               return [token, nil]
             end
             value = byte.chr
-            if value == "{" && no_argument_block?
+            if value == "{" && no_argument_brace_block?
               advance
               @delimiter_depth += 1
               @pending.unshift([:tLBRACE_ARG, nil])
@@ -583,7 +588,8 @@ module Lrama
                 @lambda_pending = false
                 return [:tLAMBEG, nil]
               end
-              return [value == "[" ? (@begin_expression ? :tLBRACK : "[") : (@previous == ")" ? "{" : :tLBRACE), nil]
+              brace_block = @previous == ")" || [".", :tCOLON2].include?(@previous_previous)
+              return [value == "[" ? (@begin_expression ? :tLBRACK : "[") : (brace_block ? "{" : :tLBRACE), nil]
             elsif value == ")" || value == "]" || value == "}"
               @delimiter_depth -= 1 if @delimiter_depth.positive?
             elsif value == "-" && @begin_expression
