@@ -516,6 +516,10 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("alias :merge! :update\n") }
   end
 
+  test "source lexer accepts ampersand operator symbols" do
+    assert_nothing_raised { Arpaka.parse_source("items.reduce(:&)\n") }
+  end
+
   test "single quoted heredoc keeps interpolation literal" do
     assert_equal(AST::StringLiteral.new("\#{x}\n"),
       Arpaka.parse_source("<<'TEXT'\n\#{x}\nTEXT\n").statements.first)

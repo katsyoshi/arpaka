@@ -598,6 +598,8 @@ module Lrama
               return [:tUPLUS, nil]
             elsif value == "*" && @begin_expression
               return [:tSTAR, nil]
+            elsif value == "&" && @previous == :tSYMBEG
+              return [value, nil]
             elsif value == "&" && @begin_expression
               return [:tAMPER, nil]
             elsif value == "?" && !@begin_expression
