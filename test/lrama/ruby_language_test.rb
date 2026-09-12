@@ -324,7 +324,8 @@ class ArpakaTest < Test::Unit::TestCase
 
   test "command blocks accept block parameters" do
     assert_equal(AST::Program.new([:each]), Arpaka.parse_source("each { |value| value }"))
-    assert_equal(AST::Program.new([AST::Call.new(:each, [])]), Arpaka.parse_source("each do |value| value end"))
+    assert_equal(AST::Program.new([AST::BlockCall.new(AST::Call.new(:each, []), [AST::BareCall.new(:value)])]),
+      Arpaka.parse_source("each do |value| value end"))
   end
 
   test "if, unless, elsif and else build conditional AST nodes" do
@@ -475,9 +476,9 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "source lexer accepts argumentless command blocks" do
-    assert_equal(AST::Call.new(:included, []),
+    assert_equal(AST::BlockCall.new(AST::Call.new(:included, []), [literal(1)]),
       Arpaka.parse_source("included do\n  1\nend").statements.first)
-    assert_equal(AST::ReceiverCall.new(AST::BareCall.new(:foo), :".", :bar, []),
+    assert_equal(AST::BlockCall.new(AST::ReceiverCall.new(AST::BareCall.new(:foo), :".", :bar, []), [literal(1)]),
       Arpaka.parse_source("foo.bar do\n  1\nend").statements.first)
     assert_nothing_raised { Arpaka.parse_source("foo before: :bar do |value| value end\n") }
     tokens = Arpaka.const_get(:Lexer, false).new("items << lambda do").each.to_a
@@ -507,7 +508,7 @@ class ArpakaTest < Test::Unit::TestCase
 
   test "grammar precedence accepts block calls as parenthesized arguments" do
     tree = Arpaka.parse_source("call(lambda do\nend)\n")
-    assert_equal(AST::Call.new(:call, [AST::Call.new(:lambda, [])]), tree.statements.first)
+    assert_equal(AST::Call.new(:call, [AST::BlockCall.new(AST::Call.new(:lambda, []), [])]), tree.statements.first)
 
     assert_nothing_raised do
       Arpaka.parse_source("subscribe(x, handler, lambda do\n  work\nend)\n")

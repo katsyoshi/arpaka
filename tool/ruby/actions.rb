@@ -217,7 +217,7 @@ module RubyGrammarActions
     505 => ["pass_through", "$1"],
     504 => ["pass_through", "$1"],
     503 => ["pass_through", "$1"],
-    502 => ["pass_through", "$1"],
+    502 => ["ported", "@builder.block_call($1, $2)"],
     501 => ["pass_through", "$2"],
     488 => ["pass_through", "$1"],
     487 => ["pass_through", "$1"],

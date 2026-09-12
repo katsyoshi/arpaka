@@ -1189,7 +1189,7 @@ lambda_body: keyword_do_LAMBDA midrule_28 bodystmt k_end %prec keyword_do_LAMBDA
 /* upstream parse.y:5153: do_block: k_do_block do_body k_end */
 do_block: k_do_block do_body k_end { $$ = $2 };
 /* upstream parse.y:5161: block_call: command do_block */
-block_call: command do_block { $$ = $1 };
+block_call: command do_block { $$ = @builder.block_call($1, $2) };
 /* upstream parse.y:5167: block_call: block_call call_op2 operation2 opt_paren_args */
 block_call: block_call call_op2 operation2 opt_paren_args { $$ = $1 };
 /* upstream parse.y:5177: block_call: block_call call_op2 operation2 opt_paren_args brace_block */

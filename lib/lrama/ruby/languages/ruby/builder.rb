@@ -61,6 +61,10 @@ module Lrama
             AST::ReceiverCall.new(receiver, operator, name, (arguments || []).freeze)
           end
 
+          def block_call(call, body)
+            AST::BlockCall.new(call, body_nodes(body))
+          end
+
           def append_arguments(arguments, argument)
             list = arguments.is_a?(Array) ? arguments : [arguments]
             (list + [argument]).freeze
