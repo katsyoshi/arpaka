@@ -562,6 +562,10 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("{ \"key\": value }\n") }
   end
 
+  test "source lexer recognizes unary operator symbols" do
+    assert_nothing_raised { Arpaka.parse_source("alias :-@ :deduplicate\n") }
+  end
+
   test "source lexer recognizes operator method names and top-level constants" do
     assert_equal(AST::Def.new(:[], [], [AST::BareCall.new(:x)]),
       Arpaka.parse_source("def [](x); x; end").statements.first)

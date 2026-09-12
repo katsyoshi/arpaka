@@ -589,6 +589,11 @@ module Lrama
           end
 
           def operator_or_punctuation(start)
+            if @previous == :tSYMBEG && ["-@", "+@"].include?(@source.byteslice(@index, 2))
+              value = @source.byteslice(@index, 2)
+              advance(2)
+              return [value == "-@" ? :tUMINUS : :tUPLUS, nil]
+            end
             text = OPERATORS.sort_by { |operator| -operator.bytesize }.find { |operator| @source.byteslice(@index, operator.bytesize) == operator }
             operator_method = [:keyword_def, ".", :tCOLON2, :tSYMBEG].include?(@previous)
             if text && !(begin_expression? && !operator_method && ["[]", "[]="].include?(text))
