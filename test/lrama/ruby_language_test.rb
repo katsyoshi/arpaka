@@ -412,6 +412,8 @@ class ArpakaTest < Test::Unit::TestCase
       Arpaka.parse_source("1 << 2").statements.first)
     assert_equal(AST::Literal.new(:bar),
       Arpaka.parse_source("foo = :bar").statements.first.value)
+    assert_equal(AST::RangeLiteral.new(:"...", literal(1), literal(3)),
+      Arpaka.parse_source("1...3").statements.first)
   end
 
   test "source lexer treats predicate and bang methods as identifiers" do
