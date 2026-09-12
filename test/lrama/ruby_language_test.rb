@@ -517,6 +517,7 @@ class ArpakaTest < Test::Unit::TestCase
     tokens = Arpaka.const_get(:Lexer, false).new("->(value) { value }\n").each.to_a
     assert_includes(tokens.map(&:first), :tLAMBEG)
     assert_nothing_raised { Arpaka.parse_source("->(value) { value }\n") }
+    assert_nothing_raised { Arpaka.parse_source("-> {\n  first\n  second\n}\n") }
   end
 
   test "source lexer ignores newlines after logical operators" do
