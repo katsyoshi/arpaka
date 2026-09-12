@@ -417,7 +417,7 @@ class ArpakaTest < Test::Unit::TestCase
     expected = AST::InterpolatedString.new(["hello ", AST::BareCall.new(:name)])
     assert_equal(expected, Arpaka.parse_source('%Q(hello #{name})').statements.first)
     assert_equal(expected, Arpaka.parse_source('%(hello #{name})').statements.first)
-    assert_raise(Arpaka::LexerError) { Arpaka.parse_source('%r(#{x})') }
+    assert_kind_of(AST::RegexpLiteral, Arpaka.parse_source('%r(#{x})').statements.first)
   end
 
   test "source lexer handles heredoc indentation and line endings" do

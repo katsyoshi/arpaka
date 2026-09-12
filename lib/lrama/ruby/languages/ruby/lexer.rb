@@ -532,7 +532,7 @@ module Lrama
             advance
             closing = { 40 => 41, 91 => 93, 123 => 125, 60 => 62 }.fetch(delimiter, delimiter)
             interpolate = [81, 87, 73, 114, 120, 88].include?(kind)
-            content = interpolate && [81, 120, 88].include?(kind) ?
+            content = interpolate && [81, 114, 120, 88].include?(kind) ?
               read_interpolated_delimited(closing, start) :
               read_delimited(closing, start, interpolate: interpolate)
             advance while kind == 114 && byte && byte.between?(97, 122)
