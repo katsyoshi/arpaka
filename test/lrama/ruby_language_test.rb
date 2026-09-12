@@ -427,6 +427,7 @@ class ArpakaTest < Test::Unit::TestCase
       Arpaka.parse_source("def stopping?; 1; end").statements.first)
     assert_equal(AST::Def.new(:halt!, [], [literal(1)]),
       Arpaka.parse_source("def halt!; 1; end").statements.first)
+    assert_nothing_raised { Arpaka.parse_source("value.match?(pattern)") }
   end
 
   test "source lexer distinguishes splat and block argument operators" do

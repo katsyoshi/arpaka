@@ -183,7 +183,7 @@ module Lrama
             return true if token.nil? || token == "\n"
             return false if token == ")" || token == "]" || token == "}"
             return false if token == :tINTEGER || token == :tFLOAT || token == :tRATIONAL || token == :tIMAGINARY
-            return false if token == :tIDENTIFIER || token == :tCONSTANT || token == :tSTRING_END || token == :tREGEXP_END
+            return false if token == :tIDENTIFIER || token == :tCONSTANT || token == :tFID || token == :tSTRING_END || token == :tREGEXP_END
             return false if token == :keyword_true || token == :keyword_false || token == :keyword_nil || token == :keyword_self
             return false if token == :tIVAR || token == :tGVAR || token == :tCVAR || token == :tNTH_REF
             true
