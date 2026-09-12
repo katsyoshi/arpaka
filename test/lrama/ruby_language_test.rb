@@ -527,6 +527,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("delegate :[], :[]=, to: :paths\n") }
   end
 
+  test "source lexer recognizes bitwise assignment operators" do
+    %w[|= &= ^=].each do |operator|
+      assert_nothing_raised { Arpaka.parse_source("value #{operator} other\n") }
+    end
+  end
+
   test "single quoted heredoc keeps interpolation literal" do
     assert_equal(AST::StringLiteral.new("\#{x}\n"),
       Arpaka.parse_source("<<'TEXT'\n\#{x}\nTEXT\n").statements.first)

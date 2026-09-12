@@ -33,7 +33,7 @@ module Lrama
             "__ENCODING__" => :keyword__ENCODING__
           }.freeze
 
-          OPERATORS = %w[[]= [] ... .. <=> === == != =~ !~ >= <= && || << >> ** => :: &. -> += -= *= /= %= **= <<= >>= &&= ||=].freeze
+          OPERATORS = %w[[]= [] ... .. <=> === == != =~ !~ >= <= && || << >> ** => :: &. -> += -= *= /= %= **= <<= >>= &&= ||= |= &= ^=].freeze
           OP_TOKENS = {
             "**" => :tPOW, "<=>" => :tCMP, "==" => :tEQ, "===" => :tEQQ,
             "!=" => :tNEQ, ">=" => :tGEQ, "<=" => :tLEQ, "&&" => :tANDOP,
