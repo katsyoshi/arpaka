@@ -592,7 +592,8 @@ module Lrama
             end
             advance
             if value == "(" || value == "[" || value == "{"
-              @delimiter_depth += 1
+              brace_block = value == "{" && (@previous == ")" || [".", :tCOLON2].include?(@previous_previous))
+              @delimiter_depth += 1 unless brace_block
               if value == "("
                 return [@begin_expression && ![".", :tCOLON2, :keyword_super].include?(@previous) ? :tLPAREN : "(", nil]
               end
@@ -600,7 +601,6 @@ module Lrama
                 @lambda_pending = false
                 return [:tLAMBEG, nil]
               end
-              brace_block = @previous == ")" || [".", :tCOLON2].include?(@previous_previous)
               return [value == "[" ? (@begin_expression ? :tLBRACK : "[") : (brace_block ? "{" : :tLBRACE), nil]
             elsif value == ")" || value == "]" || value == "}"
               @delimiter_depth -= 1 if @delimiter_depth.positive?

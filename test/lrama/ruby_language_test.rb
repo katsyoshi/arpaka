@@ -504,6 +504,7 @@ class ArpakaTest < Test::Unit::TestCase
     tokens = Arpaka.const_get(:Lexer, false).new("mutex.synchronize { 1 }\n").each.to_a
     assert_equal("{", tokens.map(&:first)[3])
     assert_nothing_raised { Arpaka.parse_source("mutex.synchronize { 1 }\n") }
+    assert_nothing_raised { Arpaka.parse_source("mutex.synchronize {\n  first\n  second\n}\n") }
   end
 
   test "source lexer preserves newlines inside command blocks" do
