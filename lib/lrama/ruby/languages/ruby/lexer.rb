@@ -63,6 +63,7 @@ module Lrama
             @condition_do = false
             @condition_line = false
             @ternary_depth = 0
+            @class_superclass = false
           end
 
           def each
@@ -116,6 +117,11 @@ module Lrama
             value = case byte
             when 10
               advance
+              if @class_superclass && next_word_is_terminator?
+                @class_superclass = false
+                return [";", nil]
+              end
+              @class_superclass = false
               return next_token if newline_ignored?
               ["\n", nil]
             when 39, 34, 96
@@ -577,6 +583,8 @@ module Lrama
               @ternary_depth += 1
             elsif value == ":" && @ternary_depth.positive?
               @ternary_depth -= 1
+            elsif value == "<" && @previous == :tCONSTANT && @previous_previous == :keyword_class
+              @class_superclass = true
             end
             [value, nil]
           rescue EncodingError

@@ -124,6 +124,8 @@ class ArpakaTest < Test::Unit::TestCase
     module_tokens = [[:keyword_module, nil], [:tCONSTANT, :Bar], [";", nil], [:tINTEGER, 2], [";", nil], [:keyword_end, nil]]
     assert_equal(AST::Program.new([AST::ClassDef.new(:Foo, nil, [literal(1)])]), parse(*class_tokens))
     assert_equal(AST::Program.new([AST::ModuleDef.new(:Bar, [literal(2)])]), parse(*module_tokens))
+    assert_equal(AST::ClassDef.new(:Error, AST::Variable.new(:constant, :StandardError), []),
+      Arpaka.parse_source("class Error < StandardError\nend").statements.first)
   end
 
   test "simple string literals preserve their content" do
