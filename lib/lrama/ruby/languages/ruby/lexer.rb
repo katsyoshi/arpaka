@@ -363,8 +363,8 @@ module Lrama
             if byte == 39 || byte == 34
               quote = byte
               advance
-              content = read_quoted(quote, interpolate: quote == 34, start: start)
-              @pending = [[:tSTRING_CONTENT, content], [:tSTRING_END, nil]]
+              @pending = read_interpolated_quoted(quote, start)
+              @pending << [:tSTRING_END, nil]
             end
             [:tSYMBEG, nil]
           end

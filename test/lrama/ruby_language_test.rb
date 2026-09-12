@@ -602,6 +602,10 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("block_given? ? yield : @default_render.call\n") }
   end
 
+  test "source lexer accepts interpolated symbols" do
+    assert_nothing_raised { Arpaka.parse_source(':"#{name}_settings"') }
+  end
+
   test "source lexer accepts ampersand operator symbols" do
     assert_nothing_raised { Arpaka.parse_source("items.reduce(:&)\n") }
     assert_nothing_raised { Arpaka.parse_source("delegate :[], :[]=, to: :paths\n") }
