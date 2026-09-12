@@ -612,7 +612,7 @@ module Lrama
               lambda_block = value == "{" && @lambda_pending
               @delimiter_depth += 1 unless brace_block || lambda_block
               if value == "("
-                return [@begin_expression && ![".", :tCOLON2, :keyword_super].include?(@previous) ? :tLPAREN : "(", nil]
+                return [@begin_expression && ![".", :tCOLON2, :keyword_super, :keyword_yield].include?(@previous) ? :tLPAREN : "(", nil]
               end
               if value == "{" && @lambda_pending
                 @lambda_pending = false

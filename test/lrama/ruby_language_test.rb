@@ -573,6 +573,10 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("$&\n") }
   end
 
+  test "source lexer parses parenthesized yield arguments" do
+    assert_nothing_raised { Arpaka.parse_source("def each\n  yield(value, other)\nend\n") }
+  end
+
   test "source lexer distinguishes modulo from percent literals" do
     assert_nothing_raised { Arpaka.parse_source("value = (left + right) % 3\n") }
     assert_nothing_raised { Arpaka.parse_source("value = %q(text)\n") }
