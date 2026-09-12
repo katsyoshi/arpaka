@@ -669,6 +669,7 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("f :x, lambda { 1 }") }
     assert_nothing_raised { Arpaka.parse_source("-> arg do; arg; end") }
     assert_nothing_raised { Arpaka.parse_source("test do; f only: A::B do; 1; end; end") }
+    assert_nothing_raised { Arpaka.parse_source("f at: 30.days.from_now do; 1; end") }
     assert_nothing_raised { Arpaka.parse_source("value = left || proc { 1 }") }
   end
 

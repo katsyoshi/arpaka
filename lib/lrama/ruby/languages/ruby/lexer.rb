@@ -9,7 +9,7 @@ module Lrama
         # keeps in its parser (EXPR_BEG/EXPR_END and delimiter nesting).
         class LexicalContext
           attr_accessor :begin_expression, :condition_do, :condition_line,
-            :ternary_depth, :lambda_pending, :alias_context
+            :ternary_depth, :lambda_pending, :alias_context, :argument_label
           attr_reader :delimiter_stack
 
           def initialize
@@ -19,6 +19,7 @@ module Lrama
             @ternary_depth = 0
             @lambda_pending = false
             @alias_context = false
+            @argument_label = nil
             @delimiter_stack = []
           end
 
@@ -135,6 +136,7 @@ module Lrama
               @previous = value[0]
               @previous_value = value[1]
               update_pending_delimiter(value[0])
+              update_argument_label(value[0], value[1])
               @context.begin_expression = expression_begin_after(value[0])
               return value
             end
@@ -181,6 +183,7 @@ module Lrama
             @previous_previous = @previous
             @previous = value && value[0]
             @previous_value = value && value[1]
+            update_argument_label(value && value[0], value && value[1])
             @context.begin_expression = expression_begin_after(value && value[0])
             value
           end
@@ -233,6 +236,14 @@ module Lrama
               opener = {")" => "(", "]" => "["
               }.fetch(token)
               @context.pop_delimiter(opener)
+            end
+          end
+
+          def update_argument_label(token, value)
+            if token == :tLABEL
+              @context.argument_label = value
+            elsif ["\n", ";"].include?(token)
+              @context.argument_label = nil
             end
           end
 
@@ -317,6 +328,7 @@ module Lrama
 
           def no_argument_block?
             return false unless [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
+            return false if @context.argument_label == :at && [".", :tCOLON2, :tANDDOT].include?(@previous_previous)
             return false if [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous_previous)
             return false if [:tSYMBEG, :tLABEL, :tCOLON2].include?(@previous_previous)
             return false if [:tLSHFT, :tLAMBDA].include?(@previous_previous)
