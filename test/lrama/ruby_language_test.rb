@@ -450,6 +450,20 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(:tBDOT3, tokens[5].first)
   end
 
+  test "source lexer exposes parse-local lexical context" do
+    lexer = Arpaka.const_get(:Lexer, false).new("f(1)")
+    assert_equal(:expr_beg, lexer.context.lex_state)
+    lexer.each.to_a
+    assert_equal(:expr_end, lexer.context.lex_state)
+    assert_equal([], lexer.context.delimiter_stack)
+    assert_equal([:tIDENTIFIER, "(", :tINTEGER, ")"], lexer.context.token_history)
+
+    other = Arpaka.const_get(:Lexer, false).new("value")
+    assert_equal(:expr_beg, other.context.lex_state)
+    other.each.to_a
+    assert_equal(:expr_end, other.context.lex_state)
+  end
+
   test "source lexer treats spaced empty brackets as an array literal" do
     tokens = Arpaka.const_get(:Lexer, false).new("assert_equal [], value").each.to_a
     assert_equal([:tIDENTIFIER, :tLBRACK, "]", ",", :tIDENTIFIER, 0], tokens.map(&:first))
@@ -505,7 +519,8 @@ class ArpakaTest < Test::Unit::TestCase
   test "source lexer uses ordinary do after parenthesized calls" do
     tokens = Arpaka.const_get(:Lexer, false).new("each(1) do\nend").each.to_a
     assert_equal(:keyword_do, tokens.map(&:first)[-4])
-    assert_instance_of(AST::Call, Arpaka.parse_source("each(1) do\nend").statements.first)
+    assert_equal(AST::BlockCall.new(AST::Call.new(:each, [literal(1)]), []),
+      Arpaka.parse_source("each(1) do\nend").statements.first)
   end
 
   test "source lexer does not carry conditional do across statements" do
@@ -670,6 +685,7 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("-> arg do; arg; end") }
     assert_nothing_raised { Arpaka.parse_source("test do; f only: A::B do; 1; end; end") }
     assert_nothing_raised { Arpaka.parse_source("f at: 30.days.from_now do; 1; end") }
+    assert_nothing_raised { Arpaka.parse_source("travel_to Time.now + 3.seconds do; 1; end") }
     assert_nothing_raised { Arpaka.parse_source("value = left || proc { 1 }") }
   end
 

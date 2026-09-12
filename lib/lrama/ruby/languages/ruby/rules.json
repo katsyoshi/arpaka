@@ -2193,7 +2193,7 @@
     "id": 366,
     "rule": "primary: fcall brace_block",
     "line": 4475,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 367,
@@ -2205,7 +2205,7 @@
     "id": 368,
     "rule": "primary: method_call brace_block",
     "line": 4481,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 369,
