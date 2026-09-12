@@ -162,7 +162,7 @@ module RubyGrammarActions
     731 => ["pass_through", "$1"],
     728 => ["pass_through", "$1"],
     725 => ["pass_through", "$1"],
-    689 => ["pass_through", "$1"],
+    689 => ["ported", "@builder.symbol(@builder.join_strings($2))"],
     679 => ["ported", "@builder.interpolation($6)"],
     674 => ["pass_through", "$1"],
     665 => ["pass_through", "$1"],

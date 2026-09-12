@@ -111,6 +111,7 @@ module Lrama
           end
 
           def symbol(value)
+            value = value.map { |part| part.is_a?(String) ? part : part.to_s }.join if value.is_a?(Array)
             value = value.name if value.is_a?(AST::Variable)
             AST::Literal.new(value.to_sym)
           end

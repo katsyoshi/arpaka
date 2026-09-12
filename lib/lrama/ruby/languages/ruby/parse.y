@@ -1563,7 +1563,7 @@ sym: fname { $$ = $1 };
 /* upstream parse.y:6127: sym: nonlocal_var */
 sym: nonlocal_var { $$ = $1 };
 /* upstream parse.y:6131: dsym: "symbol literal" string_contents "terminator" */
-dsym: tSYMBEG string_contents tSTRING_END %prec tSTRING_END { $$ = $1 };
+dsym: tSYMBEG string_contents tSTRING_END %prec tSTRING_END { $$ = @builder.symbol(@builder.join_strings($2)) };
 /* upstream parse.y:6138: numeric: simple_numeric */
 numeric: simple_numeric { $$ = $1 };
 /* upstream parse.y:6140: numeric: tUMINUS_NUM simple_numeric */
