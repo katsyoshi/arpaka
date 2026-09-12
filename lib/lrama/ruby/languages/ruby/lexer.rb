@@ -197,6 +197,10 @@ module Lrama
               advance
               return [:tFID, (word + suffix).to_sym]
             end
+            if byte == 61 && !identifier_byte?(byte(1)) && [:keyword_def, ".", :tCOLON2].include?(@previous)
+              advance
+              return [:tFID, (word + "=").to_sym]
+            end
             if byte == 58 && byte(1) != 58
               advance
               return [:tLABEL, word.to_sym]

@@ -110,6 +110,11 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse(*tokens))
   end
 
+  test "setter method definitions preserve the equals suffix" do
+    expected = AST::Program.new([AST::Def.new(:"value=", [], [AST::BareCall.new(:value)])])
+    assert_equal(expected, Arpaka.parse_source("def value=(value)\n  value\nend"))
+  end
+
   test "class and module definitions preserve name and body" do
     class_tokens = [[:keyword_class, nil], [:tCONSTANT, :Foo], [";", nil], [:tINTEGER, 1], [";", nil], [:keyword_end, nil]]
     module_tokens = [[:keyword_module, nil], [:tCONSTANT, :Bar], [";", nil], [:tINTEGER, 2], [";", nil], [:keyword_end, nil]]
