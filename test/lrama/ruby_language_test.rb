@@ -479,6 +479,10 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(:Foo, Arpaka.parse_source("::Foo").statements.first)
   end
 
+  test "source lexer accepts symbols after predicate-like identifiers" do
+    assert_nothing_raised { Arpaka.parse_source("alias :merge! :update\n") }
+  end
+
   test "single quoted heredoc keeps interpolation literal" do
     assert_equal(AST::StringLiteral.new("\#{x}\n"),
       Arpaka.parse_source("<<'TEXT'\n\#{x}\nTEXT\n").statements.first)

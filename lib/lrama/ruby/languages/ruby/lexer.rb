@@ -324,7 +324,7 @@ module Lrama
           end
 
           def symbol_or_colon(start)
-            symbol_position = @begin_expression || (@previous == :tIDENTIFIER && @ternary_depth.zero?)
+            symbol_position = @begin_expression || ([:tIDENTIFIER, :tFID].include?(@previous) && @ternary_depth.zero?)
             return operator_or_punctuation(start) unless symbol_position && byte(1) && byte(1) != 58
             advance
             if byte == 39 || byte == 34
