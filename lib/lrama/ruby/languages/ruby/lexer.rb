@@ -531,7 +531,10 @@ module Lrama
             fail!("invalid percent literal", start) unless delimiter
             advance
             closing = { 40 => 41, 91 => 93, 123 => 125, 60 => 62 }.fetch(delimiter, delimiter)
-            content = read_delimited(closing, start, interpolate: [81, 87, 73, 114, 120, 88].include?(kind))
+            interpolate = [81, 87, 73, 114, 120, 88].include?(kind)
+            content = interpolate && [81, 120, 88].include?(kind) ?
+              read_interpolated_delimited(closing, start) :
+              read_delimited(closing, start, interpolate: interpolate)
             advance while kind == 114 && byte && byte.between?(97, 122)
             token = { 113 => :tSTRING_BEG, 81 => :tSTRING_BEG, 119 => :tWORDS_BEG, 87 => :tQWORDS_BEG,
                       105 => :tSYMBOLS_BEG, 73 => :tQSYMBOLS_BEG, 114 => :tREGEXP_BEG,
@@ -539,6 +542,8 @@ module Lrama
             terminator = kind == 114 ? :tREGEXP_END : :tSTRING_END
             @pending = if [119, 87, 105, 73].include?(kind)
               word_tokens(content, symbols: [105, 73].include?(kind)) + [[terminator, nil]]
+            elsif content.is_a?(Array)
+              content + [[terminator, nil]]
             else
               [[:tSTRING_CONTENT, content], [terminator, nil]]
             end
@@ -575,6 +580,72 @@ module Lrama
               end
             end
             fail!("unterminated percent literal", start)
+          end
+
+          def read_interpolated_delimited(closing, start)
+            result = +""
+            tokens = []
+            depth = 0
+            opening = { 41 => 40, 93 => 91, 125 => 123, 62 => 60 }.fetch(closing, -1)
+            until eof?
+              value = byte
+              if value == 92
+                result << escape_sequence(start)
+              elsif value == 35 && byte(1) == 123
+                tokens << [:tSTRING_CONTENT, result] unless result.empty?
+                result = +""
+                advance(2)
+                expression = read_interpolation_source(start)
+                inner = self.class.new(expression, filename: @filename).each.to_a
+                inner.pop if inner.last == [0, nil]
+                tokens << [:tSTRING_DBEG, nil]
+                tokens.concat(inner)
+                tokens << [:tSTRING_DEND, nil]
+              elsif value == closing && depth.zero?
+                advance
+                tokens << [:tSTRING_CONTENT, result] unless result.empty?
+                return tokens
+              else
+                depth += 1 if value == opening
+                depth -= 1 if value == closing && depth.positive?
+                result << value.chr
+                advance
+              end
+            end
+            fail!("unterminated percent literal", start)
+          end
+
+          def interpolated_content_tokens(source, start)
+            return [[:tSTRING_CONTENT, source]] unless source.include?("#" + "{")
+            tokens = []
+            literal = +""
+            index = 0
+            while index < source.bytesize
+              if source.getbyte(index) == 35 && source.getbyte(index + 1) == 123
+                tokens << [:tSTRING_CONTENT, literal] unless literal.empty?
+                depth = 1
+                expr_start = index + 2
+                index = expr_start
+                while index < source.bytesize && depth.positive?
+                  depth += 1 if source.getbyte(index) == 123
+                  depth -= 1 if source.getbyte(index) == 125
+                  index += 1
+                end
+                fail!("unterminated string interpolation", start) unless depth.zero?
+                expression = source.byteslice(expr_start, index - expr_start - 1)
+                inner = self.class.new(expression, filename: @filename).each.to_a
+                inner.pop if inner.last == [0, nil]
+                tokens << [:tSTRING_DBEG, nil]
+                tokens.concat(inner)
+                tokens << [:tSTRING_DEND, nil]
+                literal = +""
+              else
+                literal << source.getbyte(index).chr
+                index += 1
+              end
+            end
+            tokens << [:tSTRING_CONTENT, literal] unless literal.empty?
+            tokens
           end
 
           def heredoc_or_operator(start)
@@ -624,13 +695,13 @@ module Lrama
                 advance if byte == 10
                 break
               end
-              fail!("string interpolation cannot be represented by the AST", start) if interpolate && line.include?("#" + "{")
               body << line << "\n"
               advance if byte == 10
               fail!("unterminated heredoc", start) if eof?
             end
             body = dedent_heredoc(body) if squiggly
-            @pending = [[:tSTRING_CONTENT, body], [:tSTRING_END, nil]]
+            content_tokens = interpolate ? interpolated_content_tokens(body, start) : [[:tSTRING_CONTENT, body]]
+            @pending = content_tokens + [[:tSTRING_END, nil]]
             unless suffix.empty?
               suffix_tokens = self.class.new(suffix, filename: @filename).each.to_a
               suffix_tokens.pop if suffix_tokens.last == [0, nil]

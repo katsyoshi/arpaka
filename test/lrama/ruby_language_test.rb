@@ -413,10 +413,11 @@ class ArpakaTest < Test::Unit::TestCase
       Arpaka.parse_source('"#{name}"').statements.first)
   end
 
-  test "source lexer still rejects interpolation in percent literals" do
-    ['%Q(#{x})', '%r(#{x})'].each do |source|
-      assert_raise(Arpaka::LexerError) { Arpaka.parse_source(source) }
-    end
+  test "source lexer preserves interpolation in percent strings" do
+    expected = AST::InterpolatedString.new(["hello ", AST::BareCall.new(:name)])
+    assert_equal(expected, Arpaka.parse_source('%Q(hello #{name})').statements.first)
+    assert_equal(expected, Arpaka.parse_source('%(hello #{name})').statements.first)
+    assert_raise(Arpaka::LexerError) { Arpaka.parse_source('%r(#{x})') }
   end
 
   test "source lexer handles heredoc indentation and line endings" do
