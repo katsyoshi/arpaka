@@ -485,6 +485,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("left ||\nright\n") }
   end
 
+  test "source lexer accepts escaped newlines between expressions" do
+    tokens = Arpaka.const_get(:Lexer, false).new("\"left\" \\\n\"right\"\n").each.to_a
+    assert_equal([:tSTRING_BEG, :tSTRING_CONTENT, :tSTRING_END, :tSTRING_BEG], tokens.map(&:first)[0, 4])
+    assert_nothing_raised { Arpaka.parse_source("\"left\" \\\n\"right\"\n") }
+  end
+
   test "source lexer recognizes operator method names and top-level constants" do
     assert_equal(AST::Def.new(:[], [], [AST::BareCall.new(:x)]),
       Arpaka.parse_source("def [](x); x; end").statements.first)

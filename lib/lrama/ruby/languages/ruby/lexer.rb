@@ -157,6 +157,10 @@ module Lrama
               while [9, 11, 12, 13, 32].include?(byte)
                 advance
               end
+              if byte == 92 && byte(1) == 10
+                advance(2)
+                next
+              end
               break unless byte == 35
               advance
               advance while !eof? && byte != 10
