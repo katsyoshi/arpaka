@@ -417,6 +417,9 @@ class ArpakaTest < Test::Unit::TestCase
       Arpaka.parse_source("<<TEXT\r\none\r\ntwo\r\nTEXT\r\n").statements.first)
     assert_equal(AST::XStringLiteral.new("echo\n"),
       Arpaka.parse_source("<<`TEXT`\necho\nTEXT\n").statements.first)
+    assert_nothing_raised do
+      Arpaka.parse_source("warn(<<~MSG.squish)\n  warning\nMSG\naddress\n")
+    end
   end
 
   test "source lexer distinguishes shifts and command symbols" do

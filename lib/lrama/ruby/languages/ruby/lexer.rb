@@ -523,7 +523,9 @@ module Lrama
               delimiter = @source.byteslice(delimiter_start, @index - delimiter_start)
             end
             fail!("invalid heredoc identifier", start) if delimiter.empty?
+            suffix_start = @index
             advance while byte && byte != 10
+            suffix = @source.byteslice(suffix_start, @index - suffix_start).force_encoding(Encoding::UTF_8)
             advance if byte == 10
             body = +""
             interpolate = quote != 39
@@ -544,6 +546,13 @@ module Lrama
             end
             body = dedent_heredoc(body) if squiggly
             @pending = [[:tSTRING_CONTENT, body], [:tSTRING_END, nil]]
+            unless suffix.empty?
+              suffix_tokens = self.class.new(suffix, filename: @filename).each.to_a
+              suffix_tokens.pop if suffix_tokens.last == [0, nil]
+              @pending.concat(suffix_tokens)
+              @pending << ["\n", nil]
+              @delimiter_depth -= suffix.count(")") - suffix.count("(")
+            end
             [quote == 96 ? :tXSTRING_BEG : :tSTRING_BEG, nil]
           end
 
