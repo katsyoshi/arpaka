@@ -154,10 +154,19 @@ an `AST::Program`. Its frozen `statements` array contains immutable Data nodes:
 An unassigned bare identifier is a `BareCall`; assignment registers a local
 before reading its right-hand side, including in `a = a`.
 
-This is not yet a complete Ruby frontend. Strings, explicit calls, control flow,
-methods, and multi-statement parentheses are unsupported. Nodes have no source
-locations. Input must already reflect the lexical decisions Ruby's parser and
-lexer normally make together; this API does not parse Ruby source text.
+Explicit receiver calls without blocks produce
+`ReceiverCall(receiver, operator, name, arguments)`. They preserve chained calls,
+ordered positional arguments, the `.` / `::` / `&.` operator, and the implicit
+`call` method in `handler.(message)`. Receiverless calls use `Call(name, arguments)`.
+
+Double quoted strings and backtick strings may contain simple interpolation and
+produce `InterpolatedString(parts)`, where each part is a string or an AST node.
+
+This is not yet a complete Ruby frontend. Percent literal interpolation, blocks,
+method argument scopes, qualified constant paths, and other constructs are still incomplete; a successful
+parse does not guarantee that all source semantics appear in the AST. Nodes have
+no source locations. Token input must already reflect the lexical decisions
+Ruby's parser and lexer normally make together; use `parse_source` for source text.
 
 `Arpaka::ParseError` exposes `token` and `state`. `Arpaka::UnsupportedSyntax`
 exposes the original `rule` and upstream `line`. Both inherit from

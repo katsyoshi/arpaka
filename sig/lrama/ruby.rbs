@@ -36,7 +36,7 @@ module Lrama
         end
 
         module AST
-          type node = Literal | Binary | Unary | If | LocalRead | LocalWrite | BareCall | ArrayLiteral | HashLiteral | RangeLiteral | Ternary | Call | StringLiteral | RegexpLiteral | XStringLiteral | Index | Loop | Control | Variable | Rescue | Case | When | For | Def | ClassDef | ModuleDef | Lambda
+          type node = Literal | Binary | Unary | If | LocalRead | LocalWrite | BareCall | ArrayLiteral | HashLiteral | RangeLiteral | Ternary | Call | ReceiverCall | StringLiteral | InterpolatedString | RegexpLiteral | XStringLiteral | Index | Loop | Control | Variable | Rescue | Case | When | For | Def | ClassDef | ModuleDef | Lambda
           type hash_pair = Pair
 
           class Program < ::Data
@@ -135,10 +135,25 @@ module Lrama
                         | (name: Symbol, arguments: Array[node]) -> instance
           end
 
+          class ReceiverCall < ::Data
+            attr_reader receiver: node
+            attr_reader operator: :"." | :"::" | :"&."
+            attr_reader name: Symbol
+            attr_reader arguments: Array[node]
+            def self.new: (node receiver, (:"." | :"::" | :"&.") operator, Symbol name, Array[node] arguments) -> instance
+                        | (receiver: node, operator: (:"." | :"::" | :"&."), name: Symbol, arguments: Array[node]) -> instance
+          end
+
           class StringLiteral < ::Data
             attr_reader value: String
             def self.new: (String value) -> instance
                         | (value: String) -> instance
+          end
+
+          class InterpolatedString < ::Data
+            attr_reader parts: Array[node | String]
+            def self.new: (Array[node | String] parts) -> instance
+                        | (parts: Array[node | String]) -> instance
           end
 
           class RegexpLiteral < ::Data

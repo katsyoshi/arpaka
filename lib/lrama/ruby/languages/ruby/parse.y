@@ -387,11 +387,11 @@ command: fcall command_args %prec tLOWEST { $$ = @builder.call($1, $2 || []) };
 /* upstream parse.y:3603: command: fcall command_args cmd_brace_block */
 command: fcall command_args cmd_brace_block { $$ = $1 };
 /* upstream parse.y:3612: command: primary_value call_op operation2 command_args */
-command: primary_value call_op operation2 command_args %prec tLOWEST { $$ = $1 };
+command: primary_value call_op operation2 command_args %prec tLOWEST { $$ = @builder.receiver_call($1, $2, $3, $4) };
 /* upstream parse.y:3617: command: primary_value call_op operation2 command_args cmd_brace_block */
 command: primary_value call_op operation2 command_args cmd_brace_block { $$ = $1 };
 /* upstream parse.y:3622: command: primary_value "::" operation2 command_args */
-command: primary_value tCOLON2 operation2 command_args %prec tLOWEST { $$ = $1 };
+command: primary_value tCOLON2 operation2 command_args %prec tLOWEST { $$ = @builder.receiver_call($1, :"::", $3, $4) };
 /* upstream parse.y:3627: command: primary_value "::" operation2 command_args cmd_brace_block */
 command: primary_value tCOLON2 operation2 command_args cmd_brace_block %prec tCOLON2 { $$ = $1 };
 /* upstream parse.y:3632: command: primary_value "::" "constant" '{' brace_body '}' */
@@ -417,15 +417,15 @@ mlhs_inner: tLPAREN mlhs_inner rparen %prec tLPAREN { $$ = $2 };
 /* upstream parse.y:3687: mlhs_basic: mlhs_head */
 mlhs_basic: mlhs_head { $$ = $1 };
 /* upstream parse.y:3692: mlhs_basic: mlhs_head mlhs_item */
-mlhs_basic: mlhs_head mlhs_item { $$ = ($1 + [$2]).freeze };
+mlhs_basic: mlhs_head mlhs_item { $$ = (Array($1) + [$2]).freeze };
 /* upstream parse.y:3697: mlhs_basic: mlhs_head "*" mlhs_node */
-mlhs_basic: mlhs_head tSTAR mlhs_node %prec tSTAR { $$ = ($1 + [$3]).freeze };
+mlhs_basic: mlhs_head tSTAR mlhs_node %prec tSTAR { $$ = (Array($1) + [$3]).freeze };
 /* upstream parse.y:3048: mlhs_items_mlhs_item: mlhs_item */
 mlhs_items_mlhs_item: mlhs_item { $$ = $1 };
 /* upstream parse.y:3053: mlhs_items_mlhs_item: mlhs_items_mlhs_item ',' mlhs_item */
-mlhs_items_mlhs_item: mlhs_items_mlhs_item ',' mlhs_item %prec ',' { $$ = ($1 + [$3]).freeze };
+mlhs_items_mlhs_item: mlhs_items_mlhs_item ',' mlhs_item %prec ',' { $$ = (Array($1) + [$3]).freeze };
 /* upstream parse.y:3702: mlhs_basic: mlhs_head "*" mlhs_node ',' mlhs_items_mlhs_item */
-mlhs_basic: mlhs_head tSTAR mlhs_node ',' mlhs_items_mlhs_item %prec ',' { $$ = ($1 + [$3] + $5).freeze };
+mlhs_basic: mlhs_head tSTAR mlhs_node ',' mlhs_items_mlhs_item %prec ',' { $$ = (Array($1) + [$3] + Array($5)).freeze };
 /* upstream parse.y:3707: mlhs_basic: mlhs_head "*" */
 mlhs_basic: mlhs_head tSTAR %prec tSTAR { $$ = $1 };
 /* upstream parse.y:3712: mlhs_basic: mlhs_head "*" ',' mlhs_items_mlhs_item */
@@ -1201,13 +1201,13 @@ block_call: block_call call_op2 paren_args { $$ = $1 };
 /* upstream parse.y:5196: method_call: fcall paren_args */
 method_call: fcall paren_args { $$ = @builder.call($1, $2 || []) };
 /* upstream parse.y:5203: method_call: primary_value call_op operation2 opt_paren_args */
-method_call: primary_value call_op operation2 opt_paren_args { $$ = $1 };
+method_call: primary_value call_op operation2 opt_paren_args { $$ = @builder.receiver_call($1, $2, $3, $4) };
 /* upstream parse.y:5214: method_call: primary_value "::" operation2 paren_args */
-method_call: primary_value tCOLON2 operation2 paren_args %prec tCOLON2 { $$ = $1 };
+method_call: primary_value tCOLON2 operation2 paren_args %prec tCOLON2 { $$ = @builder.receiver_call($1, :"::", $3, $4) };
 /* upstream parse.y:5220: method_call: primary_value "::" operation3 */
-method_call: primary_value tCOLON2 operation3 %prec tCOLON2 { $$ = $1 };
+method_call: primary_value tCOLON2 operation3 %prec tCOLON2 { $$ = @builder.receiver_call($1, :"::", $3, []) };
 /* upstream parse.y:5225: method_call: primary_value call_op2 paren_args */
-method_call: primary_value call_op2 paren_args { $$ = $1 };
+method_call: primary_value call_op2 paren_args { $$ = @builder.receiver_call($1, $2, :call, $3) };
 /* upstream parse.y:5231: method_call: "'super'" paren_args */
 method_call: keyword_super paren_args %prec keyword_super { $$ = @builder.call(:super, $2 || []) };
 /* upstream parse.y:5241: method_call: "'super'" */
@@ -1543,7 +1543,7 @@ midrule_37: %empty { $$ = nil };
 /* upstream parse.y:6074: @38: %empty */
 midrule_38: %empty { $$ = nil };
 /* upstream parse.y:6079: string_content: "'#{'" @35 @36 @37 @38 compstmt_stmts string_dend */
-string_content: tSTRING_DBEG midrule_35 midrule_36 midrule_37 midrule_38 compstmt_stmts string_dend %prec tSTRING_DBEG { $$ = $7 };
+string_content: tSTRING_DBEG midrule_35 midrule_36 midrule_37 midrule_38 compstmt_stmts string_dend %prec tSTRING_DBEG { $$ = @builder.interpolation($6) };
 /* upstream parse.y:6094: string_dend: "'}'" */
 string_dend: tSTRING_DEND %prec tSTRING_DEND { $$ = nil };
 /* upstream parse.y:6095: string_dend: "end-of-input" */

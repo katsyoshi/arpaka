@@ -57,21 +57,29 @@ module Lrama
             AST::Call.new(name, arguments.freeze)
           end
 
+          def receiver_call(receiver, operator, name, arguments)
+            AST::ReceiverCall.new(receiver, operator, name, (arguments || []).freeze)
+          end
+
           def append_arguments(arguments, argument)
             list = arguments.is_a?(Array) ? arguments : [arguments]
             (list + [argument]).freeze
           end
 
           def string(value)
+            if value.is_a?(Array)
+              return AST::InterpolatedString.new(value.freeze) if value.any? { |part| !part.is_a?(String) }
+              value = value.join
+            end
             AST::StringLiteral.new(value.to_s)
           end
 
           def regexp(value)
-            AST::RegexpLiteral.new(value.to_s)
+            AST::RegexpLiteral.new(value.is_a?(Array) ? value.join : value.to_s)
           end
 
           def xstring(value)
-            AST::XStringLiteral.new(value.to_s)
+            AST::XStringLiteral.new(value.is_a?(Array) ? value.join : value.to_s)
           end
 
           def for_node(variable, enumerable, body)
@@ -104,11 +112,18 @@ module Lrama
           end
 
           def join_strings(parts)
-            parts.join
+            parts
+          end
+
+          def interpolation(value)
+            value.is_a?(Array) && value.length == 1 ? value.first : value
           end
 
           def concat_strings(left, right)
-            AST::StringLiteral.new(left.value + right.value)
+            left_parts = left.is_a?(AST::InterpolatedString) ? left.parts : [left.value]
+            right_parts = right.is_a?(AST::InterpolatedString) ? right.parts : [right.value]
+            parts = left_parts + right_parts
+            parts.all? { |part| part.is_a?(String) } ? AST::StringLiteral.new(parts.join) : AST::InterpolatedString.new(parts.freeze)
           end
 
           def index(receiver, arguments)
@@ -207,7 +222,11 @@ module Lrama
           end
 
           def word_array(elements, symbols: false)
-            values = elements.map { |value| symbols ? value.to_sym : AST::StringLiteral.new(value.to_s) }
+            elements = elements.elements if elements.is_a?(AST::ArrayLiteral)
+            values = elements.map do |value|
+              value = value.value if value.is_a?(AST::StringLiteral)
+              symbols ? value.to_sym : AST::StringLiteral.new(value.to_s)
+            end
             AST::ArrayLiteral.new(values.freeze)
           end
 

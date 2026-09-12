@@ -116,7 +116,9 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "keywords after a receiver are method names" do
-    assert_nothing_raised { Arpaka.parse_source("self.class.to_s") }
+    receiver = AST::ReceiverCall.new(literal(:self), :".", :class, [])
+    assert_equal(AST::Program.new([AST::ReceiverCall.new(receiver, :".", :to_s, [])]),
+      Arpaka.parse_source("self.class.to_s"))
   end
 
   test "operator calls use ordinary argument parentheses" do
@@ -402,8 +404,16 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::RegexpLiteral.new("a"), Arpaka.parse_source("%r(a)").statements.first)
   end
 
-  test "source lexer rejects interpolation in static literals" do
-    ['"#{x}"', '%Q(#{x})', '%r(#{x})'].each do |source|
+  test "source lexer preserves simple string interpolation" do
+    assert_equal(AST::InterpolatedString.new([
+      "hello ", AST::Binary.new(:+, literal(1), literal(2)), " world"
+    ]), Arpaka.parse_source('"hello #{1 + 2} world"').statements.first)
+    assert_equal(AST::InterpolatedString.new([AST::BareCall.new(:name)]),
+      Arpaka.parse_source('"#{name}"').statements.first)
+  end
+
+  test "source lexer still rejects interpolation in percent literals" do
+    ['%Q(#{x})', '%r(#{x})'].each do |source|
       assert_raise(Arpaka::LexerError) { Arpaka.parse_source(source) }
     end
   end
@@ -462,7 +472,7 @@ class ArpakaTest < Test::Unit::TestCase
   test "source lexer accepts argumentless command blocks" do
     assert_equal(AST::Call.new(:included, []),
       Arpaka.parse_source("included do\n  1\nend").statements.first)
-    assert_equal(AST::BareCall.new(:foo),
+    assert_equal(AST::ReceiverCall.new(AST::BareCall.new(:foo), :".", :bar, []),
       Arpaka.parse_source("foo.bar do\n  1\nend").statements.first)
     assert_nothing_raised { Arpaka.parse_source("foo before: :bar do |value| value end\n") }
     tokens = Arpaka.const_get(:Lexer, false).new("items << lambda do").each.to_a

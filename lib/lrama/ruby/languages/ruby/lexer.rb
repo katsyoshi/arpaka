@@ -234,7 +234,7 @@ module Lrama
               return [:tAMPER, nil]
             end
             token = KEYWORDS[word]
-            if token && [".", :tCOLON2].include?(@previous)
+            if token && [".", :tCOLON2, :tANDDOT].include?(@previous)
               token = :tFID
             elsif (!@begin_expression || [:keyword_return, :keyword_break, :keyword_next, :keyword_end].include?(@previous)) && { "if" => :modifier_if, "unless" => :modifier_unless,
               "while" => :modifier_while, "until" => :modifier_until,
@@ -371,12 +371,75 @@ module Lrama
 
           def string_token(quote, start)
             advance
-            content = read_quoted(quote, interpolate: quote != 39, start: start)
+            content_tokens = read_interpolated_quoted(quote, start)
             label = byte == 58
             advance if label
             terminator = label ? :tLABEL_END : :tSTRING_END
-            @pending = [[:tSTRING_CONTENT, content], [terminator, nil]]
+            @pending = content_tokens
+            @pending << [terminator, nil]
             [quote == 96 ? :tXSTRING_BEG : :tSTRING_BEG, nil]
+          end
+
+          def read_interpolated_quoted(quote, start)
+            return [[:tSTRING_CONTENT, read_quoted(quote, interpolate: false, start: start)]] if quote == 39
+            content = +""
+            tokens = []
+            until eof?
+              value = byte
+              if value == quote
+                advance
+                tokens << [:tSTRING_CONTENT, content] unless content.empty?
+                return tokens
+              elsif value == 92
+                content << escape_sequence(start)
+              elsif value == 35 && byte(1) == 123
+                tokens << [:tSTRING_CONTENT, content] unless content.empty?
+                content = +""
+                advance(2)
+                expression = read_interpolation_source(start)
+                inner = self.class.new(expression, filename: @filename).each.to_a
+                inner.pop if inner.last == [0, nil]
+                tokens << [:tSTRING_DBEG, nil]
+                tokens.concat(inner)
+                tokens << [:tSTRING_DEND, nil]
+              else
+                content << value.chr
+                advance
+              end
+            end
+            fail!("unterminated literal", start)
+          end
+
+          def read_interpolation_source(start)
+            begin_index = @index
+            depth = 1
+            quote = nil
+            escaped = false
+            while !eof?
+              value = byte
+              if quote
+                if escaped
+                  escaped = false
+                elsif value == 92
+                  escaped = true
+                elsif value == quote
+                  quote = nil
+                end
+              elsif [39, 34, 96].include?(value)
+                quote = value
+              elsif value == 123
+                depth += 1
+              elsif value == 125
+                depth -= 1
+                if depth.zero?
+                  expression = @source.byteslice(begin_index, @index - begin_index)
+                  advance
+                  return expression.force_encoding(Encoding::UTF_8)
+                end
+              end
+              advance
+            end
+            fail!("unterminated string interpolation", start)
           end
 
           def read_quoted(quote, interpolate:, start:)
@@ -596,7 +659,7 @@ module Lrama
               return [value == "-@" ? :tUMINUS : :tUPLUS, nil]
             end
             text = OPERATORS.sort_by { |operator| -operator.bytesize }.find { |operator| @source.byteslice(@index, operator.bytesize) == operator }
-            operator_method = [:keyword_def, ".", :tCOLON2, :tSYMBEG].include?(@previous)
+            operator_method = [:keyword_def, ".", :tCOLON2, :tANDDOT, :tSYMBEG].include?(@previous)
             if text && !(begin_expression? && !operator_method && ["[]", "[]="].include?(text))
               advance(text.bytesize)
               token = if text == "**" && @begin_expression
@@ -623,7 +686,7 @@ module Lrama
               lambda_block = value == "{" && @lambda_pending
               @delimiter_depth += 1 unless brace_block || lambda_block
               if value == "("
-                return [@begin_expression && ![".", :tCOLON2, :keyword_super, :keyword_yield].include?(@previous) ? :tLPAREN : "(", nil]
+                return [@begin_expression && ![".", :tCOLON2, :tANDDOT, :keyword_super, :keyword_yield].include?(@previous) ? :tLPAREN : "(", nil]
               end
               if value == "{" && @lambda_pending
                 @lambda_pending = false
