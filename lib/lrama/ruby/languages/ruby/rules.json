@@ -1989,7 +1989,7 @@
     "id": 332,
     "rule": "arg_splat: \"*\" arg_value",
     "line": 4337,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 333,

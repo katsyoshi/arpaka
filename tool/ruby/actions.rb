@@ -352,7 +352,7 @@ module RubyGrammarActions
     324 => ["pass_through", "$2"],
     326 => ["pass_through", "$2"],
     331 => ["ported", "@builder.append_arguments($1, $3)"],
-    332 => ["pass_through", "$2"],
+    332 => ["ported", "[$2].freeze"],
     336 => ["ported", "($1 + [$3]).freeze"],
     337 => ["ported", "($1 + [$4]).freeze"],
     338 => ["ported", "[$2].freeze"],

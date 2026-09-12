@@ -848,7 +848,7 @@ args: args ',' arg_value %prec ',' { $$ = @builder.append_arguments($1, $3) };
 /* upstream parse.y:4329: args: args ',' arg_splat */
 args: args ',' arg_splat %prec ',' { $$ = @builder.append_arguments($1, $3) };
 /* upstream parse.y:4337: arg_splat: "*" arg_value */
-arg_splat: tSTAR arg_value %prec tSTAR { $$ = $2 };
+arg_splat: tSTAR arg_value %prec tSTAR { $$ = [$2].freeze };
 /* upstream parse.y:4342: arg_splat: "*" */
 arg_splat: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:4350: mrhs_arg: mrhs */
