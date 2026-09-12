@@ -407,6 +407,13 @@ class ArpakaTest < Test::Unit::TestCase
       Arpaka.parse_source("def halt!; 1; end").statements.first)
   end
 
+  test "source lexer distinguishes splat and block argument operators" do
+    assert_equal(AST::Call.new(:f, AST::BareCall.new(:args)),
+      Arpaka.parse_source("f(*args)").statements.first)
+    assert_equal(AST::Call.new(:map, AST::Literal.new(:to_s)),
+      Arpaka.parse_source("map(&:to_s)").statements.first)
+  end
+
   test "single quoted heredoc keeps interpolation literal" do
     assert_equal(AST::StringLiteral.new("\#{x}\n"),
       Arpaka.parse_source("<<'TEXT'\n\#{x}\nTEXT\n").statements.first)

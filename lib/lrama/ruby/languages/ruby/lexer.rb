@@ -516,7 +516,12 @@ module Lrama
             text = OPERATORS.sort_by(&:bytesize).find { |operator| @source.byteslice(@index, operator.bytesize) == operator }
             if text
               advance(text.bytesize)
-              return [OP_TOKENS.fetch(text, :tOP_ASGN), nil]
+              token = if text == "**" && @begin_expression
+                :tDSTAR
+              else
+                OP_TOKENS.fetch(text, :tOP_ASGN)
+              end
+              return [token, nil]
             end
             value = byte.chr
             advance
@@ -533,6 +538,10 @@ module Lrama
               return [:tUMINUS, nil]
             elsif value == "+" && @begin_expression
               return [:tUPLUS, nil]
+            elsif value == "*" && @begin_expression
+              return [:tSTAR, nil]
+            elsif value == "&" && @begin_expression
+              return [:tAMPER, nil]
             elsif value == "?" && !@begin_expression
               @ternary_depth += 1
             elsif value == ":" && @ternary_depth.positive?
