@@ -61,6 +61,7 @@ module Lrama
             @pending = []
             @condition_do = false
             @condition_line = false
+            @ternary_depth = 0
           end
 
           def each
@@ -188,6 +189,11 @@ module Lrama
               advance
               word = "defined?"
             end
+            if [33, 63].include?(byte) && !identifier_byte?(byte(1)) && byte(1) != 61
+              suffix = byte.chr
+              advance
+              return [:tFID, (word + suffix).to_sym]
+            end
             if byte == 58 && byte(1) != 58
               advance
               return [:tLABEL, word.to_sym]
@@ -289,7 +295,8 @@ module Lrama
           end
 
           def symbol_or_colon(start)
-            return operator_or_punctuation(start) unless @begin_expression && byte(1) && byte(1) != 58
+            symbol_position = @begin_expression || (@previous == :tIDENTIFIER && @ternary_depth.zero?)
+            return operator_or_punctuation(start) unless symbol_position && byte(1) && byte(1) != 58
             advance
             if byte == 39 || byte == 34
               quote = byte
@@ -440,10 +447,15 @@ module Lrama
           end
 
           def heredoc_or_operator(start)
-            if byte(1) == 60
+            if byte(1) == 60 && heredoc_prefix?
               return heredoc_token(start) if @begin_expression || @previous == :tIDENTIFIER
             end
             operator_or_punctuation(start)
+          end
+
+          def heredoc_prefix?
+            value = byte(2)
+            value && ([39, 34, 96, 45, 126].include?(value) || identifier_byte?(value))
           end
 
           def heredoc_token(start)
@@ -521,6 +533,10 @@ module Lrama
               return [:tUMINUS, nil]
             elsif value == "+" && @begin_expression
               return [:tUPLUS, nil]
+            elsif value == "?" && !@begin_expression
+              @ternary_depth += 1
+            elsif value == ":" && @ternary_depth.positive?
+              @ternary_depth -= 1
             end
             [value, nil]
           rescue EncodingError

@@ -393,6 +393,20 @@ class ArpakaTest < Test::Unit::TestCase
       Arpaka.parse_source("<<`TEXT`\necho\nTEXT\n").statements.first)
   end
 
+  test "source lexer distinguishes shifts and command symbols" do
+    assert_equal(AST::Binary.new(:<<, literal(1), literal(2)),
+      Arpaka.parse_source("1 << 2").statements.first)
+    assert_equal(AST::Literal.new(:bar),
+      Arpaka.parse_source("foo = :bar").statements.first.value)
+  end
+
+  test "source lexer treats predicate and bang methods as identifiers" do
+    assert_equal(AST::Def.new(:stopping?, [], [literal(1)]),
+      Arpaka.parse_source("def stopping?; 1; end").statements.first)
+    assert_equal(AST::Def.new(:halt!, [], [literal(1)]),
+      Arpaka.parse_source("def halt!; 1; end").statements.first)
+  end
+
   test "single quoted heredoc keeps interpolation literal" do
     assert_equal(AST::StringLiteral.new("\#{x}\n"),
       Arpaka.parse_source("<<'TEXT'\n\#{x}\nTEXT\n").statements.first)
