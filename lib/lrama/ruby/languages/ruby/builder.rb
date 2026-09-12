@@ -94,6 +94,7 @@ module Lrama
           end
 
           def symbol(value)
+            value = value.name if value.is_a?(AST::Variable)
             AST::Literal.new(value.to_sym)
           end
 

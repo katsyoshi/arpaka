@@ -434,6 +434,11 @@ class ArpakaTest < Test::Unit::TestCase
       Arpaka.parse_source("map(&:to_s)").statements.first)
   end
 
+  test "symbols can be built from variable-shaped values" do
+    builder = Lrama::Ruby::Languages::Ruby::Builder.new
+    assert_equal(AST::Literal.new(:value), builder.symbol(AST::Variable.new(:local, :value)))
+  end
+
   test "source lexer accepts argumentless command blocks" do
     assert_equal(AST::Call.new(:included, []),
       Arpaka.parse_source("included do\n  1\nend").statements.first)
