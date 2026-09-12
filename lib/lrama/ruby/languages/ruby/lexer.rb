@@ -33,14 +33,14 @@ module Lrama
             "__ENCODING__" => :keyword__ENCODING__
           }.freeze
 
-          OPERATORS = %w[... .. <=> === == != =~ !~ >= <= && || << >> ** => :: &. -> += -= *= /= %= **= <<= >>= &&= ||=].freeze
+          OPERATORS = %w[[]= [] ... .. <=> === == != =~ !~ >= <= && || << >> ** => :: &. -> += -= *= /= %= **= <<= >>= &&= ||=].freeze
           OP_TOKENS = {
             "**" => :tPOW, "<=>" => :tCMP, "==" => :tEQ, "===" => :tEQQ,
             "!=" => :tNEQ, ">=" => :tGEQ, "<=" => :tLEQ, "&&" => :tANDOP,
             "||" => :tOROP, "=~" => :tMATCH, "!~" => :tNMATCH,
             ".." => :tDOT2, "..." => :tDOT3, "<<" => :tLSHFT,
             ">>" => :tRSHFT, "&." => :tANDDOT, "::" => :tCOLON2,
-            "=>" => :tASSOC, "->" => :tLAMBDA
+            "=>" => :tASSOC, "->" => :tLAMBDA, "[]" => :tAREF, "[]=" => :tASET
           }.freeze
 
           def initialize(source, filename: "(ruby)")
@@ -206,7 +206,7 @@ module Lrama
                 "while" => :modifier_while, "until" => :modifier_until,
                 "rescue" => :modifier_rescue }.fetch(word, token)
             end
-            token ||= word == "do" ? do_token : (word.getbyte(0) == 65 ? :tCONSTANT : :tIDENTIFIER)
+            token ||= word == "do" ? do_token : (word.getbyte(0).between?(65, 90) ? :tCONSTANT : :tIDENTIFIER)
             @condition_do = true if [:keyword_while, :keyword_until, :keyword_for].include?(token)
             [token, word.to_sym]
           rescue EncodingError
@@ -514,10 +514,12 @@ module Lrama
 
           def operator_or_punctuation(start)
             text = OPERATORS.sort_by(&:bytesize).find { |operator| @source.byteslice(@index, operator.bytesize) == operator }
-            if text
+            if text && !(begin_expression? && @previous != :keyword_def && ["[]", "[]="].include?(text))
               advance(text.bytesize)
               token = if text == "**" && @begin_expression
                 :tDSTAR
+              elsif text == "::" && @begin_expression
+                :tCOLON3
               else
                 OP_TOKENS.fetch(text, :tOP_ASGN)
               end
@@ -550,6 +552,10 @@ module Lrama
             [value, nil]
           rescue EncodingError
             fail!("invalid byte", start)
+          end
+
+          def begin_expression?
+            @begin_expression
           end
         end
         private_constant :Lexer
