@@ -468,6 +468,11 @@ class ArpakaTest < Test::Unit::TestCase
     assert_instance_of(AST::Call, Arpaka.parse_source("each(1) do\nend").statements.first)
   end
 
+  test "source lexer ignores newlines after logical operators" do
+    assert_nothing_raised { Arpaka.parse_source("left &&\nright\n") }
+    assert_nothing_raised { Arpaka.parse_source("left ||\nright\n") }
+  end
+
   test "source lexer recognizes operator method names and top-level constants" do
     assert_equal(AST::Def.new(:[], [], [AST::BareCall.new(:x)]),
       Arpaka.parse_source("def [](x); x; end").statements.first)

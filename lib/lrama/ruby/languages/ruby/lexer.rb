@@ -165,6 +165,7 @@ module Lrama
           def newline_ignored?
             ignored = @delimiter_depth.positive? || @previous == "\n" ||
               ["+", "-", "*", "/", "%", "=", "?", ":", ",", ".", "&&", "||", "=>"].include?(@previous) ||
+              [:tANDOP, :tOROP, :tMATCH, :tNMATCH, :tASSOC].include?(@previous) ||
               next_word_is_terminator?
             @condition_line = false if ignored && @condition_line
             ignored
