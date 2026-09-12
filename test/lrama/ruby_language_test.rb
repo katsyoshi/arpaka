@@ -618,6 +618,7 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("first..\n  last\n") }
     assert_nothing_raised { Arpaka.parse_source("left and\n  right\n") }
     assert_nothing_raised { Arpaka.parse_source("left or\n  right\n") }
+    assert_nothing_raised { Arpaka.parse_source("left ==\n  right\n") }
   end
 
   test "source lexer recognizes bitwise assignment operators" do
