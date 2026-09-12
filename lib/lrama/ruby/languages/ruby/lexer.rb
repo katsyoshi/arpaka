@@ -64,6 +64,7 @@ module Lrama
             @condition_line = false
             @ternary_depth = 0
             @class_superclass = false
+            @lambda_pending = false
           end
 
           def each
@@ -241,6 +242,9 @@ module Lrama
             if @condition_do
               @condition_do = false
               :keyword_do_cond
+            elsif @lambda_pending
+              @lambda_pending = false
+              :keyword_do_LAMBDA
             elsif @previous == ")"
               :keyword_do
             elsif @previous == :tLAMBDA
@@ -555,6 +559,7 @@ module Lrama
               else
                 OP_TOKENS.fetch(text, :tOP_ASGN)
               end
+              @lambda_pending = true if token == :tLAMBDA
               return [token, nil]
             end
             value = byte.chr
@@ -570,7 +575,10 @@ module Lrama
               if value == "("
                 return [@begin_expression && ![".", :tCOLON2, :keyword_super].include?(@previous) ? :tLPAREN : "(", nil]
               end
-              return [:tLAMBEG, nil] if value == "{" && @previous == :tLAMBDA
+              if value == "{" && @lambda_pending
+                @lambda_pending = false
+                return [:tLAMBEG, nil]
+              end
               return [value == "[" ? (@begin_expression ? :tLBRACK : "[") : (@previous == ")" ? "{" : :tLBRACE), nil]
             elsif value == ")" || value == "]" || value == "}"
               @delimiter_depth -= 1 if @delimiter_depth.positive?
