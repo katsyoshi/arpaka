@@ -697,7 +697,10 @@ module Lrama
                 @lambda_pending = false
                 return [:tLAMBEG, nil]
               end
-              return [value == "[" ? (@begin_expression ? :tLBRACK : "[") : (brace_block ? "{" : :tLBRACE), nil]
+              array_argument = value == "[" && start.positive? &&
+                [9, 10, 11, 12, 13, 32].include?(@source.getbyte(start - 1)) &&
+                [:tIDENTIFIER, :tFID, :tCONSTANT].include?(@previous)
+              return [value == "[" && (@begin_expression || array_argument) ? :tLBRACK : (value == "[" ? "[" : (brace_block ? "{" : :tLBRACE)), nil]
             elsif value == ")" || value == "]" || value == "}"
               @delimiter_depth -= 1 if @delimiter_depth.positive?
             elsif value == "-" && @begin_expression

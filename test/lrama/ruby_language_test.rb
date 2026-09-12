@@ -451,7 +451,13 @@ class ArpakaTest < Test::Unit::TestCase
 
   test "source lexer treats spaced empty brackets as an array literal" do
     tokens = Arpaka.const_get(:Lexer, false).new("assert_equal [], value").each.to_a
-    assert_equal([:tIDENTIFIER, "[", "]", ",", :tIDENTIFIER, 0], tokens.map(&:first))
+    assert_equal([:tIDENTIFIER, :tLBRACK, "]", ",", :tIDENTIFIER, 0], tokens.map(&:first))
+  end
+
+  test "source lexer treats spaced bracket arguments as array literals" do
+    tree = Arpaka.parse_source("foo [1], name: 2").statements.first
+    assert_equal(AST::ArrayLiteral.new([literal(1)]), tree.arguments.first)
+    assert_equal(AST::Pair.new(AST::Literal.new(:name), literal(2)), tree.arguments.last)
   end
 
   test "source lexer treats predicate and bang methods as identifiers" do
