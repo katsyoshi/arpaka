@@ -119,6 +119,11 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("self.class.to_s") }
   end
 
+  test "operator calls use ordinary argument parentheses" do
+    tokens = Arpaka.const_get(:Lexer, false).new("handler.(message)").each.to_a
+    assert_equal([".", "(", :tIDENTIFIER], tokens[1, 3].map(&:first))
+  end
+
   test "class and module definitions preserve name and body" do
     class_tokens = [[:keyword_class, nil], [:tCONSTANT, :Foo], [";", nil], [:tINTEGER, 1], [";", nil], [:keyword_end, nil]]
     module_tokens = [[:keyword_module, nil], [:tCONSTANT, :Bar], [";", nil], [:tINTEGER, 2], [";", nil], [:keyword_end, nil]]
