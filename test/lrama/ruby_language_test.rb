@@ -433,6 +433,7 @@ class ArpakaTest < Test::Unit::TestCase
       Arpaka.parse_source("included do\n  1\nend").statements.first)
     assert_equal(AST::BareCall.new(:foo),
       Arpaka.parse_source("foo.bar do\n  1\nend").statements.first)
+    assert_nothing_raised { Arpaka.parse_source("items << lambda do\n  1\nend") }
   end
 
   test "source lexer recognizes operator method names and top-level constants" do
