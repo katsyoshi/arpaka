@@ -183,6 +183,7 @@
 %right tUMINUS tUMINUS_NUM
 %right tPOW
 %right tUPLUS '!' '~'
+%left keyword_do_block
 %start program
 %%
 /* upstream parse.y:3176: $@1: %empty */
@@ -814,7 +815,7 @@ opt_call_args: args ',' assocs ',' %prec ',' { $$ = $1 };
 /* upstream parse.y:4212: opt_call_args: assocs ',' */
 opt_call_args: assocs ',' %prec ',' { $$ = $1 };
 /* upstream parse.y:3161: value_expr_command: command */
-value_expr_command: command { $$ = $1 };
+value_expr_command: command %prec tLBRACE_ARG { $$ = $1 };
 /* upstream parse.y:4219: call_args: value_expr_command */
 call_args: value_expr_command { $$ = $1 };
 /* upstream parse.y:4224: call_args: def_endless_method_endless_command */
@@ -1891,3 +1892,5 @@ terms: term { $$ = nil };
 terms: terms ';' %prec ';' { $$ = nil };
 /* upstream parse.y:6728: none: %empty */
 none: %empty { $$ = nil };
+/* arpaka extension: block call as a parenthesized argument */
+call_args: block_call { $$ = [$1].freeze };
