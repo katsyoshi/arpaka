@@ -556,7 +556,7 @@ module Lrama
 
           def operator_or_punctuation(start)
             text = OPERATORS.sort_by { |operator| -operator.bytesize }.find { |operator| @source.byteslice(@index, operator.bytesize) == operator }
-            operator_method = [:keyword_def, ".", :tCOLON2].include?(@previous)
+            operator_method = [:keyword_def, ".", :tCOLON2, :tSYMBEG].include?(@previous)
             if text && !(begin_expression? && !operator_method && ["[]", "[]="].include?(text))
               advance(text.bytesize)
               token = if text == "**" && @begin_expression

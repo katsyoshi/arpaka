@@ -524,6 +524,7 @@ class ArpakaTest < Test::Unit::TestCase
 
   test "source lexer accepts ampersand operator symbols" do
     assert_nothing_raised { Arpaka.parse_source("items.reduce(:&)\n") }
+    assert_nothing_raised { Arpaka.parse_source("delegate :[], :[]=, to: :paths\n") }
   end
 
   test "single quoted heredoc keeps interpolation literal" do
