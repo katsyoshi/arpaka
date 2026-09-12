@@ -472,6 +472,10 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("foo do\nend\n") }
   end
 
+  test "source lexer ignores newlines after operator assignments" do
+    assert_nothing_raised { Arpaka.parse_source("value ||=\n  if condition\n    fallback\n  end\n") }
+  end
+
   test "source lexer uses ordinary do after parenthesized calls" do
     tokens = Arpaka.const_get(:Lexer, false).new("each(1) do\nend").each.to_a
     assert_equal(:keyword_do, tokens.map(&:first)[-4])
