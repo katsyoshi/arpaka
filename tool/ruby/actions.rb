@@ -558,7 +558,7 @@ module RubyGrammarActions
     389 => ["ported", "@builder.def_node($1, $2, @builder.body_nodes($4))"],
     629 => ["empty", "nil"], 636 => ["empty", "nil"],
     149 => ["pass_through", "$1"], 150 => ["pass_through", "$1"],
-    151 => ["pass_through", "$2"], 152 => ["pass_through", "$1"], 153 => ["pass_through", "$2"],
+    151 => ["pass_through", "$2"], 152 => ["pass_through", "$1"], 153 => ["pass_through", "$3"],
     382 => ["empty", "nil"], 384 => ["empty", "nil"], 386 => ["empty", "nil"],
     383 => ["ported", "@builder.class_node($2, $3, $5)"],
     387 => ["ported", "@builder.module_node($2, $4)"],

@@ -490,7 +490,7 @@ cpath: tCOLON3 cname %prec tCOLON3 { $$ = $2 };
 /* upstream parse.y:3853: cpath: cname */
 cpath: cname { $$ = $1 };
 /* upstream parse.y:3858: cpath: primary_value "::" cname */
-cpath: primary_value tCOLON2 cname %prec tCOLON2 { $$ = $2 };
+cpath: primary_value tCOLON2 cname %prec tCOLON2 { $$ = $3 };
 /* upstream parse.y:3864: fname: "local variable or method" */
 fname: tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:3864: fname: "constant" */

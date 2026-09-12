@@ -111,7 +111,7 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "setter method definitions preserve the equals suffix" do
-    expected = AST::Program.new([AST::Def.new(:"value=", [], [AST::BareCall.new(:value)])])
+    expected = AST::Program.new([AST::Def.new(:"value=", :value, [AST::BareCall.new(:value)])])
     assert_equal(expected, Arpaka.parse_source("def value=(value)\n  value\nend"))
   end
 
@@ -131,6 +131,8 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::ModuleDef.new(:Bar, [literal(2)])]), parse(*module_tokens))
     assert_equal(AST::ClassDef.new(:Error, AST::Variable.new(:constant, :StandardError), []),
       Arpaka.parse_source("class Error < StandardError\nend").statements.first)
+    assert_equal(:TrixEditor,
+      Arpaka.parse_source("class Editor::TrixEditor\nend").statements.first.name)
   end
 
   test "simple string literals preserve their content" do
@@ -446,7 +448,7 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "symbols can be built from variable-shaped values" do
-    builder = Lrama::Ruby::Languages::Ruby::Builder.new
+    builder = Lrama::Ruby::Languages::Ruby.const_get(:Builder, false).new
     assert_equal(AST::Literal.new(:value), builder.symbol(AST::Variable.new(:local, :value)))
   end
 
