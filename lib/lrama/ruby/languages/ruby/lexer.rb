@@ -463,6 +463,7 @@ module Lrama
             advance
             closing = { 40 => 41, 91 => 93, 123 => 125, 60 => 62 }.fetch(delimiter, delimiter)
             content = read_delimited(closing, start, interpolate: [81, 87, 73, 114, 120, 88].include?(kind))
+            advance while kind == 114 && byte && byte.between?(97, 122)
             token = { 113 => :tSTRING_BEG, 81 => :tSTRING_BEG, 119 => :tWORDS_BEG, 87 => :tQWORDS_BEG,
                       105 => :tSYMBOLS_BEG, 73 => :tQSYMBOLS_BEG, 114 => :tREGEXP_BEG,
                       115 => :tSYMBEG, 120 => :tXSTRING_BEG, 88 => :tXSTRING_BEG }.fetch(kind)
