@@ -299,6 +299,11 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::HashLiteral.new([])]), parse([:tLBRACE, nil], ["}", nil]))
   end
 
+  test "command blocks accept block parameters" do
+    assert_equal(AST::Program.new([:each]), Arpaka.parse_source("each { |value| value }"))
+    assert_equal(AST::Program.new([AST::Call.new(:each, [])]), Arpaka.parse_source("each do |value| value end"))
+  end
+
   test "if, unless, elsif and else build conditional AST nodes" do
     expected = AST::Program.new([AST::If.new(literal(true), [literal(1)], [literal(2)])])
     assert_equal(expected, parse([:keyword_if, nil], [:keyword_true, nil], [:keyword_then, nil], [:tINTEGER, 1], [:keyword_else, nil], [:tINTEGER, 2], [:keyword_end, nil]))

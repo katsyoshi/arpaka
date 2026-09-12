@@ -540,6 +540,12 @@ module Lrama
               return [token, nil]
             end
             value = byte.chr
+            if value == "{" && no_argument_block?
+              advance
+              @delimiter_depth += 1
+              @pending.unshift([:tLBRACE_ARG, nil])
+              return [:tAMPER, nil]
+            end
             advance
             if value == "(" || value == "[" || value == "{"
               @delimiter_depth += 1
