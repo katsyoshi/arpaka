@@ -459,6 +459,10 @@ class ArpakaTest < Test::Unit::TestCase
     assert_false(lexer.context.command_start)
     assert_equal([], lexer.context.delimiter_stack)
     assert_equal([:tIDENTIFIER, "(", :tINTEGER, ")"], lexer.context.token_history)
+    assert_equal([:tIDENTIFIER, "(", :tINTEGER, ")"],
+      lexer.context.state_history.map { |entry| entry.fetch(:token) })
+    assert_equal(1, lexer.context.state_history[1].fetch(:delimiter_depth))
+    assert_equal(0, lexer.context.state_history.last.fetch(:delimiter_depth))
 
     other = Arpaka.const_get(:Lexer, false).new("value")
     assert_equal(:expr_beg, other.context.lex_state)

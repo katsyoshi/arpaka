@@ -11,7 +11,8 @@ module Lrama
           attr_accessor :begin_expression, :condition_do, :condition_line,
             :ternary_depth, :lambda_pending, :alias_context, :argument_label,
             :lex_state, :command_start
-          attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack, :token_history
+          attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack,
+            :token_history, :state_history
 
           def initialize
             @begin_expression = true
@@ -27,6 +28,7 @@ module Lrama
             @cmdarg_stack = []
             @condition_stack = []
             @token_history = []
+            @state_history = []
           end
 
           def delimiter_depth
@@ -68,6 +70,18 @@ module Lrama
           def remember_token(token)
             @token_history << token
             @token_history.shift while @token_history.length > 4
+          end
+
+          def remember_state(token)
+            @state_history << {
+              token: token,
+              lex_state: @lex_state,
+              begin_expression: @begin_expression,
+              command_start: @command_start,
+              delimiter_depth: delimiter_depth,
+              cmdarg_depth: @cmdarg_stack.length,
+              condition_depth: @condition_stack.length
+            }.freeze
           end
         end
 
@@ -178,6 +192,7 @@ module Lrama
               @context.begin_expression = expression_begin_after(value[0])
               @context.lex_state = lexical_state_after(value[0])
               @context.command_start = command_start_after(value[0])
+              @context.remember_state(value[0])
               return value
             end
             skip_space_and_comments
@@ -228,6 +243,7 @@ module Lrama
             @context.begin_expression = expression_begin_after(value && value[0])
             @context.lex_state = lexical_state_after(value && value[0])
             @context.command_start = command_start_after(value && value[0])
+            @context.remember_state(value && value[0])
             value
           end
 
