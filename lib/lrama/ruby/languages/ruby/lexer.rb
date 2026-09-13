@@ -13,7 +13,8 @@ module Lrama
             :lex_state, :command_start, :label_pending
           attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack,
             :token_history, :state_history, :block_stack, :scope_stack, :parser_events,
-            :parser_delimiter_stack, :parser_cmdarg_stack, :parser_block_stack
+            :parser_delimiter_stack, :parser_cmdarg_stack, :parser_block_stack,
+            :parser_condition_stack
 
           def initialize
             @begin_expression = true
@@ -37,6 +38,7 @@ module Lrama
             @parser_delimiter_stack = []
             @parser_cmdarg_stack = []
             @parser_block_stack = []
+            @parser_condition_stack = []
           end
 
           def delimiter_depth
@@ -136,6 +138,13 @@ module Lrama
               @parser_block_stack.pop
             elsif token == :keyword_end && @parser_block_stack.last
               @parser_block_stack.pop
+            end
+            if [:keyword_while, :keyword_until, :keyword_for].include?(token)
+              @parser_condition_stack << token
+            elsif token == :keyword_do_cond && @parser_condition_stack.last
+              @parser_condition_stack.pop
+            elsif token == :keyword_end && @parser_condition_stack.last
+              @parser_condition_stack.pop
             end
           end
 
