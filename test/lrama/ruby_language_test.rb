@@ -352,6 +352,20 @@ class ArpakaTest < Test::Unit::TestCase
     end
   end
 
+  test "singleton class endings preserve enclosing blocks" do
+    source = <<~RUBY
+      tests(Class.new(ActionController::Base) do
+        class << self
+          attr_accessor :last_parameters
+        end
+
+        def parse
+        end
+      end)
+    RUBY
+    assert_nothing_raised { Arpaka.parse_source(source) }
+  end
+
   test "if, unless, elsif and else build conditional AST nodes" do
     expected = AST::Program.new([AST::If.new(literal(true), [literal(1)], [literal(2)])])
     assert_equal(expected, parse([:keyword_if, nil], [:keyword_true, nil], [:keyword_then, nil], [:tINTEGER, 1], [:keyword_else, nil], [:tINTEGER, 2], [:keyword_end, nil]))

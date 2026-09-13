@@ -10,7 +10,7 @@ module Lrama
         class LexicalContext
           attr_accessor :begin_expression, :condition_do, :condition_line,
             :ternary_depth, :lambda_pending, :alias_context, :argument_label,
-            :lex_state, :command_start, :label_pending
+            :lex_state, :command_start, :label_pending, :singleton_class_depth
           attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack,
             :token_history, :state_history, :block_stack, :scope_stack, :parser_events,
             :parser_delimiter_stack, :parser_cmdarg_stack, :parser_block_stack,
@@ -25,6 +25,7 @@ module Lrama
             @alias_context = false
             @argument_label = nil
             @label_pending = false
+            @singleton_class_depth = 0
             @lex_state = :expr_beg
             @command_start = true
             @delimiter_stack = []
@@ -465,6 +466,8 @@ module Lrama
               @context.push_block(:lambda)
             when :tLAMBDA
               @context.push_scope(:lambda)
+            when :tLSHFT
+              @context.singleton_class_depth += 1 if @previous_previous == :keyword_class
             when :tLAMBEG
               @context.push_block(:lambda)
             when "{", :tLBRACE_ARG
@@ -473,8 +476,13 @@ module Lrama
               @context.pop_block if [:brace_block, :lambda].include?(@context.block_stack.last)
               @context.pop_scope if @context.scope_stack.last == :lambda
             when :keyword_end
-              @context.pop_block if [:do_block, :lambda].include?(@context.block_stack.last)
-              @context.pop_scope if [:method, :lambda].include?(@context.scope_stack.last)
+              if @context.singleton_class_depth.positive?
+                @context.singleton_class_depth -= 1
+                @context.pop_scope if @context.scope_stack.last == :keyword_class
+              else
+                @context.pop_block if [:do_block, :lambda].include?(@context.block_stack.last)
+                @context.pop_scope if [:method, :lambda].include?(@context.scope_stack.last)
+              end
             end
           end
 
