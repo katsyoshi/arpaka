@@ -333,7 +333,11 @@ class Lexer
         ["\n", nil]
       end
     when 39, 34, 96
-      string_token(byte, start)
+      if byte == 96 && @previous == :tSYMBEG
+        operator_or_punctuation(start)
+      else
+        string_token(byte, start)
+      end
     when 47
       [:keyword_def, :keyword_alias, :tSYMBEG].include?(@previous) ? operator_or_punctuation(start) : regexp_or_operator(start)
     when 37
@@ -527,8 +531,11 @@ class Lexer
       end
     end
     if @context.method_header && token != :keyword_def && token != "(" &&
+        ![".", :tCOLON2, :tANDDOT].include?(token) &&
+        !(@context.method_header && [".", :tCOLON2, :tANDDOT].include?(@previous_previous)) &&
         !@context.delimiter_stack.include?("(") &&
-        !(@previous_previous == :keyword_def && [:tIDENTIFIER, :tFID].include?(token))
+        !(@previous_previous == :keyword_def &&
+          [:keyword_self, :tIDENTIFIER, :tCONSTANT, :tIVAR, :tCVAR, :tGVAR, :tFID].include?(token))
       @context.method_header = false
     end
     @context.method_body_start = false unless [")", "\n"].include?(token)
@@ -555,7 +562,9 @@ class Lexer
       advance
       return [:tFID, (word + suffix).to_sym]
     end
-    if byte == 61 && byte(1) != 61 && [:keyword_def, ".", :tCOLON2].include?(@previous)
+    if byte == 61 && byte(1) != 61 &&
+        (@previous == :keyword_def ||
+          @context.method_header && [".", :tCOLON2, :tANDDOT].include?(@previous))
       advance
       return [:tFID, (word + "=").to_sym]
     end
@@ -573,6 +582,9 @@ class Lexer
         (byte(1).nil? || [9, 10, 11, 12, 13, 32, 44, 41, 93, 125, 124].include?(byte(1)) || @context.delimiter_stack.any?)
       advance
       return [:tLABEL, word.to_sym]
+    end
+    if word == "do" && [".", :tCOLON2, :tANDDOT].include?(@previous)
+      return [:tFID, word.to_sym]
     end
     if word == "do" && @context.lambda_pending
       return [do_token, word.to_sym]
@@ -1117,7 +1129,7 @@ class Lexer
       modifier = [45, 126].include?(@source.getbyte(@index + 2))
       value = byte(modifier ? 4 : 3)
     end
-    value == 95 || value&.between?(65, 90) || value&.between?(97, 122)
+    identifier_byte?(value)
   end
 
   def heredoc_token(start)
@@ -1174,6 +1186,7 @@ class Lexer
       advance if byte == 10
       fail!("unterminated heredoc", start) if eof?
     end
+    body = body.force_encoding(Encoding::UTF_8)
     squiggly ? dedent_heredoc(body) : body
   end
 
@@ -1285,7 +1298,7 @@ class Lexer
       lambda_block = value == "{" && @context.lambda_pending
       command_arg = value == "(" && !@context.begin_expression && start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
         [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) &&
-        ![".", :tCOLON2].include?(@previous_previous)
+        !@context.method_header
       unless brace_block || lambda_block
         @context.push_delimiter(value)
         @context.push_cmdarg(command_arg)
