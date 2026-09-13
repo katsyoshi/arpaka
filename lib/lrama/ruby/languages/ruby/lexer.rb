@@ -414,6 +414,7 @@ module Lrama
           def expression_begin_after(token)
             return true if token.nil? || token == "\n"
             return false if token == ")" || token == "]" || token == "}"
+            return false if token == :keyword_end
             return false if token == :tINTEGER || token == :tFLOAT || token == :tRATIONAL || token == :tIMAGINARY
             return false if token == :tIDENTIFIER || token == :tCONSTANT || token == :tFID || token == :tSTRING_END || token == :tREGEXP_END
             return false if token == :keyword_true || token == :keyword_false || token == :keyword_nil || token == :keyword_self
@@ -430,7 +431,7 @@ module Lrama
               @context.label_pending = false
               return :expr_labeled
             end
-            return :expr_end if [")", "]", "}", :tSTRING_END, :tREGEXP_END,
+            return :expr_end if [")", "]", "}", :keyword_end, :tSTRING_END, :tREGEXP_END,
               :tINTEGER, :tFLOAT, :tRATIONAL, :tIMAGINARY, :tIDENTIFIER,
               :tCONSTANT, :tFID, :tIVAR, :tGVAR, :tCVAR, :tNTH_REF,
               :keyword_true, :keyword_false, :keyword_nil, :keyword_self,
@@ -475,6 +476,10 @@ module Lrama
               advance
               word = "defined?"
             end
+            if byte == 63 && byte(1) == 58
+              advance(2)
+              return [:tLABEL, (word + "?").to_sym]
+            end
             if [33, 63].include?(byte) && !identifier_byte?(byte(1)) && byte(1) != 61
               suffix = byte.chr
               advance
@@ -491,6 +496,9 @@ module Lrama
             if byte == 58 && byte(1) != 58
               advance
               return [:tLABEL, word.to_sym]
+            end
+            if word == "do" && @context.lambda_pending
+              return [do_token, word.to_sym]
             end
             if word == "do" && !@context.condition_do && no_argument_block?
               return [:keyword_do, word.to_sym]
@@ -530,7 +538,7 @@ module Lrama
             elsif @context.lambda_pending
               @context.lambda_pending = false
               :keyword_do_LAMBDA
-            elsif @previous == ")"
+            elsif [")", :keyword_super, :keyword_yield].include?(@previous)
               :keyword_do
             elsif @previous == :tLAMBDA
               :keyword_do_LAMBDA
@@ -619,7 +627,11 @@ module Lrama
           end
 
           def character_or_question(start)
-            return operator_or_punctuation(start) unless @context.begin_expression && byte(1) && byte(1) != 32 && byte(1) != 10
+            command_character = !@context.begin_expression &&
+              [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) &&
+              start.positive? && [9, 32].include?(@source.getbyte(start - 1))
+            return operator_or_punctuation(start) unless (@context.begin_expression || command_character) &&
+              byte(1) && byte(1) != 32 && byte(1) != 10
             advance
             value = if byte == 92
               escape_sequence(start)
@@ -1054,9 +1066,11 @@ module Lrama
               return [value == "-@" ? :tUMINUS : :tUPLUS, nil]
             end
             text = OPERATORS.sort_by { |operator| -operator.bytesize }.find do |operator|
-              next false if operator == "[]" && start.positive? &&
+              next false if ["[]", "[]="].include?(operator) && start.positive? &&
                 [9, 10, 11, 12, 13, 32].include?(@source.getbyte(start - 1)) &&
                 @previous != :keyword_def
+              next false if ["[]", "[]="].include?(operator) &&
+                [:tIDENTIFIER, :tCONSTANT, :tFID, :tINTEGER, :tSTRING_END, :tREGEXP_END].include?(@previous)
               @source.byteslice(@index, operator.bytesize) == operator
             end
             operator_method = [:keyword_def, ".", :tCOLON2, :tANDDOT, :tSYMBEG].include?(@previous)
@@ -1086,9 +1100,12 @@ module Lrama
             end
             advance
             if value == "(" || value == "[" || value == "{"
-              brace_block = value == "{" && ([:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) ||
+              brace_block = value == "{" && @previous != "(" &&
+                ([:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) ||
                 @previous == ")" ||
-                [".", :tCOLON2].include?(@previous_previous) || [:proc, :lambda].include?(@previous_value))
+                [".", :tCOLON2].include?(@previous_previous) ||
+                [:keyword_super, :keyword_yield].include?(@previous) ||
+                [:proc, :lambda].include?(@previous_value))
               lambda_block = value == "{" && @context.lambda_pending
               command_arg = value == "(" && !@context.begin_expression && start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
                 [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
@@ -1100,7 +1117,9 @@ module Lrama
                 if command_arg
                   return [:tLPAREN_ARG, nil]
                 end
-                return [@context.begin_expression && ![".", :tCOLON2, :tANDDOT, :keyword_super, :keyword_yield, :tLAMBDA, :tAREF].include?(@previous) ? :tLPAREN : "(", nil]
+                method_definition = @previous_previous == :keyword_def
+                return [@context.begin_expression && !method_definition &&
+                  ![".", :tCOLON2, :tANDDOT, :keyword_super, :keyword_yield, :tLAMBDA, :tAREF].include?(@previous) ? :tLPAREN : "(", nil]
               end
               if value == "{" && @context.lambda_pending
                 @context.lambda_pending = false

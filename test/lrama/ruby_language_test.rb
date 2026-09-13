@@ -583,6 +583,28 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("value.match?(pattern)") }
   end
 
+  test "source lexer handles contextual punctuation in Ruby expressions" do
+    tokens = Arpaka.const_get(:Lexer, false).new("f(foo?: true)").each.to_a
+    assert_equal([:tIDENTIFIER, "(", :tLABEL, :keyword_true, ")", 0], tokens.map(&:first))
+    assert_nothing_raised { Arpaka.parse_source("f(foo?: true)") }
+
+    tokens = Arpaka.const_get(:Lexer, false).new("list_tables[]").each.to_a
+    assert_equal([:tIDENTIFIER, "[", "]", 0], tokens.map(&:first))
+    assert_kind_of(AST::Index, Arpaka.parse_source("list_tables[]").statements.first)
+
+    assert_nothing_raised { Arpaka.parse_source("x = if y; 'a'; else; 'b'; end + z") }
+    assert_nothing_raised { Arpaka.parse_source("helper.({a: 1})") }
+    assert_nothing_raised { Arpaka.parse_source("assert ?h.in?(\"hello\")") }
+  end
+
+  test "source lexer keeps definition and block contexts for operators" do
+    assert_nothing_raised { Arpaka.parse_source("def ==(x); self.x == x; end") }
+    assert_nothing_raised { Arpaka.parse_source("def []=(x); x; end") }
+    assert_nothing_raised { Arpaka.parse_source("x = -> *args do; 1; end") }
+    assert_nothing_raised { Arpaka.parse_source("def f; super do |x| x end; end") }
+    assert_nothing_raised { Arpaka.parse_source("def f; super { |x| x }; end") }
+  end
+
   test "source lexer distinguishes splat and block argument operators" do
     assert_equal(AST::Call.new(:f, [AST::BareCall.new(:args)]),
       Arpaka.parse_source("f(*args)").statements.first)
