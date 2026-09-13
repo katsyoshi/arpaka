@@ -514,6 +514,14 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(:expr_fname, alias_name.fetch(:lex_state))
   end
 
+  test "source lexer distinguishes label and labeled states" do
+    lexer = Arpaka.const_get(:Lexer, false).new("f at: 1")
+    lexer.each.to_a
+    states = lexer.context.state_history
+    assert_equal(:expr_label, states.find { |entry| entry.fetch(:token) == :tLABEL }.fetch(:lex_state))
+    assert_equal(:expr_labeled, states.find { |entry| entry.fetch(:token) == :tINTEGER }.fetch(:lex_state))
+  end
+
   test "source lexer treats spaced empty brackets as an array literal" do
     tokens = Arpaka.const_get(:Lexer, false).new("assert_equal [], value").each.to_a
     assert_equal([:tIDENTIFIER, :tLBRACK, "]", ",", :tIDENTIFIER, 0], tokens.map(&:first))

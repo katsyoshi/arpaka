@@ -10,7 +10,7 @@ module Lrama
         class LexicalContext
           attr_accessor :begin_expression, :condition_do, :condition_line,
             :ternary_depth, :lambda_pending, :alias_context, :argument_label,
-            :lex_state, :command_start
+            :lex_state, :command_start, :label_pending
           attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack,
             :token_history, :state_history, :block_stack
 
@@ -22,6 +22,7 @@ module Lrama
             @lambda_pending = false
             @alias_context = false
             @argument_label = nil
+            @label_pending = false
             @lex_state = :expr_beg
             @command_start = true
             @delimiter_stack = []
@@ -320,6 +321,7 @@ module Lrama
           def update_argument_label(token, value)
             if token == :tLABEL
               @context.argument_label = value
+              @context.label_pending = true
             elsif ["\n", ";"].include?(token)
               @context.argument_label = nil
             end
@@ -340,12 +342,16 @@ module Lrama
             return :expr_beg if token.nil? || token == "\n"
             return :expr_fname if @previous_previous == :keyword_def || @context.alias_context
             return :expr_end if token == 0
+            if @context.label_pending && token != :tLABEL
+              @context.label_pending = false
+              return :expr_labeled
+            end
             return :expr_end if [")", "]", "}", :tSTRING_END, :tREGEXP_END,
               :tINTEGER, :tFLOAT, :tRATIONAL, :tIMAGINARY, :tIDENTIFIER,
               :tCONSTANT, :tFID, :tIVAR, :tGVAR, :tCVAR, :tNTH_REF,
               :keyword_true, :keyword_false, :keyword_nil, :keyword_self,
               :keyword__LINE__, :keyword__FILE__, :keyword__ENCODING__].include?(token)
-            return :expr_arg if token == :tLABEL
+            return :expr_label if token == :tLABEL
             :expr_beg
           end
 
