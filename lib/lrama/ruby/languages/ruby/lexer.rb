@@ -306,19 +306,20 @@ module Lrama
             value = case byte
             when 10
               advance
+              return next_token if @previous == "\n"
               if @context.alias_context && @previous == :tEQ
                 @context.alias_context = false
-                return ["\n", nil]
-              end
-              if @class_superclass && next_word_is_terminator?
+                ["\n", nil]
+              elsif @class_superclass && next_word_is_terminator?
                 @class_superclass = false
                 return [";", nil]
+              else
+                @class_superclass = false
+                return next_token if newline_ignored?
+                @context.pop_condition if @context.condition? && @context.condition_do
+                @context.condition_do = false
+                ["\n", nil]
               end
-              @class_superclass = false
-              return next_token if newline_ignored?
-              @context.pop_condition if @context.condition? && @context.condition_do
-              @context.condition_do = false
-              ["\n", nil]
             when 39, 34, 96
               string_token(byte, start)
             when 47
