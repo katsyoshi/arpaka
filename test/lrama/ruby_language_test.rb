@@ -450,6 +450,13 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(:tBDOT3, tokens[5].first)
   end
 
+  test "source lexer preserves UTF-8 character literals" do
+    lexer = Arpaka.const_get(:Lexer, false).new("?h ?あ")
+    tokens = lexer.each.to_a
+    assert_equal([:tCHAR, :tCHAR], tokens.first(2).map(&:first))
+    assert_equal(["h", "あ"], tokens.first(2).map(&:last))
+  end
+
   test "source lexer exposes parse-local lexical context" do
     lexer = Arpaka.const_get(:Lexer, false).new("f(1)")
     assert_equal(:expr_beg, lexer.context.lex_state)

@@ -527,11 +527,20 @@ module Lrama
             value = if byte == 92
               escape_sequence(start)
             else
-              character = byte
-              advance
-              character.chr
+              length = utf8_character_length(byte)
+              character = @source.byteslice(@index, length).force_encoding(Encoding::UTF_8)
+              advance(length)
+              character
             end
             [:tCHAR, value]
+          end
+
+          def utf8_character_length(first_byte)
+            return 1 if first_byte < 0x80
+            return 2 if first_byte.between?(0xC2, 0xDF)
+            return 3 if first_byte.between?(0xE0, 0xEF)
+            return 4 if first_byte.between?(0xF0, 0xF4)
+            fail!("invalid UTF-8 character")
           end
 
           def symbol_or_colon(start)
