@@ -1041,6 +1041,10 @@ module Lrama
           end
 
           def operator_or_punctuation(start)
+            if @previous == :keyword_def && @source.getbyte(@index) == 38
+              advance
+              return ["&", nil]
+            end
             if @previous == :tSYMBEG && ["-@", "+@"].include?(@source.byteslice(@index, 2))
               value = @source.byteslice(@index, 2)
               advance(2)
@@ -1063,6 +1067,8 @@ module Lrama
                 :tBDOT3
               elsif text == "::" && (@context.begin_expression || (start.positive? && [9, 32].include?(@source.getbyte(start - 1))))
                 :tCOLON3
+              elsif text == "&" && @previous == :keyword_def
+                "&"
               else
                 OP_TOKENS.fetch(text, :tOP_ASGN)
               end

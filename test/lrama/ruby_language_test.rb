@@ -781,6 +781,7 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Def.new(:[], :x, [AST::BareCall.new(:x)]),
       Arpaka.parse_source("def [](x); x; end").statements.first)
     assert_nothing_raised { Arpaka.parse_source("def /(other); other; end") }
+    assert_nothing_raised { Arpaka.parse_source("def &(other); other; end") }
     assert_equal(:Foo, Arpaka.parse_source("::Foo").statements.first)
   end
 
