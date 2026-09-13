@@ -687,6 +687,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("value = call { 1 }.dup\n") }
   end
 
+  test "source lexer uses regular brace blocks inside call arguments" do
+    tokens = Arpaka.const_get(:Lexer, false).new("outer(call { 1 })\n").each.to_a
+    assert_equal("{", tokens.map(&:first)[3])
+    assert_nothing_raised { Arpaka.parse_source("outer(call { 1 })\n") }
+  end
+
   test "source lexer preserves newlines inside command blocks" do
     assert_nothing_raised do
       Arpaka.parse_source("app = lambda { |env|\n  req = Request.new(env)\n  res = response(req)\n}\n")
