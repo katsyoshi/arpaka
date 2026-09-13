@@ -625,7 +625,8 @@ class ArpakaTest < Test::Unit::TestCase
       Arpaka.parse_source("foo.bar do\n  1\nend").statements.first)
     assert_nothing_raised { Arpaka.parse_source("foo before: :bar do |value| value end\n") }
     tokens = Arpaka.const_get(:Lexer, false).new("items << lambda do").each.to_a
-    assert_equal([:tIDENTIFIER, :tLSHFT, :tIDENTIFIER, :keyword_do_block], tokens[0, 4].map(&:first))
+    assert_equal([:tIDENTIFIER, :tLSHFT, :tIDENTIFIER, :keyword_do], tokens[0, 4].map(&:first))
+    assert_nothing_raised { Arpaka.parse_source("items << lambda do\n  work\nend\n") }
   end
 
   test "source lexer recognizes shorthand percent literals in command arguments" do

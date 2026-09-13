@@ -559,6 +559,7 @@ module Lrama
             return false if @context.token_history == ["+", :tINTEGER, ".", :tIDENTIFIER]
             return false if [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous_previous)
             return false if [:tSYMBEG, :tLABEL, :tCOLON2].include?(@previous_previous)
+            return true if @previous_value == :lambda && @previous_previous == :tLSHFT
             return false if [:tLSHFT, :tLAMBDA].include?(@previous_previous)
             true
           end
