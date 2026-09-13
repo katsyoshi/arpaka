@@ -620,6 +620,13 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(:"$$", tokens[3][1])
   end
 
+  test "source lexer keeps the load path global intact" do
+    tokens = Arpaka.const_get(:Lexer, false).new("$:.unshift(\"lib\")\n").each.to_a
+    assert_equal(:tGVAR, tokens.first.first)
+    assert_equal(:"$:", tokens.first.last)
+    assert_nothing_raised { Arpaka.parse_source("$:.unshift(\"lib\")\n") }
+  end
+
   test "source lexer preserves newlines before terminators" do
     assert_nothing_raised { Arpaka.parse_source("def empty\nend\n") }
     assert_nothing_raised { Arpaka.parse_source("if condition\nend\n") }

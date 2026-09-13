@@ -578,7 +578,7 @@ module Lrama
             marker = byte
             advance
             advance if marker == 64 && byte == 64
-            if marker == 36 && [33, 38, 39, 43, 60, 62, 61, 63, 96, 126].include?(byte)
+            if marker == 36 && [33, 38, 39, 43, 58, 60, 62, 61, 63, 96, 126].include?(byte)
               advance
               text = @source.byteslice(start, @index - start)
               return [:tGVAR, text.to_sym]
