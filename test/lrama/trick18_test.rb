@@ -56,4 +56,23 @@ class Trick18Test < Test::Unit::TestCase
   test "uses regular parentheses for receiver method definitions" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("def STDOUT.write (value); end\n") }
   end
+
+  test "tokenizes empty brackets after a closed expression" do
+    tokens = GeneratedRubyFrontend.const_get(:Lexer, false).new("value = [1][]\n").each.to_a
+
+    assert_equal(["]", "[", "]"], tokens[4, 3].map(&:first))
+    assert_nothing_raised { GeneratedRubyFrontend.parse("value = [1][]\n") }
+  end
+
+  test "continues expressions after a newline following the root namespace" do
+    source = <<~'RUBY'
+      def value
+        result = first - ::
+          Second
+        result
+      end
+    RUBY
+
+    assert_nothing_raised { GeneratedRubyFrontend.parse(source) }
+  end
 end

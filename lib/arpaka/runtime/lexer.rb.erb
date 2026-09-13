@@ -384,19 +384,23 @@ class Lexer
 
   def newline_ignored?
     ignored = (@context.delimiter_depth.positive? &&
-      ["(", "[", "{", :tLPAREN, :tLPAREN_ARG, :tLBRACK, :tLBRACE_ARG].include?(@previous)) ||
-      ["[", :tLBRACK].include?(@context.delimiter_stack.last) ||
+      ["(", "[", "{", :tLPAREN, :tLPAREN_ARG, :tLBRACK, :tLBRACE, :tLBRACE_ARG].include?(@previous)) ||
+      (["[", :tLBRACK].include?(@context.delimiter_stack.last) && next_non_space_byte == 93) ||
       @previous == "\n" ||
-      ["+", "-", "*", "/", "%", "=", "?", ":", ",", ".", "&", "|", "^", "<<", ">>", "&&", "||", "=>", "<", ">", :keyword_and, :keyword_or, :keyword_not, :tAMPER, :tPIPE, :tSTAR, :tDSTAR, :tUMINUS, :tUPLUS, :tDOT2, :tDOT3, :tPOW, :tCMP, :tEQ, :tEQQ, :tNEQ, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH, :tLSHFT, :tRSHFT, :tASSOC, :tLAMBDA, :tCOLON2, :tANDDOT].include?(@previous) ||
+      ["+", "-", "*", "/", "%", "=", "?", ":", ",", ".", "&", "|", "^", "!", "<<", ">>", "&&", "||", "=>", "<", ">", :keyword_and, :keyword_or, :keyword_not, :tAMPER, :tPIPE, :tSTAR, :tDSTAR, :tUMINUS, :tUPLUS, :tDOT2, :tDOT3, :tPOW, :tCMP, :tEQ, :tEQQ, :tNEQ, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH, :tLSHFT, :tRSHFT, :tASSOC, :tLAMBDA, :tCOLON2, :tCOLON3, :tANDDOT].include?(@previous) ||
       @previous == :tLABEL ||
       [:modifier_if, :modifier_unless, :modifier_while, :modifier_until].include?(@previous) ||
       [:tANDOP, :tOROP, :tMATCH, :tNMATCH, :tASSOC, :tOP_ASGN].include?(@previous) ||
       (@previous == "{" && next_non_space_byte == 124) ||
+      (@context.ternary_depth.positive? && next_non_space_byte == 58) ||
+      @previous == :keyword_def ||
       next_chain_byte == 46
     ignored = false if @previous_previous == :tSYMBEG &&
       [:tLSHFT, :tRSHFT, :tSTAR, :tDSTAR, :tPOW, :tEQ, :tEQQ, :tNEQ, "&",
         :tCMP, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH,
-        :tASSOC, :tOP_ASGN].include?(@previous)
+        :tASSOC, :tOP_ASGN, :tUMINUS, :tUPLUS, "<", ">"].include?(@previous)
+    ignored = false if @previous_previous == :keyword_def &&
+      [:tUMINUS, :tUPLUS].include?(@previous)
     @context.condition_line = false if ignored && @context.condition_line
     ignored
   end
@@ -460,6 +464,7 @@ class Lexer
     return false if token == :keyword_true || token == :keyword_false || token == :keyword_nil || token == :keyword_self
     return false if [:keyword__LINE__, :keyword__FILE__, :keyword__ENCODING__].include?(token)
     return false if token == :tIVAR || token == :tGVAR || token == :tCVAR || token == :tNTH_REF
+    return false if token == :keyword_redo
     true
   end
 
@@ -558,12 +563,14 @@ class Lexer
       advance
       return [:tFID, (word + "=").to_sym]
     end
-    if byte == 61 && @previous == :tSYMBEG
+    if byte == 61 && byte(1) != 61 && @previous == :tSYMBEG
       advance
       return [:tIDENTIFIER, (word + "=").to_sym]
     end
-    if byte == 58 && byte(1) != 58 && @context.ternary_depth.zero? &&
-        (byte(1).nil? || [9, 10, 11, 12, 13, 32].include?(byte(1)) || @context.delimiter_stack.any?)
+    label_in_ternary = ["(", "[", :tLPAREN, :tLPAREN_ARG, :tLBRACK, ","].include?(@previous)
+    if byte == 58 && byte(1) != 58 &&
+        (@context.ternary_depth.zero? || label_in_ternary) &&
+        (byte(1).nil? || [9, 10, 11, 12, 13, 32, 44, 41, 93, 125, 124].include?(byte(1)) || @context.delimiter_stack.any?)
       advance
       return [:tLABEL, word.to_sym]
     end
@@ -952,6 +959,7 @@ class Lexer
   end
 
   def percent_token(start)
+    return operator_or_punctuation(start) if [".", :tCOLON2, :tANDDOT].include?(@previous)
     literal_kind = [113, 81, 119, 87, 105, 73, 114, 115, 120, 88].include?(byte(1))
     command_argument = start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
       [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) &&
@@ -1090,6 +1098,7 @@ class Lexer
   end
 
   def heredoc_or_operator(start)
+    return operator_or_punctuation(start) if @previous == :keyword_class
     if byte(1) == 60 && heredoc_prefix?
       heredoc_after_command = @previous == :tIDENTIFIER && start.positive? &&
         [9, 32].include?(@source.getbyte(start - 1))
@@ -1241,7 +1250,7 @@ class Lexer
         @previous_previous != :keyword_alias
       @source.byteslice(@index, operator.bytesize) == operator
     end
-    operator_method = [:keyword_def, :keyword_alias, ".", :tCOLON2, :tANDDOT, :tSYMBEG].include?(@previous) ||
+    operator_method = [:keyword_def, :keyword_alias, :keyword_undef, ".", :tCOLON2, :tANDDOT, :tSYMBEG].include?(@previous) ||
       @previous_previous == :keyword_alias
     if text && !(begin_expression? && !operator_method && ["[]", "[]="].include?(text))
       advance(text.bytesize)
@@ -1251,7 +1260,9 @@ class Lexer
         :tBDOT2
       elsif text == "..." && (@context.begin_expression || [:tLPAREN, "(", ","].include?(@previous))
         :tBDOT3
-      elsif text == "::" && (@context.begin_expression || (start.positive? && [9, 32].include?(@source.getbyte(start - 1))))
+      elsif text == "::" && (@context.begin_expression ||
+        (start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
+          [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)))
         :tCOLON3
       elsif text == "&" && @previous == :keyword_def
         "&"
@@ -1285,7 +1296,7 @@ class Lexer
         end
         method_definition = @previous == :keyword_def || @previous_previous == :keyword_def
         return [@context.begin_expression && !method_definition &&
-          ![".", :tCOLON2, :tANDDOT, :keyword_super, :keyword_yield, :tLAMBDA, :tAREF].include?(@previous) ? :tLPAREN : "(", nil]
+          ![".", :tCOLON2, :tANDDOT, :keyword_super, :keyword_yield, :tLAMBDA, :tAREF, :tASET].include?(@previous) ? :tLPAREN : "(", nil]
       end
       if value == "{" && @context.lambda_pending
         @context.lambda_pending = false

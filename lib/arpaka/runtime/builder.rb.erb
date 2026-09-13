@@ -218,6 +218,7 @@ class Builder
   end
 
   def word_array(elements, symbols: false)
+    elements ||= []
     elements = elements.elements if elements.is_a?(AST::ArrayLiteral)
     values = elements.map do |value|
       value = value.value if value.is_a?(AST::StringLiteral)
