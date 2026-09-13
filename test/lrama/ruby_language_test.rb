@@ -504,7 +504,7 @@ class ArpakaTest < Test::Unit::TestCase
     brace_lexer = Arpaka.const_get(:Lexer, false).new("f { 1 }")
     brace_lexer.each.to_a
     brace_states = brace_lexer.context.state_history
-    assert_equal(1, brace_states.find { |entry| entry.fetch(:token) == :tLBRACE_ARG }.fetch(:block_depth))
+    assert_equal(1, brace_states.find { |entry| entry.fetch(:token) == "{" }.fetch(:block_depth))
     assert_equal(0, brace_states.find { |entry| entry.fetch(:token) == "}" }.fetch(:block_depth))
 
     other = Arpaka.const_get(:Lexer, false).new("value")
@@ -595,6 +595,18 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("x = if y; 'a'; else; 'b'; end + z") }
     assert_nothing_raised { Arpaka.parse_source("helper.({a: 1})") }
     assert_nothing_raised { Arpaka.parse_source("assert ?h.in?(\"hello\")") }
+  end
+
+  test "source lexer uses regular brace blocks for calls and proc values" do
+    ["foo { 1 }", "[proc { 1 }]", "foo { 1 }.first", "foo { 1 } || bar"].each do |source|
+      tokens = Arpaka.const_get(:Lexer, false).new(source).each.to_a
+      assert_not_include(tokens.map(&:first), :tAMPER, source)
+      assert_nothing_raised { Arpaka.parse_source(source) }
+    end
+
+    assert_nothing_raised { Arpaka.parse_source("f(&block)") }
+    assert_nothing_raised { Arpaka.parse_source("map(&:to_s)") }
+    assert_nothing_raised { Arpaka.parse_source("a & b") }
   end
 
   test "source lexer keeps definition and block contexts for operators" do

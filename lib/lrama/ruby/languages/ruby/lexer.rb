@@ -1100,11 +1100,6 @@ module Lrama
               return [token, nil]
             end
             value = byte.chr
-            if value == "{" && no_argument_brace_block?
-              advance
-              @pending.unshift([:tLBRACE_ARG, nil])
-              return [:tAMPER, nil]
-            end
             advance
             if value == "(" || value == "[" || value == "{"
               brace_block = value == "{" && @previous != "(" &&
