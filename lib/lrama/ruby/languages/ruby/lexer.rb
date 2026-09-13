@@ -275,7 +275,7 @@ module Lrama
             elsif @pending.empty? && @deferred_suffix
               suffix = @deferred_suffix
               @deferred_suffix = nil
-              @pending.concat(self.class.new(suffix, filename: @filename).each.to_a)
+              @pending.concat(heredoc_suffix_tokens(suffix))
               @pending.pop if @pending.last == [0, nil]
               @pending << ["\n", nil]
               @heredoc_newline_pending = false
@@ -1026,8 +1026,7 @@ module Lrama
             @pending = content_tokens + [[:tSTRING_END, nil]]
             prefix, headers, suffix = extract_heredoc_headers(suffix)
             unless prefix.empty?
-              prefix_tokens = self.class.new(prefix, filename: @filename).each.to_a
-              prefix_tokens.pop if prefix_tokens.last == [0, nil]
+              prefix_tokens = heredoc_suffix_tokens(prefix)
               @pending.concat(prefix_tokens)
             end
             @heredoc_queue.concat(headers)
@@ -1066,6 +1065,22 @@ module Lrama
               ""
             end
             [suffix[0...match.begin(0)], headers, trailing]
+          end
+
+          def heredoc_suffix_tokens(source)
+            suffix_lexer = self.class.new(source, filename: @filename)
+            suffix_lexer.context.begin_expression = false
+            suffix_lexer.context.lex_state = :expr_end
+            suffix_lexer.instance_variable_set(:@previous, :tSTRING_END)
+            tokens = suffix_lexer.each.to_a
+            tokens.pop if tokens.last == [0, nil]
+            if [:keyword_if, :keyword_unless, :keyword_while, :keyword_until, :keyword_rescue].include?(tokens.first&.first)
+              token = {keyword_if: :modifier_if, keyword_unless: :modifier_unless,
+                keyword_while: :modifier_while, keyword_until: :modifier_until,
+                keyword_rescue: :modifier_rescue}.fetch(tokens.first.first)
+              tokens[0] = [token, tokens.first.last]
+            end
+            tokens
           end
 
           def load_queued_heredoc
