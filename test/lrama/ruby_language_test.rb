@@ -847,6 +847,8 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source(source) }
 
     assert_nothing_raised { Arpaka.parse_source("undef_method :==, :!, :!=\ndef hash; 1; end") }
+    assert_nothing_raised { Arpaka.parse_source("alias [] get") }
+    assert_nothing_raised { Arpaka.parse_source("alias []= get") }
   end
 
   test "source lexer allows keyword-shaped receiver setters" do
