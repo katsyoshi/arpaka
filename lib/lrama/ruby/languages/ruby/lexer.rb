@@ -338,7 +338,7 @@ module Lrama
 
           def lexical_state_after(token)
             return :expr_beg if token.nil? || token == "\n"
-            return :expr_fname if token == :tFID && @context.alias_context
+            return :expr_fname if @previous_previous == :keyword_def || @context.alias_context
             return :expr_end if token == 0
             return :expr_end if [")", "]", "}", :tSTRING_END, :tREGEXP_END,
               :tINTEGER, :tFLOAT, :tRATIONAL, :tIMAGINARY, :tIDENTIFIER,

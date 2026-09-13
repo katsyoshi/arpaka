@@ -498,6 +498,22 @@ class ArpakaTest < Test::Unit::TestCase
     assert_false(other.context.command_start)
   end
 
+  test "source lexer enters fname state for definitions and aliases" do
+    lexer = Arpaka.const_get(:Lexer, false).new("def value=; end")
+    lexer.each.to_a
+    def_name = lexer.context.state_history.find do |entry|
+      entry.fetch(:token) == :tIDENTIFIER
+    end
+    assert_equal(:expr_fname, def_name.fetch(:lex_state))
+
+    lexer = Arpaka.const_get(:Lexer, false).new("alias eql? ==")
+    lexer.each.to_a
+    alias_name = lexer.context.state_history.find do |entry|
+      entry.fetch(:token) == :tFID
+    end
+    assert_equal(:expr_fname, alias_name.fetch(:lex_state))
+  end
+
   test "source lexer treats spaced empty brackets as an array literal" do
     tokens = Arpaka.const_get(:Lexer, false).new("assert_equal [], value").each.to_a
     assert_equal([:tIDENTIFIER, :tLBRACK, "]", ",", :tIDENTIFIER, 0], tokens.map(&:first))
