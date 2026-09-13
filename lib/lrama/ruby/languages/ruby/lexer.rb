@@ -113,7 +113,7 @@ module Lrama
 
           def remember_token(token)
             @token_history << token
-            @token_history.shift while @token_history.length > 4
+            @token_history.shift while @token_history.length > 8
           end
 
           def remember_state(token)
@@ -581,6 +581,8 @@ module Lrama
             elsif @context.lambda_pending
               @context.lambda_pending = false
               :keyword_do_LAMBDA
+            elsif @previous == ")" && @context.token_history.each_cons(2).any? { |left, right| left == :tUMINUS && right == :tLPAREN }
+              :keyword_do_block
             elsif [")", :keyword_super, :keyword_yield].include?(@previous)
               :keyword_do
             elsif @previous == :tLAMBDA
