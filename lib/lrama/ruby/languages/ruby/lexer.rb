@@ -375,6 +375,7 @@ module Lrama
               @previous == :tLABEL ||
               [:modifier_if, :modifier_unless, :modifier_while, :modifier_until].include?(@previous) ||
               [:tANDOP, :tOROP, :tMATCH, :tNMATCH, :tASSOC, :tOP_ASGN].include?(@previous) ||
+              (@previous == "{" && next_non_space_byte == 124) ||
               next_non_space_byte == 46
             ignored = false if @previous_previous == :tSYMBEG &&
               [:tLSHFT, :tRSHFT, :tSTAR, :tDSTAR, :tPOW, :tEQ, :tEQQ, :tNEQ,

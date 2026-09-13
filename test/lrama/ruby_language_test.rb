@@ -813,6 +813,10 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("value\n  .first\n  .to_s\n") }
   end
 
+  test "source lexer ignores newlines before block parameters" do
+    assert_nothing_raised { Arpaka.parse_source("call {\n  |value| value\n}\n") }
+  end
+
   test "source lexer continues keyword arguments after label newlines" do
     assert_nothing_raised do
       Arpaka.parse_source("parse(file, context:\n  build_context)\n")
