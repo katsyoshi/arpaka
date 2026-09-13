@@ -1128,7 +1128,7 @@ module Lrama
             if value == "(" || value == "[" || value == "{"
               brace_block = value == "{" && @previous != "(" &&
                 ([:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) ||
-                @previous == ")" ||
+                (@previous == ")" && !(@previous_previous == :tSTAR && @context.scope_stack.last == :method)) ||
                 [".", :tCOLON2].include?(@previous_previous) ||
                 [:keyword_super, :keyword_yield].include?(@previous) ||
                 [:proc, :lambda].include?(@previous_value))

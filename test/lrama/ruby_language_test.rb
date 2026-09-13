@@ -330,6 +330,12 @@ class ArpakaTest < Test::Unit::TestCase
       Arpaka.parse_source("each do |value| value end"))
   end
 
+  test "method bodies after splat arguments accept hash literals" do
+    assert_nothing_raised do
+      Arpaka.parse_source('def decode(*) { foo: "decoded" } end')
+    end
+  end
+
   test "if, unless, elsif and else build conditional AST nodes" do
     expected = AST::Program.new([AST::If.new(literal(true), [literal(1)], [literal(2)])])
     assert_equal(expected, parse([:keyword_if, nil], [:keyword_true, nil], [:keyword_then, nil], [:tINTEGER, 1], [:keyword_else, nil], [:tINTEGER, 2], [:keyword_end, nil]))
