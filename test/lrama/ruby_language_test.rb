@@ -517,6 +517,12 @@ class ArpakaTest < Test::Unit::TestCase
     Lrama::Ruby::Languages::Ruby.parse(lexer.each, lexical_context: lexer.context)
     assert_true(lexer.context.parser_events.any? { |event| event.first == :shift })
     assert_true(lexer.context.parser_events.any? { |event| event.first == :reduce })
+    assert_empty(lexer.context.parser_delimiter_stack)
+    assert_empty(lexer.context.parser_cmdarg_stack)
+    assert_empty(lexer.context.parser_block_stack)
+    block_lexer = Arpaka.const_get(:Lexer, false).new("f do; 1; end")
+    Lrama::Ruby::Languages::Ruby.parse(block_lexer.each, lexical_context: block_lexer.context)
+    assert_empty(block_lexer.context.parser_block_stack)
     pretokenized = Arpaka.const_get(:Lexer, false).new("f(1)")
     tokens = pretokenized.each.to_a
     Lrama::Ruby::Languages::Ruby.parse(tokens)

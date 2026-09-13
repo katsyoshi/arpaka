@@ -12,7 +12,8 @@ module Lrama
             :ternary_depth, :lambda_pending, :alias_context, :argument_label,
             :lex_state, :command_start, :label_pending
           attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack,
-            :token_history, :state_history, :block_stack, :scope_stack, :parser_events
+            :token_history, :state_history, :block_stack, :scope_stack, :parser_events,
+            :parser_delimiter_stack, :parser_cmdarg_stack, :parser_block_stack
 
           def initialize
             @begin_expression = true
@@ -33,6 +34,9 @@ module Lrama
             @block_stack = []
             @scope_stack = []
             @parser_events = []
+            @parser_delimiter_stack = []
+            @parser_cmdarg_stack = []
+            @parser_block_stack = []
           end
 
           def delimiter_depth
@@ -116,6 +120,23 @@ module Lrama
 
           def parser_shift(token, value, state, action)
             @parser_events << [:shift, token, state, action].freeze
+            if ["(", "[", :tLPAREN_ARG].include?(token)
+              @parser_delimiter_stack << token
+              @parser_cmdarg_stack << (token == :tLPAREN_ARG)
+            elsif [")", "]", "}"].include?(token)
+              opener = {")" => "(", "]" => "[", "}" => "{"
+              }.fetch(token)
+              @parser_delimiter_stack.pop if @parser_delimiter_stack.last == opener
+              @parser_cmdarg_stack.pop
+            end
+            if [:keyword_do, :keyword_do_block, :keyword_do_LAMBDA, :tLAMBEG].include?(token) ||
+                token == "{" || token == :tLBRACE_ARG
+              @parser_block_stack << token
+            elsif token == "}" && @parser_block_stack.last
+              @parser_block_stack.pop
+            elsif token == :keyword_end && @parser_block_stack.last
+              @parser_block_stack.pop
+            end
           end
 
           def parser_reduce(rule, state)
