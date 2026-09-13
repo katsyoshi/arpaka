@@ -113,6 +113,7 @@ class ArpakaTest < Test::Unit::TestCase
   test "setter method definitions preserve the equals suffix" do
     expected = AST::Program.new([AST::Def.new(:"value=", :value, [AST::BareCall.new(:value)])])
     assert_equal(expected, Arpaka.parse_source("def value=(value)\n  value\nend"))
+    assert_nothing_raised { Arpaka.parse_source("def self.value=; end") }
   end
 
   test "keywords after a receiver are method names" do
@@ -544,7 +545,7 @@ class ArpakaTest < Test::Unit::TestCase
     lexer = Arpaka.const_get(:Lexer, false).new("def value=; end")
     lexer.each.to_a
     def_name = lexer.context.state_history.find do |entry|
-      entry.fetch(:token) == :tIDENTIFIER
+      entry.fetch(:token) == :tFID
     end
     assert_equal(:expr_fname, def_name.fetch(:lex_state))
 
