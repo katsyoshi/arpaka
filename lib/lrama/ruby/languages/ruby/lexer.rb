@@ -511,7 +511,7 @@ module Lrama
             end
             token = KEYWORDS[word]
             if token && [".", :tCOLON2, :tANDDOT].include?(@previous)
-              token = :tFID
+              token = next_non_space_byte == 61 ? :tIDENTIFIER : :tFID
             elsif token && @previous == :keyword_def && word != "self"
               token = :tFID
             elsif (!@context.begin_expression || [:keyword_return, :keyword_break, :keyword_next, :keyword_end, :keyword_yield, :keyword_super].include?(@previous)) && { "if" => :modifier_if, "unless" => :modifier_unless,
