@@ -917,7 +917,7 @@ primary: keyword_not '(' expr rparen %prec '(' { $$ = @builder.unary(:"!", $3) }
 /* upstream parse.y:4470: primary: "'not'" '(' rparen */
 primary: keyword_not '(' rparen %prec '(' { $$ = @builder.reserved_word("not") };
 /* upstream parse.y:4475: primary: fcall brace_block */
-primary: fcall brace_block { $$ = @builder.block_call($1, $2) };
+primary: fcall brace_block { $$ = @builder.block_call(@builder.call($1, []), $2) };
 /* upstream parse.y:4479: primary: method_call */
 primary: method_call { $$ = $1 };
 /* upstream parse.y:4481: primary: method_call brace_block */

@@ -255,7 +255,7 @@ module RubyGrammarActions
     448 => ["pass_through", "$1"],
     445 => ["pass_through", "$1"],
     368 => ["ported", "@builder.block_call($1, $2)"],
-    366 => ["ported", "@builder.block_call($1, $2)"],
+    366 => ["ported", "@builder.block_call(@builder.call($1, []), $2)"],
     356 => ["pass_through", "$2"],
     313 => ["pass_through", "$1"],
     280 => ["pass_through", "$1"],

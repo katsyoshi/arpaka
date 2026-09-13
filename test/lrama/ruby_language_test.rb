@@ -486,7 +486,7 @@ class ArpakaTest < Test::Unit::TestCase
     block_lexer = Arpaka.const_get(:Lexer, false).new("f do; 1; end")
     block_lexer.each.to_a
     block_states = block_lexer.context.state_history
-    assert_equal(1, block_states.find { |entry| entry.fetch(:token) == :keyword_do_block }.fetch(:block_depth))
+    assert_equal(1, block_states.find { |entry| entry.fetch(:token) == :keyword_do }.fetch(:block_depth))
     assert_equal(0, block_states.find { |entry| entry.fetch(:token) == :keyword_end }.fetch(:block_depth))
 
     brace_lexer = Arpaka.const_get(:Lexer, false).new("f { 1 }")
@@ -590,7 +590,7 @@ class ArpakaTest < Test::Unit::TestCase
 
   test "source lexer does not carry conditional do across statements" do
     tokens = Arpaka.const_get(:Lexer, false).new("while condition\n  body\nend\nfoo do\nend\n").each.to_a
-    assert_equal(:keyword_do_block, tokens.map(&:first)[-5])
+    assert_equal(:keyword_do, tokens.map(&:first)[-5])
   end
 
   test "source lexer balances conditional context" do
@@ -652,7 +652,7 @@ class ArpakaTest < Test::Unit::TestCase
 
   test "source lexer recognizes modifiers after block endings" do
     tokens = Arpaka.const_get(:Lexer, false).new("foo do\nend unless value\n").each.to_a
-    assert_equal(:modifier_unless, tokens[5].first)
+    assert_equal(:modifier_unless, tokens[4].first)
     assert_nothing_raised { Arpaka.parse_source("foo do\nend unless value\n") }
   end
 

@@ -361,7 +361,7 @@ module Lrama
 
           def update_block_context(token)
             case token
-            when :keyword_do_block
+            when :keyword_do, :keyword_do_block
               @context.push_block(:do_block)
             when :keyword_do_LAMBDA, :tLAMBEG
               @context.push_block(:lambda)
@@ -401,8 +401,7 @@ module Lrama
               return [:tLABEL, word.to_sym]
             end
             if word == "do" && !@context.condition_do && no_argument_block?
-              @pending.unshift([:keyword_do_block, nil])
-              return [:tAMPER, nil]
+              return [:keyword_do, word.to_sym]
             end
             token = KEYWORDS[word]
             if token && [".", :tCOLON2, :tANDDOT].include?(@previous)
