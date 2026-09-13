@@ -375,7 +375,7 @@ block_command: block_call { $$ = $1 };
 /* upstream parse.y:3574: block_command: block_call call_op2 operation2 command_args */
 block_command: block_call call_op2 operation2 command_args { $$ = $1 };
 /* upstream parse.y:3581: cmd_brace_block: "{ arg" brace_body '}' */
-cmd_brace_block: tLBRACE_ARG brace_body '}' %prec '}' { $$ = $1 };
+cmd_brace_block: tLBRACE_ARG brace_body '}' %prec '}' { $$ = $2 };
 /* upstream parse.y:3589: fcall: "local variable or method" */
 fcall: tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:3589: fcall: "constant" */
@@ -385,17 +385,17 @@ fcall: tFID %prec tFID { $$ = $1 };
 /* upstream parse.y:3596: command: fcall command_args */
 command: fcall command_args %prec tLOWEST { $$ = @builder.call($1, $2 || []) };
 /* upstream parse.y:3603: command: fcall command_args cmd_brace_block */
-command: fcall command_args cmd_brace_block { $$ = $1 };
+command: fcall command_args cmd_brace_block { $$ = @builder.block_call(@builder.call($1, $2 || []), $3) };
 /* upstream parse.y:3612: command: primary_value call_op operation2 command_args */
 command: primary_value call_op operation2 command_args %prec tLOWEST { $$ = @builder.receiver_call($1, $2, $3, $4) };
 /* upstream parse.y:3617: command: primary_value call_op operation2 command_args cmd_brace_block */
-command: primary_value call_op operation2 command_args cmd_brace_block { $$ = $1 };
+command: primary_value call_op operation2 command_args cmd_brace_block { $$ = @builder.block_call(@builder.receiver_call($1, $2, $3, $4), $5) };
 /* upstream parse.y:3622: command: primary_value "::" operation2 command_args */
 command: primary_value tCOLON2 operation2 command_args %prec tLOWEST { $$ = @builder.receiver_call($1, :"::", $3, $4) };
 /* upstream parse.y:3627: command: primary_value "::" operation2 command_args cmd_brace_block */
-command: primary_value tCOLON2 operation2 command_args cmd_brace_block %prec tCOLON2 { $$ = $1 };
+command: primary_value tCOLON2 operation2 command_args cmd_brace_block %prec tCOLON2 { $$ = @builder.block_call(@builder.receiver_call($1, :"::", $3, $4), $5) };
 /* upstream parse.y:3632: command: primary_value "::" "constant" '{' brace_body '}' */
-command: primary_value tCOLON2 tCONSTANT '{' brace_body '}' %prec '}' { $$ = $1 };
+command: primary_value tCOLON2 tCONSTANT '{' brace_body '}' %prec '}' { $$ = @builder.block_call(@builder.receiver_call($1, :"::", $3, []), $5) };
 /* upstream parse.y:3638: command: "'super'" command_args */
 command: keyword_super command_args %prec keyword_super { $$ = @builder.call(:super, $2 || []) };
 /* upstream parse.y:3644: command: k_yield command_args */

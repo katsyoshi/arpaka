@@ -323,7 +323,8 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "command blocks accept block parameters" do
-    assert_equal(AST::Program.new([:each]), Arpaka.parse_source("each { |value| value }"))
+    assert_equal(AST::Program.new([AST::BlockCall.new(AST::Call.new(:each, []), [AST::BareCall.new(:value)])]),
+      Arpaka.parse_source("each { |value| value }"))
     assert_equal(AST::Program.new([AST::BlockCall.new(AST::Call.new(:each, []), [AST::BareCall.new(:value)])]),
       Arpaka.parse_source("each do |value| value end"))
   end
