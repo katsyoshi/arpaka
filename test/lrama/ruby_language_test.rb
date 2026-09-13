@@ -512,6 +512,17 @@ class ArpakaTest < Test::Unit::TestCase
     assert_false(other.context.command_start)
   end
 
+  test "parser feeds shift and reduce events into source context" do
+    lexer = Arpaka.const_get(:Lexer, false).new("f(1)")
+    Lrama::Ruby::Languages::Ruby.parse(lexer.each, lexical_context: lexer.context)
+    assert_true(lexer.context.parser_events.any? { |event| event.first == :shift })
+    assert_true(lexer.context.parser_events.any? { |event| event.first == :reduce })
+    pretokenized = Arpaka.const_get(:Lexer, false).new("f(1)")
+    tokens = pretokenized.each.to_a
+    Lrama::Ruby::Languages::Ruby.parse(tokens)
+    assert_empty(pretokenized.context.parser_events)
+  end
+
   test "source lexer enters fname state for definitions and aliases" do
     lexer = Arpaka.const_get(:Lexer, false).new("def value=; end")
     lexer.each.to_a

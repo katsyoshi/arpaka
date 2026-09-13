@@ -25,6 +25,7 @@ class <%= class_name %>
   YYPACT_NINF = <%= context.yypact_ninf %>
   YYTABLE_NINF = <%= context.yytable_ninf %>
 
+  attr_accessor :lexical_context
   attr_reader :parse_trace
 
   # tokens yields [token name or numeric ID, semantic value] pairs.
@@ -72,6 +73,7 @@ class <%= class_name %>
         raise ParseError.new(token, state) if rule.zero?
       elsif action.positive?
         @parse_trace << [:shift, token, state, action].freeze
+        @lexical_context&.parser_shift(token, value, state, action)
         states << action
         values << value
         lookahead = nil
@@ -84,6 +86,7 @@ class <%= class_name %>
 
       length = YYR2[rule]
       @parse_trace << [:reduce, rule, state].freeze
+      @lexical_context&.parser_reduce(rule, state)
       result = reduce(rule, values, length)
       states.pop(length)
       values.pop(length)

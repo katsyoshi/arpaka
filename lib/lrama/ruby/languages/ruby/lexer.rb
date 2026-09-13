@@ -12,7 +12,7 @@ module Lrama
             :ternary_depth, :lambda_pending, :alias_context, :argument_label,
             :lex_state, :command_start, :label_pending
           attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack,
-            :token_history, :state_history, :block_stack, :scope_stack
+            :token_history, :state_history, :block_stack, :scope_stack, :parser_events
 
           def initialize
             @begin_expression = true
@@ -32,6 +32,7 @@ module Lrama
             @state_history = []
             @block_stack = []
             @scope_stack = []
+            @parser_events = []
           end
 
           def delimiter_depth
@@ -111,6 +112,14 @@ module Lrama
               block_depth: @block_stack.length,
               scope_depth: @scope_stack.length
             }.freeze
+          end
+
+          def parser_shift(token, value, state, action)
+            @parser_events << [:shift, token, state, action].freeze
+          end
+
+          def parser_reduce(rule, state)
+            @parser_events << [:reduce, rule, state].freeze
           end
         end
 
