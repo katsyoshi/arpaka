@@ -647,6 +647,7 @@ class ArpakaTest < Test::Unit::TestCase
   test "source lexer preserves block newlines inside calls" do
     source = "Module.new {\n  define_method(:up) { yield(:up); super() }\n  define_method(:down) { yield(:down); super() }\n}\n"
     assert_nothing_raised { Arpaka.parse_source(source) }
+    assert_nothing_raised { Arpaka.parse_source("Module.new do\n  define_method(:up) do\n    1\n  end\n  define_method(:down) do\n    2\n  end\nend\n") }
   end
 
   test "source lexer ignores newlines after operator assignments" do
