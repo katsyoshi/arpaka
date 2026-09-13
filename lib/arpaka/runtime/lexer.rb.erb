@@ -241,6 +241,7 @@ class Lexer
     @deferred_suffix = nil
     @heredoc_newline_pending = false
     @class_superclass = false
+    @local_variables = {}
   end
 
   def each
@@ -460,6 +461,7 @@ class Lexer
 
   def expression_begin_after(token)
     return true if token.nil? || token == "\n"
+    return false if receiver_operator?(token)
     return false if token == ")" || token == "]" || token == "}"
     return false if token == :keyword_end
     return false if token == :tINTEGER || token == :tFLOAT || token == :tRATIONAL || token == :tIMAGINARY || token == :tCHAR
@@ -474,6 +476,7 @@ class Lexer
 
   def lexical_state_after(token)
     return :expr_beg if token.nil? || token == "\n"
+    return :expr_arg if receiver_operator?(token)
     return :expr_fname if @previous_previous == :keyword_def || @context.alias_context
     return :expr_end if token == 0
     if @context.label_pending && token != :tLABEL
@@ -576,6 +579,8 @@ class Lexer
       advance
       return [:tIDENTIFIER, (word + "=").to_sym]
     end
+    @local_variables[word.to_sym] = true if byte == 61 && byte(1) != 61 &&
+      ![".", :tCOLON2, :tANDDOT].include?(@previous)
     label_in_ternary = ["(", "[", :tLPAREN, :tLPAREN_ARG, :tLBRACK, ","].include?(@previous)
     if byte == 58 && byte(1) != 58 &&
         (@context.ternary_depth.zero? || label_in_ternary) &&
@@ -913,8 +918,7 @@ class Lexer
   end
 
   def regexp_or_operator(start)
-    return operator_or_punctuation(start) if @previous == :keyword_def
-    return operator_or_punctuation(start) if @previous == :tSYMBEG
+    return operator_or_punctuation(start) if [".", :tCOLON2, :tANDDOT, :keyword_def, :tSYMBEG].include?(@previous)
     if @context.begin_expression
       advance
       value = read_regexp(start)
@@ -1110,7 +1114,7 @@ class Lexer
   end
 
   def heredoc_or_operator(start)
-    return operator_or_punctuation(start) if @previous == :keyword_class
+    return operator_or_punctuation(start) if [".", :keyword_class].include?(@previous)
     if byte(1) == 60 && heredoc_prefix?
       heredoc_after_command = @previous == :tIDENTIFIER && start.positive? &&
         [9, 32].include?(@source.getbyte(start - 1))
@@ -1321,6 +1325,7 @@ class Lexer
       array_argument ||= value == "[" && @previous == ")" &&
         @previous_previous == "(" && @context.scope_stack.last == :method
       array_argument ||= value == "[" && @context.method_body_start
+      array_argument = false if array_argument && @local_variables[@previous_value]
       array_argument = false if array_argument && [",", "*"].include?(@previous_previous) &&
         @context.delimiter_stack.any? { |delimiter| ["[", :tLBRACK].include?(delimiter) }
       return [value == "[" && (@context.begin_expression || array_argument) ? :tLBRACK : (value == "[" ? "[" : (brace_block ? "{" : :tLBRACE)), nil]
@@ -1356,6 +1361,11 @@ class Lexer
 
   def begin_expression?
     @context.begin_expression
+  end
+
+  def receiver_operator?(token)
+    [".", :tCOLON2, :tANDDOT].include?(@previous_previous) &&
+      ["/", :tLSHFT].include?(token)
   end
 end
 private_constant :Lexer, :LexicalContext
