@@ -189,7 +189,7 @@ class Lexer
 
   KEYWORDS = {
     "class" => :keyword_class, "module" => :keyword_module,
-    "def" => :keyword_def, "begin" => :keyword_begin,
+    "def" => :keyword_def, "undef" => :keyword_undef, "begin" => :keyword_begin,
     "rescue" => :keyword_rescue, "ensure" => :keyword_ensure,
     "end" => :keyword_end, "if" => :keyword_if,
     "unless" => :keyword_unless, "then" => :keyword_then,
@@ -301,6 +301,7 @@ class Lexer
       @previous_value = value[1]
       update_pending_delimiter(value[0])
       update_argument_label(value[0], value[1])
+      @context.alias_context = false if value[0] == ";"
       @context.remember_token(value[0])
       @context.begin_expression = expression_begin_after(value[0])
       @context.lex_state = lexical_state_after(value[0])
@@ -318,7 +319,7 @@ class Lexer
       advance
       return next_token if @previous == "\n"
       return next_token if next_chain_byte == 46
-      if @context.alias_context && @previous == :tEQ
+      if @context.alias_context && [:tEQ, :tUMINUS, :tUPLUS].include?(@previous)
         @context.alias_context = false
         ["\n", nil]
       elsif @class_superclass && next_word_is_terminator?
@@ -356,6 +357,7 @@ class Lexer
     @previous = value && value[0]
     @previous_value = value && value[1]
     update_argument_label(value && value[0], value && value[1])
+    @context.alias_context = false if value && value[0] == ";"
     @context.remember_token(value && value[0])
     @context.begin_expression = expression_begin_after(value && value[0])
     @context.lex_state = lexical_state_after(value && value[0])
@@ -383,8 +385,9 @@ class Lexer
   def newline_ignored?
     ignored = (@context.delimiter_depth.positive? &&
       ["(", "[", "{", :tLPAREN, :tLPAREN_ARG, :tLBRACK, :tLBRACE_ARG].include?(@previous)) ||
+      ["[", :tLBRACK].include?(@context.delimiter_stack.last) ||
       @previous == "\n" ||
-      ["+", "-", "*", "/", "%", "=", "?", ":", ",", ".", "&", "|", "^", "<<", ">>", "&&", "||", "=>", :keyword_and, :keyword_or, :keyword_not, :tAMPER, :tPIPE, :tSTAR, :tDSTAR, :tUMINUS, :tUPLUS, :tDOT2, :tDOT3, :tPOW, :tCMP, :tEQ, :tEQQ, :tNEQ, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH, :tLSHFT, :tRSHFT, :tASSOC, :tLAMBDA, :tCOLON2, :tANDDOT].include?(@previous) ||
+      ["+", "-", "*", "/", "%", "=", "?", ":", ",", ".", "&", "|", "^", "<<", ">>", "&&", "||", "=>", "<", ">", :keyword_and, :keyword_or, :keyword_not, :tAMPER, :tPIPE, :tSTAR, :tDSTAR, :tUMINUS, :tUPLUS, :tDOT2, :tDOT3, :tPOW, :tCMP, :tEQ, :tEQQ, :tNEQ, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH, :tLSHFT, :tRSHFT, :tASSOC, :tLAMBDA, :tCOLON2, :tANDDOT].include?(@previous) ||
       @previous == :tLABEL ||
       [:modifier_if, :modifier_unless, :modifier_while, :modifier_until].include?(@previous) ||
       [:tANDOP, :tOROP, :tMATCH, :tNMATCH, :tASSOC, :tOP_ASGN].include?(@previous) ||
@@ -535,6 +538,9 @@ class Lexer
       advance
       word = "defined?"
     end
+    if @previous == :keyword_undef && (KEYWORDS.key?(word) || word == "do")
+      return [:tFID, word.to_sym]
+    end
     if byte == 63 && byte(1) == 58
       advance(2)
       return [:tLABEL, (word + "?").to_sym]
@@ -544,7 +550,7 @@ class Lexer
       advance
       return [:tFID, (word + suffix).to_sym]
     end
-    if byte == 61 && [:keyword_def, ".", :tCOLON2].include?(@previous)
+    if byte == 61 && byte(1) != 61 && [:keyword_def, ".", :tCOLON2].include?(@previous)
       advance
       return [:tFID, (word + "=").to_sym]
     end
@@ -572,7 +578,7 @@ class Lexer
       token = next_non_space_byte == 61 ? :tIDENTIFIER : :tFID
     elsif token && @previous == :keyword_def && word != "self"
       token = :tFID
-    elsif (!@context.begin_expression || [:keyword_return, :keyword_break, :keyword_next, :keyword_end, :keyword_yield, :keyword_super].include?(@previous)) && { "if" => :modifier_if, "unless" => :modifier_unless,
+    elsif (!@context.begin_expression || @context.alias_context && @previous == :keyword_for || [:keyword_return, :keyword_break, :keyword_next, :keyword_end, :keyword_yield, :keyword_super].include?(@previous)) && { "if" => :modifier_if, "unless" => :modifier_unless,
       "while" => :modifier_while, "until" => :modifier_until,
       "rescue" => :modifier_rescue }.key?(word)
       token = { "if" => :modifier_if, "unless" => :modifier_unless,
@@ -676,7 +682,7 @@ class Lexer
     marker = byte
     advance
     advance if marker == 64 && byte == 64
-    if marker == 36 && [33, 38, 39, 42, 43, 46, 58, 60, 62, 61, 63, 96, 126].include?(byte)
+    if marker == 36 && [33, 38, 39, 42, 43, 46, 47, 58, 60, 62, 61, 63, 96, 126].include?(byte)
       advance
       text = @source.byteslice(start, @index - start)
       return [:tGVAR, text.to_sym]
@@ -1214,7 +1220,12 @@ class Lexer
       advance
       return ["&", nil]
     end
-    if @previous == :tSYMBEG && ["-@", "+@"].include?(@source.byteslice(@index, 2))
+    if @previous == :keyword_def && ["-@", "+@"].include?(@source.byteslice(@index, 2))
+      value = @source.byteslice(@index, 2)
+      advance(2)
+      return [value == "-@" ? :tUMINUS : :tUPLUS, nil]
+    end
+    if (@previous == :tSYMBEG || @context.alias_context) && ["-@", "+@"].include?(@source.byteslice(@index, 2))
       value = @source.byteslice(@index, 2)
       advance(2)
       return [value == "-@" ? :tUMINUS : :tUPLUS, nil]
@@ -1226,7 +1237,7 @@ class Lexer
         @previous_previous != :keyword_alias
       next false if ["[]", "[]="].include?(operator) &&
         [:tIDENTIFIER, :tCONSTANT, :tFID, :tGVAR, :tIVAR, :tCVAR, :tNTH_REF,
-          :tINTEGER, :tSTRING_END, :tREGEXP_END].include?(@previous) &&
+          :tINTEGER, :tSTRING_END, :tREGEXP_END, "]", "}"].include?(@previous) &&
         @previous_previous != :keyword_alias
       @source.byteslice(@index, operator.bytesize) == operator
     end
@@ -1262,7 +1273,8 @@ class Lexer
         [:keyword_BEGIN, :keyword_END].include?(@previous))
       lambda_block = value == "{" && @context.lambda_pending
       command_arg = value == "(" && !@context.begin_expression && start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
-        [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
+        [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) &&
+        ![".", :tCOLON2].include?(@previous_previous)
       unless brace_block || lambda_block
         @context.push_delimiter(value)
         @context.push_cmdarg(command_arg)
@@ -1285,6 +1297,8 @@ class Lexer
       array_argument ||= value == "[" && @previous == ")" &&
         @previous_previous == "(" && @context.scope_stack.last == :method
       array_argument ||= value == "[" && @context.method_body_start
+      array_argument = false if array_argument && [",", "*"].include?(@previous_previous) &&
+        @context.delimiter_stack.any? { |delimiter| ["[", :tLBRACK].include?(delimiter) }
       return [value == "[" && (@context.begin_expression || array_argument) ? :tLBRACK : (value == "[" ? "[" : (brace_block ? "{" : :tLBRACE)), nil]
     elsif value == ")" || value == "]" || value == "}"
       opener = { ")" => "(", "]" => "[", "}" => "{" }.fetch(value)
