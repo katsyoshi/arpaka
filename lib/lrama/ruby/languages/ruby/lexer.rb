@@ -470,7 +470,7 @@ module Lrama
             when "{", :tLBRACE_ARG
               @context.push_block(:brace_block)
             when "}"
-              @context.pop_block if @context.block_stack.last == :brace_block
+              @context.pop_block if [:brace_block, :lambda].include?(@context.block_stack.last)
               @context.pop_scope if @context.scope_stack.last == :lambda
             when :keyword_end
               @context.pop_block if [:do_block, :lambda].include?(@context.block_stack.last)
