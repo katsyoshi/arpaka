@@ -464,6 +464,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(1, lexer.context.state_history[1].fetch(:delimiter_depth))
     assert_equal(0, lexer.context.state_history.last.fetch(:delimiter_depth))
 
+    hash_lexer = Arpaka.const_get(:Lexer, false).new("{a: 1}")
+    hash_lexer.each.to_a
+    hash_states = hash_lexer.context.state_history
+    assert_equal(1, hash_states.find { |entry| entry.fetch(:token) == :tLBRACE }.fetch(:delimiter_depth))
+    assert_equal(0, hash_states.find { |entry| entry.fetch(:token) == "}" }.fetch(:delimiter_depth))
+
     other = Arpaka.const_get(:Lexer, false).new("value")
     assert_equal(:expr_beg, other.context.lex_state)
     assert_true(other.context.command_start)

@@ -291,8 +291,8 @@ module Lrama
           def update_pending_delimiter(token)
             if ["(", "["].include?(token)
               @context.push_delimiter(token)
-            elsif [")", "]"].include?(token)
-              opener = {")" => "(", "]" => "["
+            elsif [")", "]", "}"].include?(token)
+              opener = {")" => "(", "]" => "[", "}" => "{"
               }.fetch(token)
               @context.pop_delimiter(opener)
             end
