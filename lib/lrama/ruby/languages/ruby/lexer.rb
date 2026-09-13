@@ -793,7 +793,8 @@ module Lrama
             if @context.begin_expression
               advance
               value = read_regexp(start)
-              @pending = [[:tSTRING_CONTENT, value], [:tREGEXP_END, nil]]
+              content = value.is_a?(Array) ? value : [[:tSTRING_CONTENT, value]]
+              @pending = content + [[:tREGEXP_END, nil]]
               return [:tREGEXP_BEG, nil]
             end
             operator_or_punctuation(start)
@@ -801,6 +802,8 @@ module Lrama
 
           def read_regexp(start)
             result = +""
+            tokens = []
+            interpolated = false
             in_class = false
             until eof?
               value = byte
@@ -818,10 +821,22 @@ module Lrama
                 in_class = false
                 result << value.chr
                 advance
+              elsif value == 35 && byte(1) == 123 && !in_class
+                tokens << [:tSTRING_CONTENT, result] unless result.empty?
+                result = +""
+                interpolated = true
+                advance(2)
+                expression = read_interpolation_source(start)
+                inner = self.class.new(expression, filename: @filename).each.to_a
+                inner.pop if inner.last == [0, nil]
+                tokens << [:tSTRING_DBEG, nil]
+                tokens.concat(inner)
+                tokens << [:tSTRING_DEND, nil]
               elsif value == 47 && !in_class
                 advance
                 advance while byte && byte.between?(97, 122)
-                return result
+                tokens << [:tSTRING_CONTENT, result] unless result.empty?
+                return interpolated ? tokens : result
               else
                 result << value.chr
                 advance

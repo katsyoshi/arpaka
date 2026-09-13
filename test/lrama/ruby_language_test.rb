@@ -866,6 +866,15 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("super(:/, left, right)") }
   end
 
+  test "source lexer scans slashes inside regexp interpolation" do
+    source = '/#{value.sub(/x/, "")}/'
+    tokens = Arpaka.const_get(:Lexer, false).new(source).each.to_a
+    assert_equal([:tREGEXP_BEG, :tSTRING_DBEG, :tIDENTIFIER, ".", :tIDENTIFIER,
+      "(", :tREGEXP_BEG, :tSTRING_CONTENT, :tREGEXP_END, ",", :tSTRING_BEG,
+      :tSTRING_END, ")", :tSTRING_DEND, :tREGEXP_END, 0], tokens.map(&:first))
+    assert_kind_of(AST::RegexpLiteral, Arpaka.parse_source(source).statements.first)
+  end
+
   test "source lexer accepts ampersand operator symbols" do
     assert_nothing_raised { Arpaka.parse_source("items.reduce(:&)\n") }
     assert_nothing_raised { Arpaka.parse_source("delegate :[], :[]=, to: :paths\n") }
