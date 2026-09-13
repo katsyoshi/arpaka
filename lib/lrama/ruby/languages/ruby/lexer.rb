@@ -949,7 +949,8 @@ module Lrama
             end
             advance
             if value == "(" || value == "[" || value == "{"
-              brace_block = value == "{" && (@previous == ")" || [".", :tCOLON2].include?(@previous_previous) || [:proc, :lambda].include?(@previous_value))
+              brace_block = value == "{" && (@previous == ")" ||
+                [".", :tCOLON2, ",", :tLABEL, :tOROP, :tANDOP].include?(@previous_previous))
               lambda_block = value == "{" && @context.lambda_pending
               command_arg = value == "(" && !@context.begin_expression && start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
                 [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)

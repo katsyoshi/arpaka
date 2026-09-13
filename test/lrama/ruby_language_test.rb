@@ -758,6 +758,7 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("def f; assert_equal (count * 2) - 1, total; end") }
     assert_nothing_raised { Arpaka.parse_source("value = { xml: lambda { 1 } }") }
     assert_nothing_raised { Arpaka.parse_source("f(:x, proc { 1 })") }
+    assert_nothing_raised { Arpaka.parse_source("f(:x, callback { 1 })") }
     assert_nothing_raised { Arpaka.parse_source("f :x, lambda { 1 }") }
     assert_nothing_raised { Arpaka.parse_source("-> arg do; arg; end") }
     assert_nothing_raised { Arpaka.parse_source("test do; f only: A::B do; 1; end; end") }
