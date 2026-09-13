@@ -187,10 +187,13 @@ Lexer failures raise `MyRubyParser::LexerError` with filename, line and byte
 column. These inherit from the generated `MyRubyParser::Error`.
 
 The generated frontend has also been exercised against real-world source. On
-Ruby 4.0.6, it parsed all 3,436 Ruby files in a local Rails checkout. It parsed
-12 of 23 Ruby files in the `trick18` checkout; the remaining files use Ruby
-syntax that is not yet represented by the current Action mappings. These are
-smoke-test results, not a claim of complete Ruby language coverage.
+Ruby 4.0.6, it parsed all 3,436 Ruby files in a local Rails checkout. This is
+the practical compatibility signal for the current frontend. Ruby's Trick
+contest programs are kept as a separate language-compatibility challenge: the
+frontend currently parses 12 of 23 Ruby files in the `trick18` checkout, while
+the remaining files use deliberately adversarial syntax that is not yet
+represented by the current Action mappings. These are smoke-test results, not
+a claim of complete Ruby language coverage.
 
 ## Current scope
 
