@@ -409,6 +409,50 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("name == :&\nname\n") }
   end
 
+  test "Rails trick syntax remains parseable" do
+    assert_nothing_raised do
+      Arpaka.parse_source(<<~RUBY)
+        def source_location
+          if line_number
+            "on line"
+          else
+            "in "
+          end + file_name
+        end
+      RUBY
+      Arpaka.parse_source(<<~RUBY)
+        helper(Module.new do
+          def render_from_helper
+            from_test_case(suffix: "!")
+          end
+        end)
+      RUBY
+      Arpaka.parse_source(<<~RUBY)
+        def exec_queries
+          super do |record|
+            set_inverse(record)
+            yield record if block_given?
+          end
+        end
+      RUBY
+      Arpaka.parse_source(<<~RUBY)
+        result
+          .first
+          # keep chaining
+          .last
+      RUBY
+      Arpaka.parse_source(<<~RUBY)
+        def create_table(table_name, **options)
+          if block_given?
+            super { |table| yield compatible_table_definition(table) }
+          else
+            super
+          end
+        end
+      RUBY
+    end
+  end
+
   test "source lexer recognizes lambda as a lambda expression" do
     assert_nothing_raised { Arpaka.parse_source("value = lambda do\n  work\nend\n") }
   end
