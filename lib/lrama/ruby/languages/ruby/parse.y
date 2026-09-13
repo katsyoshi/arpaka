@@ -183,6 +183,7 @@
 %right tUMINUS tUMINUS_NUM
 %right tPOW
 %right tUPLUS '!' '~'
+%left keyword_do_block
 %start program
 %%
 /* upstream parse.y:3176: $@1: %empty */
@@ -374,7 +375,7 @@ block_command: block_call { $$ = $1 };
 /* upstream parse.y:3574: block_command: block_call call_op2 operation2 command_args */
 block_command: block_call call_op2 operation2 command_args { $$ = $1 };
 /* upstream parse.y:3581: cmd_brace_block: "{ arg" brace_body '}' */
-cmd_brace_block: tLBRACE_ARG brace_body '}' %prec '}' { $$ = $1 };
+cmd_brace_block: tLBRACE_ARG brace_body '}' %prec '}' { $$ = $2 };
 /* upstream parse.y:3589: fcall: "local variable or method" */
 fcall: tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:3589: fcall: "constant" */
@@ -384,17 +385,17 @@ fcall: tFID %prec tFID { $$ = $1 };
 /* upstream parse.y:3596: command: fcall command_args */
 command: fcall command_args %prec tLOWEST { $$ = @builder.call($1, $2 || []) };
 /* upstream parse.y:3603: command: fcall command_args cmd_brace_block */
-command: fcall command_args cmd_brace_block { $$ = $1 };
+command: fcall command_args cmd_brace_block { $$ = @builder.block_call(@builder.call($1, $2 || []), $3) };
 /* upstream parse.y:3612: command: primary_value call_op operation2 command_args */
-command: primary_value call_op operation2 command_args %prec tLOWEST { $$ = $1 };
+command: primary_value call_op operation2 command_args %prec tLOWEST { $$ = @builder.receiver_call($1, $2, $3, $4) };
 /* upstream parse.y:3617: command: primary_value call_op operation2 command_args cmd_brace_block */
-command: primary_value call_op operation2 command_args cmd_brace_block { $$ = $1 };
+command: primary_value call_op operation2 command_args cmd_brace_block { $$ = @builder.block_call(@builder.receiver_call($1, $2, $3, $4), $5) };
 /* upstream parse.y:3622: command: primary_value "::" operation2 command_args */
-command: primary_value tCOLON2 operation2 command_args %prec tLOWEST { $$ = $1 };
+command: primary_value tCOLON2 operation2 command_args %prec tLOWEST { $$ = @builder.receiver_call($1, :"::", $3, $4) };
 /* upstream parse.y:3627: command: primary_value "::" operation2 command_args cmd_brace_block */
-command: primary_value tCOLON2 operation2 command_args cmd_brace_block %prec tCOLON2 { $$ = $1 };
+command: primary_value tCOLON2 operation2 command_args cmd_brace_block %prec tCOLON2 { $$ = @builder.block_call(@builder.receiver_call($1, :"::", $3, $4), $5) };
 /* upstream parse.y:3632: command: primary_value "::" "constant" '{' brace_body '}' */
-command: primary_value tCOLON2 tCONSTANT '{' brace_body '}' %prec '}' { $$ = $1 };
+command: primary_value tCOLON2 tCONSTANT '{' brace_body '}' %prec '}' { $$ = @builder.block_call(@builder.receiver_call($1, :"::", $3, []), $5) };
 /* upstream parse.y:3638: command: "'super'" command_args */
 command: keyword_super command_args %prec keyword_super { $$ = @builder.call(:super, $2 || []) };
 /* upstream parse.y:3644: command: k_yield command_args */
@@ -416,15 +417,15 @@ mlhs_inner: tLPAREN mlhs_inner rparen %prec tLPAREN { $$ = $2 };
 /* upstream parse.y:3687: mlhs_basic: mlhs_head */
 mlhs_basic: mlhs_head { $$ = $1 };
 /* upstream parse.y:3692: mlhs_basic: mlhs_head mlhs_item */
-mlhs_basic: mlhs_head mlhs_item { $$ = ($1 + [$2]).freeze };
+mlhs_basic: mlhs_head mlhs_item { $$ = (Array($1) + [$2]).freeze };
 /* upstream parse.y:3697: mlhs_basic: mlhs_head "*" mlhs_node */
-mlhs_basic: mlhs_head tSTAR mlhs_node %prec tSTAR { $$ = ($1 + [$3]).freeze };
+mlhs_basic: mlhs_head tSTAR mlhs_node %prec tSTAR { $$ = (Array($1) + [$3]).freeze };
 /* upstream parse.y:3048: mlhs_items_mlhs_item: mlhs_item */
 mlhs_items_mlhs_item: mlhs_item { $$ = $1 };
 /* upstream parse.y:3053: mlhs_items_mlhs_item: mlhs_items_mlhs_item ',' mlhs_item */
-mlhs_items_mlhs_item: mlhs_items_mlhs_item ',' mlhs_item %prec ',' { $$ = ($1 + [$3]).freeze };
+mlhs_items_mlhs_item: mlhs_items_mlhs_item ',' mlhs_item %prec ',' { $$ = (Array($1) + [$3]).freeze };
 /* upstream parse.y:3702: mlhs_basic: mlhs_head "*" mlhs_node ',' mlhs_items_mlhs_item */
-mlhs_basic: mlhs_head tSTAR mlhs_node ',' mlhs_items_mlhs_item %prec ',' { $$ = ($1 + [$3] + $5).freeze };
+mlhs_basic: mlhs_head tSTAR mlhs_node ',' mlhs_items_mlhs_item %prec ',' { $$ = (Array($1) + [$3] + Array($5)).freeze };
 /* upstream parse.y:3707: mlhs_basic: mlhs_head "*" */
 mlhs_basic: mlhs_head tSTAR %prec tSTAR { $$ = $1 };
 /* upstream parse.y:3712: mlhs_basic: mlhs_head "*" ',' mlhs_items_mlhs_item */
@@ -490,7 +491,7 @@ cpath: tCOLON3 cname %prec tCOLON3 { $$ = $2 };
 /* upstream parse.y:3853: cpath: cname */
 cpath: cname { $$ = $1 };
 /* upstream parse.y:3858: cpath: primary_value "::" cname */
-cpath: primary_value tCOLON2 cname %prec tCOLON2 { $$ = $2 };
+cpath: primary_value tCOLON2 cname %prec tCOLON2 { $$ = $3 };
 /* upstream parse.y:3864: fname: "local variable or method" */
 fname: tIDENTIFIER %prec tIDENTIFIER { $$ = $1 };
 /* upstream parse.y:3864: fname: "constant" */
@@ -814,7 +815,7 @@ opt_call_args: args ',' assocs ',' %prec ',' { $$ = $1 };
 /* upstream parse.y:4212: opt_call_args: assocs ',' */
 opt_call_args: assocs ',' %prec ',' { $$ = $1 };
 /* upstream parse.y:3161: value_expr_command: command */
-value_expr_command: command { $$ = $1 };
+value_expr_command: command %prec tLBRACE_ARG { $$ = $1 };
 /* upstream parse.y:4219: call_args: value_expr_command */
 call_args: value_expr_command { $$ = $1 };
 /* upstream parse.y:4224: call_args: def_endless_method_endless_command */
@@ -844,11 +845,11 @@ args: arg_value { $$ = [$1].freeze };
 /* upstream parse.y:4319: args: arg_splat */
 args: arg_splat { $$ = $1 };
 /* upstream parse.y:4324: args: args ',' arg_value */
-args: args ',' arg_value %prec ',' { $$ = ($1 + [$3]).freeze };
+args: args ',' arg_value %prec ',' { $$ = @builder.append_arguments($1, $3) };
 /* upstream parse.y:4329: args: args ',' arg_splat */
-args: args ',' arg_splat %prec ',' { $$ = ($1 + [$3]).freeze };
+args: args ',' arg_splat %prec ',' { $$ = @builder.append_arguments($1, $3) };
 /* upstream parse.y:4337: arg_splat: "*" arg_value */
-arg_splat: tSTAR arg_value %prec tSTAR { $$ = $2 };
+arg_splat: tSTAR arg_value %prec tSTAR { $$ = [$2].freeze };
 /* upstream parse.y:4342: arg_splat: "*" */
 arg_splat: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:4350: mrhs_arg: mrhs */
@@ -916,11 +917,11 @@ primary: keyword_not '(' expr rparen %prec '(' { $$ = @builder.unary(:"!", $3) }
 /* upstream parse.y:4470: primary: "'not'" '(' rparen */
 primary: keyword_not '(' rparen %prec '(' { $$ = @builder.reserved_word("not") };
 /* upstream parse.y:4475: primary: fcall brace_block */
-primary: fcall brace_block { $$ = $1 };
+primary: fcall brace_block { $$ = @builder.block_call(@builder.call($1, []), $2) };
 /* upstream parse.y:4479: primary: method_call */
 primary: method_call { $$ = $1 };
 /* upstream parse.y:4481: primary: method_call brace_block */
-primary: method_call brace_block { $$ = $1 };
+primary: method_call brace_block { $$ = @builder.block_call($1, $2) };
 /* upstream parse.y:4486: primary: lambda */
 primary: lambda { $$ = $1 };
 /* upstream parse.y:4491: primary: k_if expr_value then compstmt_stmts if_tail k_end */
@@ -1188,7 +1189,7 @@ lambda_body: keyword_do_LAMBDA midrule_28 bodystmt k_end %prec keyword_do_LAMBDA
 /* upstream parse.y:5153: do_block: k_do_block do_body k_end */
 do_block: k_do_block do_body k_end { $$ = $2 };
 /* upstream parse.y:5161: block_call: command do_block */
-block_call: command do_block { $$ = $1 };
+block_call: command do_block { $$ = @builder.block_call($1, $2) };
 /* upstream parse.y:5167: block_call: block_call call_op2 operation2 opt_paren_args */
 block_call: block_call call_op2 operation2 opt_paren_args { $$ = $1 };
 /* upstream parse.y:5177: block_call: block_call call_op2 operation2 opt_paren_args brace_block */
@@ -1200,13 +1201,13 @@ block_call: block_call call_op2 paren_args { $$ = $1 };
 /* upstream parse.y:5196: method_call: fcall paren_args */
 method_call: fcall paren_args { $$ = @builder.call($1, $2 || []) };
 /* upstream parse.y:5203: method_call: primary_value call_op operation2 opt_paren_args */
-method_call: primary_value call_op operation2 opt_paren_args { $$ = $1 };
+method_call: primary_value call_op operation2 opt_paren_args { $$ = @builder.receiver_call($1, $2, $3, $4) };
 /* upstream parse.y:5214: method_call: primary_value "::" operation2 paren_args */
-method_call: primary_value tCOLON2 operation2 paren_args %prec tCOLON2 { $$ = $1 };
+method_call: primary_value tCOLON2 operation2 paren_args %prec tCOLON2 { $$ = @builder.receiver_call($1, :"::", $3, $4) };
 /* upstream parse.y:5220: method_call: primary_value "::" operation3 */
-method_call: primary_value tCOLON2 operation3 %prec tCOLON2 { $$ = $1 };
+method_call: primary_value tCOLON2 operation3 %prec tCOLON2 { $$ = @builder.receiver_call($1, :"::", $3, []) };
 /* upstream parse.y:5225: method_call: primary_value call_op2 paren_args */
-method_call: primary_value call_op2 paren_args { $$ = $1 };
+method_call: primary_value call_op2 paren_args { $$ = @builder.receiver_call($1, $2, :call, $3) };
 /* upstream parse.y:5231: method_call: "'super'" paren_args */
 method_call: keyword_super paren_args %prec keyword_super { $$ = @builder.call(:super, $2 || []) };
 /* upstream parse.y:5241: method_call: "'super'" */
@@ -1542,7 +1543,7 @@ midrule_37: %empty { $$ = nil };
 /* upstream parse.y:6074: @38: %empty */
 midrule_38: %empty { $$ = nil };
 /* upstream parse.y:6079: string_content: "'#{'" @35 @36 @37 @38 compstmt_stmts string_dend */
-string_content: tSTRING_DBEG midrule_35 midrule_36 midrule_37 midrule_38 compstmt_stmts string_dend %prec tSTRING_DBEG { $$ = $7 };
+string_content: tSTRING_DBEG midrule_35 midrule_36 midrule_37 midrule_38 compstmt_stmts string_dend %prec tSTRING_DBEG { $$ = @builder.interpolation($6) };
 /* upstream parse.y:6094: string_dend: "'}'" */
 string_dend: tSTRING_DEND %prec tSTRING_DEND { $$ = nil };
 /* upstream parse.y:6095: string_dend: "end-of-input" */
@@ -1562,7 +1563,7 @@ sym: fname { $$ = $1 };
 /* upstream parse.y:6127: sym: nonlocal_var */
 sym: nonlocal_var { $$ = $1 };
 /* upstream parse.y:6131: dsym: "symbol literal" string_contents "terminator" */
-dsym: tSYMBEG string_contents tSTRING_END %prec tSTRING_END { $$ = $1 };
+dsym: tSYMBEG string_contents tSTRING_END %prec tSTRING_END { $$ = @builder.symbol(@builder.join_strings($2)) };
 /* upstream parse.y:6138: numeric: simple_numeric */
 numeric: simple_numeric { $$ = $1 };
 /* upstream parse.y:6140: numeric: tUMINUS_NUM simple_numeric */
@@ -1796,9 +1797,9 @@ restarg_mark: '*' %prec '*' { $$ = nil };
 /* upstream parse.y:6508: restarg_mark: "*" */
 restarg_mark: tSTAR %prec tSTAR { $$ = nil };
 /* upstream parse.y:6512: f_rest_arg: restarg_mark "local variable or method" */
-f_rest_arg: restarg_mark tIDENTIFIER %prec tIDENTIFIER { $$ = $2 };
+f_rest_arg: restarg_mark tIDENTIFIER %prec tIDENTIFIER { $$ = [$2].freeze };
 /* upstream parse.y:6518: f_rest_arg: restarg_mark */
-f_rest_arg: restarg_mark { $$ = $1 };
+f_rest_arg: restarg_mark { $$ = [] };
 /* upstream parse.y:6525: blkarg_mark: '&' */
 blkarg_mark: '&' %prec '&' { $$ = nil };
 /* upstream parse.y:6526: blkarg_mark: "&" */
@@ -1891,3 +1892,6 @@ terms: term { $$ = nil };
 terms: terms ';' %prec ';' { $$ = nil };
 /* upstream parse.y:6728: none: %empty */
 none: %empty { $$ = nil };
+/* arpaka extension: block call as a parenthesized argument */
+call_args: block_call { $$ = [$1].freeze };
+call_args: args ',' block_call %prec tLOWEST { $$ = ($1 + [$3]).freeze };

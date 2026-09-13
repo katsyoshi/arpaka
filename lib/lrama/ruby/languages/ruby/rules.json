@@ -567,7 +567,7 @@
     "id": 95,
     "rule": "cmd_brace_block: \"{ arg\" brace_body '}'",
     "line": 3581,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 96,
@@ -597,37 +597,37 @@
     "id": 100,
     "rule": "command: fcall command_args cmd_brace_block",
     "line": 3603,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 101,
     "rule": "command: primary_value call_op operation2 command_args",
     "line": 3612,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 102,
     "rule": "command: primary_value call_op operation2 command_args cmd_brace_block",
     "line": 3617,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 103,
     "rule": "command: primary_value \"::\" operation2 command_args",
     "line": 3622,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 104,
     "rule": "command: primary_value \"::\" operation2 command_args cmd_brace_block",
     "line": 3627,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 105,
     "rule": "command: primary_value \"::\" \"constant\" '{' brace_body '}'",
     "line": 3632,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 106,
@@ -1989,7 +1989,7 @@
     "id": 332,
     "rule": "arg_splat: \"*\" arg_value",
     "line": 4337,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 333,
@@ -2193,7 +2193,7 @@
     "id": 366,
     "rule": "primary: fcall brace_block",
     "line": 4475,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 367,
@@ -2205,7 +2205,7 @@
     "id": 368,
     "rule": "primary: method_call brace_block",
     "line": 4481,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 369,
@@ -3009,7 +3009,7 @@
     "id": 502,
     "rule": "block_call: command do_block",
     "line": 5161,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 503,
@@ -3045,25 +3045,25 @@
     "id": 508,
     "rule": "method_call: primary_value call_op operation2 opt_paren_args",
     "line": 5203,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 509,
     "rule": "method_call: primary_value \"::\" operation2 paren_args",
     "line": 5214,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 510,
     "rule": "method_call: primary_value \"::\" operation3",
     "line": 5220,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 511,
     "rule": "method_call: primary_value call_op2 paren_args",
     "line": 5225,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 512,
@@ -4071,7 +4071,7 @@
     "id": 679,
     "rule": "string_content: \"'#{'\" @35 @36 @37 @38 compstmt_stmts string_dend",
     "line": 6079,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 680,
@@ -4131,7 +4131,7 @@
     "id": 689,
     "rule": "dsym: \"symbol literal\" string_contents \"terminator\"",
     "line": 6131,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 690,
@@ -4833,13 +4833,13 @@
     "id": 806,
     "rule": "f_rest_arg: restarg_mark \"local variable or method\"",
     "line": 6512,
-    "status": "pass_through"
+    "status": "ported"
   },
   {
     "id": 807,
     "rule": "f_rest_arg: restarg_mark",
     "line": 6518,
-    "status": "pass_through"
+    "status": "empty"
   },
   {
     "id": 808,

@@ -11,6 +11,9 @@ module RubyGrammar
   ROOT = File.expand_path("../..", __dir__)
   DESTINATION = File.join(ROOT, "lib/lrama/ruby/languages/ruby")
   REVISION = "37d60dd3241d5fdb10ca43f36077f5d556ae1b8d"
+  EXTENDED_RULES = {
+    ["value_expr_command", ["command"]] => "tLBRACE_ARG"
+  }.freeze
 
   def self.parse(source, filename)
     grammar = Lrama::Parser.new(source, filename).parse
@@ -82,17 +85,28 @@ module RubyGrammar
     grammar.precedences.group_by(&:precedence).sort.each do |_level, group|
       lines << "%#{group.first.type} #{group.map(&:s_value).join(' ')}"
     end
+    lines << "%left keyword_do_block"
     lines << "%start #{name.call(grammar.rules.first.rhs.first)}"
     lines << "%%"
     metadata = inventory.to_h { |rule| [rule.fetch("id"), rule] }
     rules = grammar.rules.reject(&:initial_rule?)
     rules.each do |rule|
       rhs = rule.rhs.empty? ? "%empty" : rule.rhs.map(&name).join(" ")
-      precedence = rule.precedence_sym ? " %prec #{name.call(rule.precedence_sym)}" : ""
+      extended_precedence = EXTENDED_RULES[[rule.lhs.id.s_value, rule.rhs.map { |symbol| symbol.id.s_value }]]
+      precedence = if rule.precedence_sym
+        " %prec #{name.call(rule.precedence_sym)}"
+      elsif extended_precedence
+        " %prec #{extended_precedence}"
+      else
+        ""
+      end
       expression = RubyGrammarActions::ACTIONS[rule.id]&.last || "@builder.unsupported(#{rule.id})"
       lines << "/* upstream parse.y:#{metadata.fetch(rule.id).fetch('line')}: #{rule.as_comment} */"
       lines << "#{name.call(rule.lhs)}: #{rhs}#{precedence} { $$ = #{expression} };"
     end
+    lines << "/* arpaka extension: block call as a parenthesized argument */"
+    lines << "call_args: block_call { $$ = [$1].freeze };"
+    lines << "call_args: args ',' block_call %prec tLOWEST { $$ = ($1 + [$3]).freeze };"
     source = lines.join("\n") + "\n"
     verify_structure(grammar, source, names)
     compact = rules.map do |rule|
@@ -112,11 +126,33 @@ module RubyGrammar
         [name.call(rule.lhs), rule.rhs.map(&name), rule.precedence_sym && name.call(rule.precedence_sym)]
       end.sort_by(&:inspect)
     end
-    raise "Production structure changed" unless signature.call(original, names) == signature.call(port, {})
+    expected_rules = signature.call(original, names).map do |rule|
+      if rule[0] == names.fetch("value_expr_command") && rule[1] == [names.fetch("command")]
+        rule[0, 2] + ["tLBRACE_ARG"]
+      else
+        rule
+      end
+    end
+    expected_rules << ["call_args", ["block_call"], nil]
+    expected_rules << ["call_args", ["args", "','", "block_call"], "tLOWEST"]
+    actual_rules = signature.call(port, {})
+    unless expected_rules.sort_by(&:inspect) == actual_rules.sort_by(&:inspect)
+      raise "Production structure changed"
+    end
     terms = lambda do |grammar|
       grammar.terms.map { |symbol| [symbol.id.s_value, symbol.token_id, symbol.precedence&.type, symbol.precedence&.precedence] }.sort_by(&:inspect)
     end
-    raise "Tokens or precedence changed" unless terms.call(original) == terms.call(port)
+    expected_terms = terms.call(original).map do |term|
+      if term[0] == "keyword_do_block"
+        [term[0], term[1], :left, original.precedences.map(&:precedence).max + 1]
+      else
+        term
+      end
+    end
+    actual_terms = terms.call(port)
+    unless expected_terms.sort_by(&:inspect) == actual_terms
+      raise "Tokens or precedence changed: expected=#{expected_terms.sort_by(&:inspect).inspect} actual=#{actual_terms.inspect}"
+    end
   end
 
   def self.run(check:)
@@ -128,7 +164,7 @@ module RubyGrammar
         File.write(path, contents)
       end
     end
-    puts(check ? "Ruby grammar verified (853 productions)" : "Ruby grammar regenerated")
+    puts(check ? "Ruby grammar verified (853 upstream productions + extensions)" : "Ruby grammar regenerated")
   end
 end
 

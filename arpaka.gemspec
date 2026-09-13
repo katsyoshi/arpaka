@@ -28,5 +28,4 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "lrama", ">= 0.8.0"
-  spec.add_dependency "prism", "~> 1.0"
 end

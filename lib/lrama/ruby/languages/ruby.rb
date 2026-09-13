@@ -24,18 +24,27 @@ module Lrama
           end
         end
 
+        class LexerError < ::Lrama::Ruby::Error
+        end
+
         PARSER_MUTEX = Mutex.new
         private_constant :PARSER_MUTEX
 
-        def self.parse(tokens)
+        def self.parse(tokens, lexical_context: nil)
           parser_class = generated_parser
           parser = parser_class.new
           parser.instance_variable_set(:@builder, Builder.new)
+          parser.lexical_context = lexical_context
           begin
             parser.parse(tokens)
           rescue parser_class::ParseError => error
             raise ParseError.new(error)
           end
+        end
+
+        def self.parse_source(source, filename: "(ruby)")
+          lexer = Lexer.new(source, filename: filename)
+          parse(lexer.each, lexical_context: lexer.context)
         end
 
         def self.generated_parser
@@ -55,3 +64,4 @@ end
 
 require_relative "ruby/ast"
 require_relative "ruby/builder"
+require_relative "ruby/lexer"

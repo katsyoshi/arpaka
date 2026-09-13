@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "lrama"
-require "prism"
 
 module Lrama
   module Ruby

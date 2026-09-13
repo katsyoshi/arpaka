@@ -19,6 +19,19 @@ class Lrama::RubyTest < Test::Unit::TestCase
     assert_equal(20, parser.parse([["(", nil], [:NUMBER, 2], ["+", nil], [:NUMBER, 3], [")", nil], ["*", nil], [:NUMBER, 4]]))
   end
 
+  test "generated parsers expose lookahead and reduction traces" do
+    parser = compile("%token NUMBER\n%%\nstart: NUMBER;").new
+    assert_equal(7, parser.parse([[:NUMBER, 7]]))
+    assert_equal(:read, parser.parse_trace.first.first)
+    assert_equal(:shift, parser.parse_trace[1].first)
+    assert_include(parser.parse_trace.map(&:first), :reduce)
+    assert_equal(7, parser.parse([[:NUMBER, 7]]))
+    assert_not_equal(parser.parse_trace.object_id, nil)
+    assert_nil(parser.lookahead_token)
+    assert_nil(parser.lookahead_value)
+    assert_nil(parser.lookahead_state)
+  end
+
   test "numeric token IDs, aliases, and explicit EOF" do
     parser = compile('%token NUMBER 300 "number"' + "\n%%\nstart: NUMBER;").new
     assert_equal(false, parser.parse([[300, false], [0, nil]]))
