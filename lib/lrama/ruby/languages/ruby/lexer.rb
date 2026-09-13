@@ -10,7 +10,7 @@ module Lrama
         class LexicalContext
           attr_accessor :begin_expression, :condition_do, :condition_line,
             :ternary_depth, :lambda_pending, :alias_context, :argument_label,
-            :lex_state, :command_start, :label_pending, :singleton_class_depth
+            :lex_state, :command_start, :label_pending, :singleton_class_depth, :control_depth
           attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack,
             :token_history, :state_history, :block_stack, :scope_stack, :parser_events,
             :parser_delimiter_stack, :parser_cmdarg_stack, :parser_block_stack,
@@ -26,6 +26,7 @@ module Lrama
             @argument_label = nil
             @label_pending = false
             @singleton_class_depth = 0
+            @control_depth = 0
             @lex_state = :expr_beg
             @command_start = true
             @delimiter_stack = []
@@ -470,6 +471,9 @@ module Lrama
 
           def update_block_context(token)
             case token
+            when :keyword_if, :keyword_unless, :keyword_case, :keyword_begin,
+              :keyword_while, :keyword_until, :keyword_for
+              @context.control_depth += 1
             when :keyword_def
               @context.push_scope(:method)
             when :keyword_do, :keyword_do_block
@@ -488,7 +492,9 @@ module Lrama
               @context.pop_block if [:brace_block, :lambda].include?(@context.block_stack.last)
               @context.pop_scope if @context.scope_stack.last == :lambda
             when :keyword_end
-              if @context.singleton_class_depth.positive?
+              if @context.control_depth.positive?
+                @context.control_depth -= 1
+              elsif @context.singleton_class_depth.positive?
                 @context.singleton_class_depth -= 1
                 @context.pop_scope if @context.scope_stack.last == :keyword_class
               else

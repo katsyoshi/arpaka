@@ -373,6 +373,12 @@ class ArpakaTest < Test::Unit::TestCase
     end
   end
 
+  test "conditional endings preserve enclosing blocks" do
+    assert_nothing_raised do
+      Arpaka.parse_source("include(Module.new do\n  define_method(:value) do\n    if condition\n      value\n    else\n      other\n    end\n  end\nend)")
+    end
+  end
+
   test "if, unless, elsif and else build conditional AST nodes" do
     expected = AST::Program.new([AST::If.new(literal(true), [literal(1)], [literal(2)])])
     assert_equal(expected, parse([:keyword_if, nil], [:keyword_true, nil], [:keyword_then, nil], [:tINTEGER, 1], [:keyword_else, nil], [:tINTEGER, 2], [:keyword_end, nil]))
