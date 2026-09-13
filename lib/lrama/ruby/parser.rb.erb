@@ -25,9 +25,12 @@ class <%= class_name %>
   YYPACT_NINF = <%= context.yypact_ninf %>
   YYTABLE_NINF = <%= context.yytable_ninf %>
 
+  attr_reader :parse_trace
+
   # tokens yields [token name or numeric ID, semantic value] pairs.
   # Exhaustion is EOF; [0, nil] can also terminate the stream explicitly.
   def parse(tokens)
+    @parse_trace = []
     input = tokens.to_enum
     states = [0]
     values = []
@@ -52,6 +55,7 @@ class <%= class_name %>
             raise ArgumentError, "Each token must be a [name or ID, value] pair"
           end
           token, value = pair
+          @parse_trace << [:read, token, state].freeze
           id = token.is_a?(Integer) ? token : TOKENS[token.to_s]
           lookahead = id && id >= 0 ? (YYTRANSLATE[id] || 2) : 2
           # The reserved error symbol is internal to recovery, never lexer input.
@@ -67,6 +71,7 @@ class <%= class_name %>
         rule = YYDEFACT[state]
         raise ParseError.new(token, state) if rule.zero?
       elsif action.positive?
+        @parse_trace << [:shift, token, state, action].freeze
         states << action
         values << value
         lookahead = nil
@@ -78,6 +83,7 @@ class <%= class_name %>
       end
 
       length = YYR2[rule]
+      @parse_trace << [:reduce, rule, state].freeze
       result = reduce(rule, values, length)
       states.pop(length)
       values.pop(length)
