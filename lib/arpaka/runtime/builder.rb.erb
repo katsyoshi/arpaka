@@ -188,8 +188,8 @@ class Builder
   end
 
   def parentheses(statements, rule_id)
-    unsupported(rule_id) unless statements.length == 1
-    statements.first
+    return statements.first if statements.length == 1
+    AST::Sequence.new(statements.freeze)
   end
 
   def identifier(value)

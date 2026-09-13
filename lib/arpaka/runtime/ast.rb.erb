@@ -31,4 +31,5 @@ module AST
   When = Data.define(:patterns, :body)
   Case = Data.define(:expression, :whens, :else_body)
   Lambda = Data.define(:arguments, :body)
+  Sequence = Data.define(:statements)
 end

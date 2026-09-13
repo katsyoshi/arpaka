@@ -51,7 +51,13 @@ class LexicalContext
   end
 
   def pop_delimiter(value)
-    @delimiter_stack.pop if @delimiter_stack.last == value
+    openers = case value
+    when ")", "(" then ["(", :tLPAREN, :tLPAREN_ARG]
+    when "]" then ["[", :tLBRACK]
+    when "}" then ["{"]
+    else [value]
+    end
+    @delimiter_stack.pop if openers.include?(@delimiter_stack.last)
   end
 
   def push_cmdarg(value)
@@ -135,7 +141,12 @@ class LexicalContext
     elsif [")", "]", "}"].include?(token)
       opener = {")" => "(", "]" => "[", "}" => "{"
       }.fetch(token)
-      @parser_delimiter_stack.pop if @parser_delimiter_stack.last == opener
+      parser_openers = {
+        "(" => ["(", :tLPAREN, :tLPAREN_ARG],
+        "[" => ["[", :tLBRACK],
+        "{" => ["{"]
+      }
+      @parser_delimiter_stack.pop if parser_openers.fetch(opener).include?(@parser_delimiter_stack.last)
       @parser_cmdarg_stack.pop
     end
     if [:keyword_do, :keyword_do_block, :keyword_do_LAMBDA, :tLAMBEG].include?(token) ||
@@ -315,7 +326,7 @@ class Lexer
         return [";", nil]
       else
         @class_superclass = false
-        return next_token if newline_ignored?
+        return next_token if newline_ignored? || @previous == ";"
         @context.pop_condition if @context.condition? && @context.condition_do
         @context.condition_do = false
         ["\n", nil]
@@ -370,9 +381,10 @@ class Lexer
   end
 
   def newline_ignored?
-    ignored = (@context.delimiter_depth.positive? && !@context.block_body_at_current_delimiter? && @previous != "}" &&
-      !(@previous == :keyword_end && @context.block_depth.positive?)) || @previous == "\n" ||
-      ["+", "-", "*", "/", "%", "=", "?", ":", ",", ".", "&", "|", "^", "<<", ">>", "&&", "||", "=>", :keyword_and, :keyword_or, :keyword_not, :tAMPER, :tPIPE, :tSTAR, :tDSTAR, :tDOT2, :tDOT3, :tPOW, :tCMP, :tEQ, :tEQQ, :tNEQ, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH, :tLSHFT, :tRSHFT, :tASSOC, :tLAMBDA, :tCOLON2, :tANDDOT].include?(@previous) ||
+    ignored = (@context.delimiter_depth.positive? &&
+      ["(", "[", "{", :tLPAREN, :tLPAREN_ARG, :tLBRACK, :tLBRACE_ARG].include?(@previous)) ||
+      @previous == "\n" ||
+      ["+", "-", "*", "/", "%", "=", "?", ":", ",", ".", "&", "|", "^", "<<", ">>", "&&", "||", "=>", :keyword_and, :keyword_or, :keyword_not, :tAMPER, :tPIPE, :tSTAR, :tDSTAR, :tUMINUS, :tUPLUS, :tDOT2, :tDOT3, :tPOW, :tCMP, :tEQ, :tEQQ, :tNEQ, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH, :tLSHFT, :tRSHFT, :tASSOC, :tLAMBDA, :tCOLON2, :tANDDOT].include?(@previous) ||
       @previous == :tLABEL ||
       [:modifier_if, :modifier_unless, :modifier_while, :modifier_until].include?(@previous) ||
       [:tANDOP, :tOROP, :tMATCH, :tNMATCH, :tASSOC, :tOP_ASGN].include?(@previous) ||
@@ -439,7 +451,7 @@ class Lexer
     return true if token.nil? || token == "\n"
     return false if token == ")" || token == "]" || token == "}"
     return false if token == :keyword_end
-    return false if token == :tINTEGER || token == :tFLOAT || token == :tRATIONAL || token == :tIMAGINARY
+    return false if token == :tINTEGER || token == :tFLOAT || token == :tRATIONAL || token == :tIMAGINARY || token == :tCHAR
     return false if @previous_previous == :tSYMBEG && [:tASET, "&"].include?(token)
     return false if token == :tIDENTIFIER || token == :tCONSTANT || token == :tFID || token == :tSTRING_END || token == :tREGEXP_END
     return false if token == :keyword_true || token == :keyword_false || token == :keyword_nil || token == :keyword_self
@@ -457,7 +469,7 @@ class Lexer
       return :expr_labeled
     end
     return :expr_end if [")", "]", "}", :keyword_end, :tSTRING_END, :tREGEXP_END,
-      :tINTEGER, :tFLOAT, :tRATIONAL, :tIMAGINARY, :tIDENTIFIER,
+      :tINTEGER, :tFLOAT, :tRATIONAL, :tIMAGINARY, :tCHAR, :tIDENTIFIER,
       :tCONSTANT, :tFID, :tIVAR, :tGVAR, :tCVAR, :tNTH_REF,
       :keyword_true, :keyword_false, :keyword_nil, :keyword_self,
       :keyword__LINE__, :keyword__FILE__, :keyword__ENCODING__].include?(token)
@@ -527,7 +539,7 @@ class Lexer
       advance(2)
       return [:tLABEL, (word + "?").to_sym]
     end
-    if [33, 63].include?(byte) && !identifier_byte?(byte(1)) && byte(1) != 61
+    if [33, 63].include?(byte) && byte(1) != 61
       suffix = byte.chr
       advance
       return [:tFID, (word + suffix).to_sym]
@@ -544,7 +556,8 @@ class Lexer
       advance
       return [:tIDENTIFIER, (word + "=").to_sym]
     end
-    if byte == 58 && byte(1) != 58
+    if byte == 58 && byte(1) != 58 && @context.ternary_depth.zero? &&
+        (byte(1).nil? || [9, 10, 11, 12, 13, 32].include?(byte(1)) || @context.delimiter_stack.any?)
       advance
       return [:tLABEL, word.to_sym]
     end
@@ -663,7 +676,7 @@ class Lexer
     marker = byte
     advance
     advance if marker == 64 && byte == 64
-    if marker == 36 && [33, 38, 39, 43, 58, 60, 62, 61, 63, 96, 126].include?(byte)
+    if marker == 36 && [33, 38, 39, 42, 43, 46, 58, 60, 62, 61, 63, 96, 126].include?(byte)
       advance
       text = @source.byteslice(start, @index - start)
       return [:tGVAR, text.to_sym]
@@ -692,8 +705,11 @@ class Lexer
       return ["?", nil]
     end
     command_character = !@context.begin_expression &&
-      [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) &&
+      [:tIDENTIFIER, :tCONSTANT, :tFID, :tCHAR].include?(@previous) &&
       start.positive? && [9, 32].include?(@source.getbyte(start - 1))
+    command_character = true if @previous == :tFID && @previous_value.to_s.end_with?("!")
+    command_character = true if @previous == :tCHAR && start.positive? && [9, 32].include?(@source.getbyte(start - 1))
+    command_character = false if command_character && ternary_question?(start)
     return operator_or_punctuation(start) unless (@context.begin_expression || command_character) &&
       byte(1) && byte(1) != 32 && byte(1) != 10
     advance
@@ -708,6 +724,40 @@ class Lexer
     [:tCHAR, value]
   end
 
+  def ternary_question?(start)
+    depth = 0
+    quote = nil
+    escaped = false
+    index = start + 1
+    while index < @source.bytesize
+      value = @source.getbyte(index)
+      if quote
+        if escaped
+          escaped = false
+        elsif value == 92
+          escaped = true
+        elsif value == quote
+          quote = nil
+        end
+      else
+        case value
+        when 39, 34, 96
+          quote = value
+        when 40, 91, 123
+          depth += 1
+        when 41, 93, 125
+          depth -= 1 if depth.positive?
+        when 58
+          return true if depth.zero?
+        when 10, 59
+          return false if depth.zero?
+        end
+      end
+      index += 1
+    end
+    false
+  end
+
   def utf8_character_length(first_byte)
     return 1 if first_byte < 0x80
     return 2 if first_byte.between?(0xC2, 0xDF)
@@ -717,7 +767,7 @@ class Lexer
   end
 
   def symbol_or_colon(start)
-    symbol_position = @context.begin_expression || ([:tIDENTIFIER, :tFID].include?(@previous) && @context.ternary_depth.zero?)
+    symbol_position = @context.begin_expression || ([:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) && @context.ternary_depth.zero?)
     return operator_or_punctuation(start) unless symbol_position && byte(1) &&
       ![9, 10, 11, 12, 13, 32].include?(byte(1)) && byte(1) != 58
     advance
@@ -733,7 +783,7 @@ class Lexer
   def string_token(quote, start)
     advance
     content_tokens = read_interpolated_quoted(quote, start)
-    label = byte == 58
+    label = byte == 58 && @context.ternary_depth.zero?
     advance if label
     terminator = label ? :tLABEL_END : :tSTRING_END
     @pending = content_tokens
@@ -1035,14 +1085,24 @@ class Lexer
 
   def heredoc_or_operator(start)
     if byte(1) == 60 && heredoc_prefix?
-      return heredoc_token(start) if @context.begin_expression || @previous == :tIDENTIFIER
+      heredoc_after_command = @previous == :tIDENTIFIER && start.positive? &&
+        [9, 32].include?(@source.getbyte(start - 1))
+      return heredoc_token(start) if @context.begin_expression || heredoc_after_command
     end
     operator_or_punctuation(start)
   end
 
   def heredoc_prefix?
     value = byte(2)
-    value && ([39, 34, 96, 45, 126].include?(value) || identifier_byte?(value))
+    return false unless value
+    if [45, 126].include?(value)
+      value = byte(3)
+    end
+    if [39, 34, 96].include?(value)
+      modifier = [45, 126].include?(@source.getbyte(@index + 2))
+      value = byte(modifier ? 4 : 3)
+    end
+    value == 95 || value&.between?(65, 90) || value&.between?(97, 122)
   end
 
   def heredoc_token(start)
@@ -1165,7 +1225,8 @@ class Lexer
         ![:keyword_def, :keyword_alias].include?(@previous) &&
         @previous_previous != :keyword_alias
       next false if ["[]", "[]="].include?(operator) &&
-        [:tIDENTIFIER, :tCONSTANT, :tFID, :tINTEGER, :tSTRING_END, :tREGEXP_END].include?(@previous) &&
+        [:tIDENTIFIER, :tCONSTANT, :tFID, :tGVAR, :tIVAR, :tCVAR, :tNTH_REF,
+          :tINTEGER, :tSTRING_END, :tREGEXP_END].include?(@previous) &&
         @previous_previous != :keyword_alias
       @source.byteslice(@index, operator.bytesize) == operator
     end
@@ -1197,7 +1258,8 @@ class Lexer
         (@previous == ")" && !(@previous_previous == :tSTAR && @context.scope_stack.last == :method)) ||
         [".", :tCOLON2].include?(@previous_previous) ||
         [:keyword_super, :keyword_yield].include?(@previous) ||
-        [:proc, :lambda].include?(@previous_value))
+        [:proc, :lambda].include?(@previous_value) ||
+        [:keyword_BEGIN, :keyword_END].include?(@previous))
       lambda_block = value == "{" && @context.lambda_pending
       command_arg = value == "(" && !@context.begin_expression && start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
         [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
