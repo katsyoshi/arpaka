@@ -544,6 +544,17 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(:keyword_do_block, tokens.map(&:first)[-5])
   end
 
+  test "source lexer balances conditional context" do
+    lexer = Arpaka.const_get(:Lexer, false).new("while condition do; body; end")
+    tokens = lexer.each.to_a
+    assert_includes(tokens.map(&:first), :keyword_do_cond)
+    assert_empty(lexer.context.condition_stack)
+
+    lexer = Arpaka.const_get(:Lexer, false).new("until condition\nbody\nend")
+    lexer.each.to_a
+    assert_empty(lexer.context.condition_stack)
+  end
+
   test "grammar precedence accepts block calls as parenthesized arguments" do
     tree = Arpaka.parse_source("call(lambda do\nend)\n")
     assert_equal(AST::Call.new(:call, [AST::BlockCall.new(AST::Call.new(:lambda, []), [])]), tree.statements.first)

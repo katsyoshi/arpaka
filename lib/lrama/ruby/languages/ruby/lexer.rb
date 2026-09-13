@@ -212,6 +212,7 @@ module Lrama
               end
               @class_superclass = false
               return next_token if newline_ignored?
+              @context.pop_condition if @context.condition? && @context.condition_do
               @context.condition_do = false
               ["\n", nil]
             when 39, 34, 96
@@ -360,7 +361,7 @@ module Lrama
               advance
               return [:tLABEL, word.to_sym]
             end
-            if word == "do" && no_argument_block?
+            if word == "do" && !@context.condition_do && no_argument_block?
               @pending.unshift([:keyword_do_block, nil])
               return [:tAMPER, nil]
             end
@@ -375,7 +376,10 @@ module Lrama
                 "rescue" => :modifier_rescue }.fetch(word, token)
             end
             token ||= word == "do" ? do_token : (word.getbyte(0).between?(65, 90) ? :tCONSTANT : :tIDENTIFIER)
-            @context.condition_do = true if [:keyword_while, :keyword_until, :keyword_for].include?(token)
+            if [:keyword_while, :keyword_until, :keyword_for].include?(token)
+              @context.condition_do = true
+              @context.push_condition
+            end
             @context.alias_context = true if token == :keyword_alias
             [token, word.to_sym]
           rescue EncodingError
@@ -387,7 +391,8 @@ module Lrama
           end
 
           def do_token
-            if @context.condition_do
+            if @context.condition_do && @context.condition?
+              @context.pop_condition
               @context.condition_do = false
               :keyword_do_cond
             elsif @context.lambda_pending
