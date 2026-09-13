@@ -693,6 +693,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("outer(call { 1 })\n") }
   end
 
+  test "source lexer starts one-line method bodies with array literals" do
+    tokens = Arpaka.const_get(:Lexer, false).new("def values() [1] end\n").each.to_a
+    assert_equal(:tLBRACK, tokens.map(&:first)[4])
+    assert_nothing_raised { Arpaka.parse_source("def values() [1] end\n") }
+  end
+
   test "source lexer preserves newlines inside command blocks" do
     assert_nothing_raised do
       Arpaka.parse_source("app = lambda { |env|\n  req = Request.new(env)\n  res = response(req)\n}\n")

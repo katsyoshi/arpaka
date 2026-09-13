@@ -1055,6 +1055,8 @@ module Lrama
               array_argument = value == "[" && start.positive? &&
                 [9, 10, 11, 12, 13, 32].include?(@source.getbyte(start - 1)) &&
                 [:tIDENTIFIER, :tFID, :tCONSTANT].include?(@previous)
+              array_argument ||= value == "[" && @previous == ")" &&
+                @previous_previous == "(" && @context.scope_stack.last == :method
               return [value == "[" && (@context.begin_expression || array_argument) ? :tLBRACK : (value == "[" ? "[" : (brace_block ? "{" : :tLBRACE)), nil]
             elsif value == ")" || value == "]" || value == "}"
               opener = { ")" => "(", "]" => "[", "}" => "{" }.fetch(value)
