@@ -438,6 +438,11 @@ class ArpakaTest < Test::Unit::TestCase
     end
   end
 
+  test "source lexer handles multiple heredocs on one line" do
+    source = "value = <<FIRST, <<SECOND\nfirst\nFIRST\nsecond\nSECOND\n"
+    assert_nothing_raised { Arpaka.parse_source(source) }
+  end
+
   test "source lexer distinguishes shifts and command symbols" do
     assert_equal(AST::Binary.new(:<<, literal(1), literal(2)),
       Arpaka.parse_source("1 << 2").statements.first)

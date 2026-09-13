@@ -220,12 +220,15 @@ module Lrama
             @previous_value = nil
             @context = LexicalContext.new
             @pending = []
+            @heredoc_queue = []
+            @deferred_suffix = nil
+            @heredoc_newline_pending = false
             @class_superclass = false
           end
 
           def each
             return enum_for(__method__) unless block_given?
-            until eof? && @pending.empty?
+            until eof? && @pending.empty? && @heredoc_queue.empty? && @deferred_suffix.nil?
               token = next_token
               yield token if token
             end
@@ -260,6 +263,19 @@ module Lrama
           end
 
           def next_token
+            if @pending.empty? && @heredoc_queue.any?
+              load_queued_heredoc
+            elsif @pending.empty? && @deferred_suffix
+              suffix = @deferred_suffix
+              @deferred_suffix = nil
+              @pending.concat(self.class.new(suffix, filename: @filename).each.to_a)
+              @pending.pop if @pending.last == [0, nil]
+              @pending << ["\n", nil]
+              @heredoc_newline_pending = false
+            elsif @pending.empty? && @heredoc_newline_pending
+              @pending << ["\n", nil]
+              @heredoc_newline_pending = false
+            end
             unless @pending.empty?
               value = @pending.shift
               return next_token if value[0] == "\n" && newline_ignored?
@@ -958,8 +974,24 @@ module Lrama
             advance while byte && byte != 10
             suffix = @source.byteslice(suffix_start, @index - suffix_start).force_encoding(Encoding::UTF_8)
             advance if byte == 10
-            body = +""
             interpolate = quote != 39
+            body = read_heredoc_body(delimiter, indent, squiggly, start)
+            content_tokens = interpolate ? interpolated_content_tokens(body, start) : [[:tSTRING_CONTENT, body]]
+            @pending = content_tokens + [[:tSTRING_END, nil]]
+            prefix, headers, suffix = extract_heredoc_headers(suffix)
+            unless prefix.empty?
+              prefix_tokens = self.class.new(prefix, filename: @filename).each.to_a
+              prefix_tokens.pop if prefix_tokens.last == [0, nil]
+              @pending.concat(prefix_tokens)
+            end
+            @heredoc_queue.concat(headers)
+            @deferred_suffix = suffix unless suffix.empty?
+            @heredoc_newline_pending = true
+            [quote == 96 ? :tXSTRING_BEG : :tSTRING_BEG, nil]
+          end
+
+          def read_heredoc_body(delimiter, indent, squiggly, start)
+            body = +""
             loop do
               line_start = @index
               advance while !eof? && byte != 10
@@ -974,16 +1006,27 @@ module Lrama
               advance if byte == 10
               fail!("unterminated heredoc", start) if eof?
             end
-            body = dedent_heredoc(body) if squiggly
-            content_tokens = interpolate ? interpolated_content_tokens(body, start) : [[:tSTRING_CONTENT, body]]
-            @pending = content_tokens + [[:tSTRING_END, nil]]
-            unless suffix.empty?
-              suffix_tokens = self.class.new(suffix, filename: @filename).each.to_a
-              suffix_tokens.pop if suffix_tokens.last == [0, nil]
-              @pending.concat(suffix_tokens)
+            squiggly ? dedent_heredoc(body) : body
+          end
+
+          def extract_heredoc_headers(suffix)
+            pattern = /<<(\-|~)?([A-Za-z_][A-Za-z0-9_]*)/
+            match = pattern.match(suffix)
+            return [suffix, [], ""] unless match
+
+            headers = [{delimiter: match[2], indent: !match[1].nil?, squiggly: match[1] == "~", quote: nil}]
+            trailing = suffix[match.end(0)..].to_s.gsub(pattern) do
+              headers << {delimiter: Regexp.last_match(2), indent: !Regexp.last_match(1).nil?, squiggly: Regexp.last_match(1) == "~", quote: nil}
+              ""
             end
-            @pending << ["\n", nil]
-            [quote == 96 ? :tXSTRING_BEG : :tSTRING_BEG, nil]
+            [suffix[0...match.begin(0)], headers, trailing]
+          end
+
+          def load_queued_heredoc
+            descriptor = @heredoc_queue.shift
+            body = read_heredoc_body(descriptor.fetch(:delimiter), descriptor.fetch(:indent), descriptor.fetch(:squiggly), @index)
+            content = descriptor.fetch(:quote) == 39 ? [[:tSTRING_CONTENT, body]] : interpolated_content_tokens(body, @index)
+            @pending.concat([descriptor.fetch(:quote) == 96 ? [:tXSTRING_BEG, nil] : [:tSTRING_BEG, nil], *content, [:tSTRING_END, nil]])
           end
 
           def dedent_heredoc(body)
