@@ -453,15 +453,21 @@ class ArpakaTest < Test::Unit::TestCase
   test "source lexer exposes parse-local lexical context" do
     lexer = Arpaka.const_get(:Lexer, false).new("f(1)")
     assert_equal(:expr_beg, lexer.context.lex_state)
+    assert_true(lexer.context.command_start)
     lexer.each.to_a
     assert_equal(:expr_end, lexer.context.lex_state)
+    assert_false(lexer.context.command_start)
     assert_equal([], lexer.context.delimiter_stack)
     assert_equal([:tIDENTIFIER, "(", :tINTEGER, ")"], lexer.context.token_history)
 
     other = Arpaka.const_get(:Lexer, false).new("value")
     assert_equal(:expr_beg, other.context.lex_state)
+    assert_true(other.context.command_start)
+    other.send(:next_token)
+    assert_false(other.context.command_start)
     other.each.to_a
     assert_equal(:expr_end, other.context.lex_state)
+    assert_false(other.context.command_start)
   end
 
   test "source lexer treats spaced empty brackets as an array literal" do

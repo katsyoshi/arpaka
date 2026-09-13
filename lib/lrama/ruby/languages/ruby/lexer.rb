@@ -9,7 +9,8 @@ module Lrama
         # keeps in its parser (EXPR_BEG/EXPR_END and delimiter nesting).
         class LexicalContext
           attr_accessor :begin_expression, :condition_do, :condition_line,
-            :ternary_depth, :lambda_pending, :alias_context, :argument_label, :lex_state
+            :ternary_depth, :lambda_pending, :alias_context, :argument_label,
+            :lex_state, :command_start
           attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack, :token_history
 
           def initialize
@@ -21,6 +22,7 @@ module Lrama
             @alias_context = false
             @argument_label = nil
             @lex_state = :expr_beg
+            @command_start = true
             @delimiter_stack = []
             @cmdarg_stack = []
             @condition_stack = []
@@ -175,6 +177,7 @@ module Lrama
               @context.remember_token(value[0])
               @context.begin_expression = expression_begin_after(value[0])
               @context.lex_state = lexical_state_after(value[0])
+              @context.command_start = command_start_after(value[0])
               return value
             end
             skip_space_and_comments
@@ -224,6 +227,7 @@ module Lrama
             @context.remember_token(value && value[0])
             @context.begin_expression = expression_begin_after(value && value[0])
             @context.lex_state = lexical_state_after(value && value[0])
+            @context.command_start = command_start_after(value && value[0])
             value
           end
 
@@ -308,6 +312,10 @@ module Lrama
               :keyword__LINE__, :keyword__FILE__, :keyword__ENCODING__].include?(token)
             return :expr_arg if token == :tLABEL
             :expr_beg
+          end
+
+          def command_start_after(token)
+            [nil, 0, "\n", ";"].include?(token)
           end
 
           def identifier_token(start)
