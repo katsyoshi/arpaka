@@ -590,6 +590,13 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("f in: ..range_end\n") }
   end
 
+  test "source lexer keeps special global variables intact" do
+    tokens = Arpaka.const_get(:Lexer, false).new(%q{"pid #{$$}"\n}).each.to_a
+    assert_equal([:tSTRING_BEG, :tSTRING_CONTENT, :tSTRING_DBEG, :tGVAR, :tSTRING_DEND, :tSTRING_END],
+      tokens[0, 6].map(&:first))
+    assert_equal(:"$$", tokens[3][1])
+  end
+
   test "source lexer preserves newlines before terminators" do
     assert_nothing_raised { Arpaka.parse_source("def empty\nend\n") }
     assert_nothing_raised { Arpaka.parse_source("if condition\nend\n") }

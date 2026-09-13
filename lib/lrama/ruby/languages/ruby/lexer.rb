@@ -532,6 +532,10 @@ module Lrama
               text = @source.byteslice(start, @index - start)
               return [:tGVAR, text.to_sym]
             end
+            if marker == 36 && byte == 36
+              advance
+              return [:tGVAR, :"$$"]
+            end
             if marker == 36 && byte && byte.between?(48, 57)
               advance while byte && byte.between?(48, 57)
               return [:tNTH_REF, @source.byteslice(start + 1, @index - start - 1).to_i]
