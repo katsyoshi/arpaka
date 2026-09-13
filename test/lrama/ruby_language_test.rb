@@ -627,6 +627,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("$:.unshift(\"lib\")\n") }
   end
 
+  test "source lexer treats keyword-shaped method names as fname tokens" do
+    tokens = Arpaka.const_get(:Lexer, false).new("def then(&block)\nend\n").each.to_a
+    assert_equal(:tFID, tokens[1].first)
+    assert_nothing_raised { Arpaka.parse_source("def then(&block)\nend\n") }
+  end
+
   test "source lexer preserves newlines before terminators" do
     assert_nothing_raised { Arpaka.parse_source("def empty\nend\n") }
     assert_nothing_raised { Arpaka.parse_source("if condition\nend\n") }
