@@ -26,7 +26,7 @@ class <%= class_name %>
   YYTABLE_NINF = <%= context.yytable_ninf %>
 
   attr_accessor :lexical_context
-  attr_reader :parse_trace
+  attr_reader :parse_trace, :lookahead_token, :lookahead_value, :lookahead_state
 
   # tokens yields [token name or numeric ID, semantic value] pairs.
   # Exhaustion is EOF; [0, nil] can also terminate the stream explicitly.
@@ -38,6 +38,9 @@ class <%= class_name %>
     lookahead = nil
     token = nil
     value = nil
+    @lookahead_token = nil
+    @lookahead_value = nil
+    @lookahead_state = nil
 
     while true
       state = states.last
@@ -57,6 +60,9 @@ class <%= class_name %>
           end
           token, value = pair
           @parse_trace << [:read, token, state].freeze
+          @lookahead_token = token
+          @lookahead_value = value
+          @lookahead_state = state
           id = token.is_a?(Integer) ? token : TOKENS[token.to_s]
           lookahead = id && id >= 0 ? (YYTRANSLATE[id] || 2) : 2
           # The reserved error symbol is internal to recovery, never lexer input.
@@ -77,6 +83,9 @@ class <%= class_name %>
         states << action
         values << value
         lookahead = nil
+        @lookahead_token = nil
+        @lookahead_value = nil
+        @lookahead_state = nil
         next
       elsif action.zero? || action == YYTABLE_NINF
         raise ParseError.new(token, state)

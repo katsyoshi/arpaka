@@ -27,6 +27,9 @@ class Lrama::RubyTest < Test::Unit::TestCase
     assert_include(parser.parse_trace.map(&:first), :reduce)
     assert_equal(7, parser.parse([[:NUMBER, 7]]))
     assert_not_equal(parser.parse_trace.object_id, nil)
+    assert_nil(parser.lookahead_token)
+    assert_nil(parser.lookahead_value)
+    assert_nil(parser.lookahead_state)
   end
 
   test "numeric token IDs, aliases, and explicit EOF" do
