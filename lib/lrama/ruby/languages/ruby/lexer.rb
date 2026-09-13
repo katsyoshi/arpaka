@@ -733,7 +733,10 @@ module Lrama
             command_argument = start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
               [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) &&
               ![:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous_previous)
-            return operator_or_punctuation(start) unless @context.begin_expression || (literal_kind && command_argument)
+            shorthand_delimiter = byte(1) && !identifier_byte?(byte(1)) &&
+              ![9, 10, 11, 12, 13, 32, 61].include?(byte(1))
+            return operator_or_punctuation(start) unless @context.begin_expression ||
+              ((literal_kind || shorthand_delimiter) && command_argument)
             advance
             kind = byte
             if [113, 81, 119, 87, 105, 73, 114, 115, 120, 88].include?(kind)

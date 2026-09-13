@@ -578,6 +578,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal([:tIDENTIFIER, :tLSHFT, :tIDENTIFIER, :keyword_do_block], tokens[0, 4].map(&:first))
   end
 
+  test "source lexer recognizes shorthand percent literals in command arguments" do
+    tokens = Arpaka.const_get(:Lexer, false).new("assert %(value)\n").each.to_a
+    assert_equal([:tIDENTIFIER, :tSTRING_BEG, :tSTRING_CONTENT, :tSTRING_END], tokens[0, 4].map(&:first))
+    assert_equal(AST::StringLiteral.new("value"), Arpaka.parse_source("assert %(value)\n").statements.first.arguments.first)
+  end
+
   test "source lexer preserves newlines before terminators" do
     assert_nothing_raised { Arpaka.parse_source("def empty\nend\n") }
     assert_nothing_raised { Arpaka.parse_source("if condition\nend\n") }
