@@ -362,7 +362,7 @@ module Lrama
           end
 
           def newline_ignored?
-            ignored = @context.delimiter_depth.positive? || @previous == "\n" ||
+            ignored = (@context.delimiter_depth.positive? && @previous != "}") || @previous == "\n" ||
               ["+", "-", "*", "/", "%", "=", "?", ":", ",", ".", "&", "|", "^", "<<", ">>", "&&", "||", "=>", :keyword_and, :keyword_or, :keyword_not, :tAMPER, :tPIPE, :tSTAR, :tDSTAR, :tDOT2, :tDOT3, :tPOW, :tCMP, :tEQ, :tEQQ, :tNEQ, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH, :tLSHFT, :tRSHFT, :tASSOC, :tLAMBDA, :tCOLON2, :tANDDOT].include?(@previous) ||
               @previous == :tLABEL ||
               [:modifier_if, :modifier_unless, :modifier_while, :modifier_until].include?(@previous) ||
