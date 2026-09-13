@@ -14,7 +14,7 @@ module Lrama
           attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack,
             :token_history, :state_history, :block_stack, :scope_stack, :parser_events,
             :parser_delimiter_stack, :parser_cmdarg_stack, :parser_block_stack,
-            :parser_condition_stack
+            :parser_condition_stack, :parser_scope_stack
 
           def initialize
             @begin_expression = true
@@ -39,6 +39,7 @@ module Lrama
             @parser_cmdarg_stack = []
             @parser_block_stack = []
             @parser_condition_stack = []
+            @parser_scope_stack = []
           end
 
           def delimiter_depth
@@ -145,6 +146,17 @@ module Lrama
               @parser_condition_stack.pop
             elsif token == :keyword_end && @parser_condition_stack.last
               @parser_condition_stack.pop
+            end
+            if token == :keyword_def
+              @parser_scope_stack << :method
+            elsif [:keyword_class, :keyword_module].include?(token)
+              @parser_scope_stack << token
+            elsif token == :tLAMBDA
+              @parser_scope_stack << :lambda
+            elsif token == "}" && @parser_scope_stack.last == :lambda
+              @parser_scope_stack.pop
+            elsif token == :keyword_end && @parser_scope_stack.last
+              @parser_scope_stack.pop
             end
           end
 

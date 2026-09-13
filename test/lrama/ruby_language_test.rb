@@ -526,6 +526,9 @@ class ArpakaTest < Test::Unit::TestCase
     condition_lexer = Arpaka.const_get(:Lexer, false).new("while condition do; body; end")
     Lrama::Ruby::Languages::Ruby.parse(condition_lexer.each, lexical_context: condition_lexer.context)
     assert_empty(condition_lexer.context.parser_condition_stack)
+    scope_lexer = Arpaka.const_get(:Lexer, false).new("def f; -> { 1 }; end")
+    Lrama::Ruby::Languages::Ruby.parse(scope_lexer.each, lexical_context: scope_lexer.context)
+    assert_empty(scope_lexer.context.parser_scope_stack)
     pretokenized = Arpaka.const_get(:Lexer, false).new("f(1)")
     tokens = pretokenized.each.to_a
     Lrama::Ruby::Languages::Ruby.parse(tokens)
