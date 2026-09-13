@@ -945,8 +945,7 @@ module Lrama
             value = byte.chr
             if value == "{" && no_argument_brace_block?
               advance
-              @pending.unshift([:tLBRACE_ARG, nil])
-              return [:tAMPER, nil]
+              return ["{", nil]
             end
             advance
             if value == "(" || value == "[" || value == "{"

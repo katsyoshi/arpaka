@@ -323,7 +323,8 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "command blocks accept block parameters" do
-    assert_equal(AST::Program.new([:each]), Arpaka.parse_source("each { |value| value }"))
+    assert_equal(AST::Program.new([AST::BlockCall.new(AST::Call.new(:each, []), [AST::BareCall.new(:value)])]),
+      Arpaka.parse_source("each { |value| value }"))
     assert_equal(AST::Program.new([AST::BlockCall.new(AST::Call.new(:each, []), [AST::BareCall.new(:value)])]),
       Arpaka.parse_source("each do |value| value end"))
   end
@@ -492,7 +493,7 @@ class ArpakaTest < Test::Unit::TestCase
     brace_lexer = Arpaka.const_get(:Lexer, false).new("f { 1 }")
     brace_lexer.each.to_a
     brace_states = brace_lexer.context.state_history
-    assert_equal(1, brace_states.find { |entry| entry.fetch(:token) == :tLBRACE_ARG }.fetch(:block_depth))
+    assert_equal(1, brace_states.find { |entry| entry.fetch(:token) == "{" }.fetch(:block_depth))
     assert_equal(0, brace_states.find { |entry| entry.fetch(:token) == "}" }.fetch(:block_depth))
 
     other = Arpaka.const_get(:Lexer, false).new("value")
