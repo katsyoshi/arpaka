@@ -479,7 +479,7 @@ module Lrama
 
           def no_argument_brace_block?
             return false if [".", :tCOLON2].include?(@previous_previous)
-            return false if [:tLABEL, :tLSHFT, :tOROP, :tANDOP, :tASSOC, ","].include?(@previous_previous)
+            return false if [:tLABEL, :tLSHFT, :tOROP, :tANDOP, :tASSOC, "=", ","].include?(@previous_previous)
             no_argument_block?
           end
 

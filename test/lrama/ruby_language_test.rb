@@ -658,6 +658,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("outer(1, inner { 2 })\n") }
   end
 
+  test "source lexer chains methods after assignment brace blocks" do
+    tokens = Arpaka.const_get(:Lexer, false).new("value = call { 1 }.dup\n").each.to_a
+    assert_equal("{", tokens.map(&:first)[3])
+    assert_nothing_raised { Arpaka.parse_source("value = call { 1 }.dup\n") }
+  end
+
   test "source lexer preserves newlines inside command blocks" do
     assert_nothing_raised do
       Arpaka.parse_source("app = lambda { |env|\n  req = Request.new(env)\n  res = response(req)\n}\n")
