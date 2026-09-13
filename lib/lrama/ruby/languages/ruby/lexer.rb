@@ -290,12 +290,14 @@ module Lrama
           end
 
           def update_pending_delimiter(token)
-            if ["(", "["].include?(token)
+            if ["(", "[", :tLPAREN_ARG].include?(token)
               @context.push_delimiter(token)
+              @context.push_cmdarg(token == :tLPAREN_ARG)
             elsif [")", "]", "}"].include?(token)
               opener = {")" => "(", "]" => "[", "}" => "{"
               }.fetch(token)
               @context.pop_delimiter(opener)
+              @context.pop_cmdarg
             end
           end
 
@@ -905,10 +907,14 @@ module Lrama
             if value == "(" || value == "[" || value == "{"
               brace_block = value == "{" && (@previous == ")" || [".", :tCOLON2].include?(@previous_previous) || [:proc, :lambda].include?(@previous_value))
               lambda_block = value == "{" && @context.lambda_pending
-              @context.push_delimiter(value) unless brace_block || lambda_block
+              command_arg = value == "(" && !@context.begin_expression && start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
+                [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
+              unless brace_block || lambda_block
+                @context.push_delimiter(value)
+                @context.push_cmdarg(command_arg)
+              end
               if value == "("
-                if !@context.begin_expression && start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
-                    [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
+                if command_arg
                   return [:tLPAREN_ARG, nil]
                 end
                 return [@context.begin_expression && ![".", :tCOLON2, :tANDDOT, :keyword_super, :keyword_yield, :tLAMBDA, :tAREF].include?(@previous) ? :tLPAREN : "(", nil]
@@ -924,6 +930,7 @@ module Lrama
             elsif value == ")" || value == "]" || value == "}"
               opener = { ")" => "(", "]" => "[", "}" => "{" }.fetch(value)
               @context.pop_delimiter(opener)
+              @context.pop_cmdarg
             elsif value == "-" && @context.begin_expression
               return [:tUMINUS, nil]
             elsif value == "+" && @context.begin_expression
