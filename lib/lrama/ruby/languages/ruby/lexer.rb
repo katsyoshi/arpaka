@@ -12,7 +12,7 @@ module Lrama
             :ternary_depth, :lambda_pending, :alias_context, :argument_label,
             :lex_state, :command_start, :label_pending
           attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack,
-            :token_history, :state_history, :block_stack
+            :token_history, :state_history, :block_stack, :scope_stack
 
           def initialize
             @begin_expression = true
@@ -31,6 +31,7 @@ module Lrama
             @token_history = []
             @state_history = []
             @block_stack = []
+            @scope_stack = []
           end
 
           def delimiter_depth
@@ -81,6 +82,18 @@ module Lrama
             @block_stack.length
           end
 
+          def push_scope(value)
+            @scope_stack << value
+          end
+
+          def pop_scope
+            @scope_stack.pop
+          end
+
+          def scope_depth
+            @scope_stack.length
+          end
+
           def remember_token(token)
             @token_history << token
             @token_history.shift while @token_history.length > 4
@@ -95,7 +108,8 @@ module Lrama
               delimiter_depth: delimiter_depth,
               cmdarg_depth: @cmdarg_stack.length,
               condition_depth: @condition_stack.length,
-              block_depth: @block_stack.length
+              block_depth: @block_stack.length,
+              scope_depth: @scope_stack.length
             }.freeze
           end
         end
@@ -361,16 +375,24 @@ module Lrama
 
           def update_block_context(token)
             case token
+            when :keyword_def
+              @context.push_scope(:method)
             when :keyword_do, :keyword_do_block
               @context.push_block(:do_block)
-            when :keyword_do_LAMBDA, :tLAMBEG
+            when :keyword_do_LAMBDA
+              @context.push_block(:lambda)
+            when :tLAMBDA
+              @context.push_scope(:lambda)
+            when :tLAMBEG
               @context.push_block(:lambda)
             when "{", :tLBRACE_ARG
               @context.push_block(:brace_block)
             when "}"
               @context.pop_block if @context.block_stack.last == :brace_block
+              @context.pop_scope if @context.scope_stack.last == :lambda
             when :keyword_end
               @context.pop_block if [:do_block, :lambda].include?(@context.block_stack.last)
+              @context.pop_scope if [:method, :lambda].include?(@context.scope_stack.last)
             end
           end
 

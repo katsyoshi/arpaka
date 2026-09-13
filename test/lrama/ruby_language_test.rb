@@ -490,6 +490,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(1, block_states.find { |entry| entry.fetch(:token) == :keyword_do }.fetch(:block_depth))
     assert_equal(0, block_states.find { |entry| entry.fetch(:token) == :keyword_end }.fetch(:block_depth))
 
+    scope_lexer = Arpaka.const_get(:Lexer, false).new("def f; end")
+    scope_lexer.each.to_a
+    scope_states = scope_lexer.context.state_history
+    assert_equal(1, scope_states.find { |entry| entry.fetch(:token) == :keyword_def }.fetch(:scope_depth))
+    assert_equal(0, scope_states.find { |entry| entry.fetch(:token) == :keyword_end }.fetch(:scope_depth))
+
     brace_lexer = Arpaka.const_get(:Lexer, false).new("f { 1 }")
     brace_lexer.each.to_a
     brace_states = brace_lexer.context.state_history
