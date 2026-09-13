@@ -393,6 +393,14 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source('assert_difference "x", -(value.count) do; value; end') }
   end
 
+  test "operator method definitions do not start literals" do
+    assert_nothing_raised { Arpaka.parse_source("def %(other); end\ndef /(other); end") }
+  end
+
+  test "slash and percent symbols do not start literals" do
+    assert_nothing_raised { Arpaka.parse_source("calculate(:/, value)\ncalculate(:%, value)") }
+  end
+
   test "if, unless, elsif and else build conditional AST nodes" do
     expected = AST::Program.new([AST::If.new(literal(true), [literal(1)], [literal(2)])])
     assert_equal(expected, parse([:keyword_if, nil], [:keyword_true, nil], [:keyword_then, nil], [:tINTEGER, 1], [:keyword_else, nil], [:tINTEGER, 2], [:keyword_end, nil]))

@@ -326,9 +326,9 @@ module Lrama
             when 39, 34, 96
               string_token(byte, start)
             when 47
-              regexp_or_operator(start)
+              [:keyword_def, :keyword_alias, :tSYMBEG].include?(@previous) ? operator_or_punctuation(start) : regexp_or_operator(start)
             when 37
-              percent_token(start)
+              [:keyword_def, :keyword_alias, :tSYMBEG].include?(@previous) ? operator_or_punctuation(start) : percent_token(start)
             when 60
               heredoc_or_operator(start)
             when 48..57
