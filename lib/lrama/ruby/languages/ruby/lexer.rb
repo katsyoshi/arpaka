@@ -497,9 +497,11 @@ module Lrama
               elsif @context.singleton_class_depth.positive?
                 @context.singleton_class_depth -= 1
                 @context.pop_scope if @context.scope_stack.last == :keyword_class
+              elsif [:method, :keyword_class, :keyword_module].include?(@context.scope_stack.last)
+                @context.pop_scope
               else
                 @context.pop_block if [:do_block, :lambda].include?(@context.block_stack.last)
-                @context.pop_scope if [:method, :lambda].include?(@context.scope_stack.last)
+                @context.pop_scope if @context.scope_stack.last == :lambda
               end
             end
           end
