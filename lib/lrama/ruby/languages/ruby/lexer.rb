@@ -308,6 +308,7 @@ module Lrama
             when 10
               advance
               return next_token if @previous == "\n"
+              return next_token if next_chain_byte == 46
               if @context.alias_context && @previous == :tEQ
                 @context.alias_context = false
                 ["\n", nil]
@@ -378,7 +379,7 @@ module Lrama
               [:modifier_if, :modifier_unless, :modifier_while, :modifier_until].include?(@previous) ||
               [:tANDOP, :tOROP, :tMATCH, :tNMATCH, :tASSOC, :tOP_ASGN].include?(@previous) ||
               (@previous == "{" && next_non_space_byte == 124) ||
-              next_non_space_byte == 46
+              next_chain_byte == 46
             ignored = false if @previous_previous == :tSYMBEG &&
               [:tLSHFT, :tRSHFT, :tSTAR, :tDSTAR, :tPOW, :tEQ, :tEQQ, :tNEQ,
                 :tCMP, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH,
@@ -399,6 +400,17 @@ module Lrama
           def next_non_space_byte
             position = @index
             position += 1 while [9, 11, 12, 13, 32].include?(@source.getbyte(position))
+            @source.getbyte(position)
+          end
+
+          def next_chain_byte
+            position = @index
+            loop do
+              position += 1 while [9, 11, 12, 13, 32, 10].include?(@source.getbyte(position))
+              break unless @source.getbyte(position) == 35
+              position += 1
+              position += 1 while @source.getbyte(position) && @source.getbyte(position) != 10
+            end
             @source.getbyte(position)
           end
 
