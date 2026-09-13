@@ -815,6 +815,19 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(:Foo, Arpaka.parse_source("::Foo").statements.first)
   end
 
+  test "source lexer preserves alias boundaries and symbol statement endings" do
+    tokens = Arpaka.const_get(:Lexer, false).new("alias foo= bar").each.to_a
+    assert_equal([:keyword_alias, :tFID, :tIDENTIFIER, 0], tokens.map(&:first))
+    assert_nothing_raised { Arpaka.parse_source("alias foo= bar") }
+
+    source = "alias_method :eql?, :==\ndef hash; 1; end"
+    tokens = Arpaka.const_get(:Lexer, false).new(source).each.to_a
+    assert_include(tokens.map(&:first), "\n")
+    assert_nothing_raised { Arpaka.parse_source(source) }
+
+    assert_nothing_raised { Arpaka.parse_source("undef_method :==, :!, :!=\ndef hash; 1; end") }
+  end
+
   test "source lexer accepts symbols after predicate-like identifiers" do
     assert_nothing_raised { Arpaka.parse_source("alias :merge! :update\n") }
     assert_nothing_raised { Arpaka.parse_source("alias :default_options= :default\n") }

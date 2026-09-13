@@ -370,7 +370,9 @@ module Lrama
               [:tANDOP, :tOROP, :tMATCH, :tNMATCH, :tASSOC, :tOP_ASGN].include?(@previous) ||
               next_non_space_byte == 46
             ignored = false if @previous_previous == :tSYMBEG &&
-              [:tLSHFT, :tRSHFT, :tSTAR, :tDSTAR, :tPOW].include?(@previous)
+              [:tLSHFT, :tRSHFT, :tSTAR, :tDSTAR, :tPOW, :tEQ, :tEQQ, :tNEQ,
+                :tCMP, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH,
+                :tASSOC, :tOP_ASGN].include?(@previous)
             @context.condition_line = false if ignored && @context.condition_line
             ignored
           end
@@ -486,6 +488,10 @@ module Lrama
               return [:tFID, (word + suffix).to_sym]
             end
             if byte == 61 && byte(1) == 40 && [:keyword_def, ".", :tCOLON2].include?(@previous)
+              advance
+              return [:tFID, (word + "=").to_sym]
+            end
+            if byte == 61 && @context.alias_context
               advance
               return [:tFID, (word + "=").to_sym]
             end
