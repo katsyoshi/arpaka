@@ -782,6 +782,7 @@ class ArpakaTest < Test::Unit::TestCase
 
   test "source lexer recognizes unary operator symbols" do
     assert_nothing_raised { Arpaka.parse_source("alias :-@ :deduplicate\n") }
+    assert_nothing_raised { Arpaka.parse_source("alias_method :push, :<<\nalias_method :append, :<<\n") }
   end
 
   test "source lexer recognizes operator method names and top-level constants" do

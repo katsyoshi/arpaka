@@ -369,6 +369,8 @@ module Lrama
               [:modifier_if, :modifier_unless, :modifier_while, :modifier_until].include?(@previous) ||
               [:tANDOP, :tOROP, :tMATCH, :tNMATCH, :tASSOC, :tOP_ASGN].include?(@previous) ||
               next_non_space_byte == 46
+            ignored = false if @previous_previous == :tSYMBEG &&
+              [:tLSHFT, :tRSHFT, :tSTAR, :tDSTAR, :tPOW].include?(@previous)
             @context.condition_line = false if ignored && @context.condition_line
             ignored
           end
