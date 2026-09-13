@@ -683,6 +683,14 @@ class Lexer
   end
 
   def character_or_question(start)
+    # Since Ruby 2.4, `?""` is the ternary operator followed by an empty
+    # string, rather than a character literal.  Keep the question mark as
+    # punctuation in this one ambiguous case.
+    if [39, 34].include?(byte(1)) && byte(1) == byte(2)
+      advance(3)
+      @pending = [[:tSTRING_BEG, nil], [:tSTRING_END, nil]]
+      return ["?", nil]
+    end
     command_character = !@context.begin_expression &&
       [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) &&
       start.positive? && [9, 32].include?(@source.getbyte(start - 1))

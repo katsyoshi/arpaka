@@ -708,6 +708,7 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { GeneratedRubyFrontend.parse("x = if y; 'a'; else; 'b'; end + z") }
     assert_nothing_raised { GeneratedRubyFrontend.parse("helper.({a: 1})") }
     assert_nothing_raised { GeneratedRubyFrontend.parse("assert ?h.in?(\"hello\")") }
+    assert_nothing_raised { GeneratedRubyFrontend.parse('value ?"" : "fallback"') }
   end
 
   test "source lexer uses regular brace blocks for calls and proc values" do
