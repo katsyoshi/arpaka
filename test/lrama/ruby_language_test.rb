@@ -116,6 +116,10 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("def self.value=; end") }
   end
 
+  test "alias preserves bracket operator names" do
+    assert_nothing_raised { Arpaka.parse_source("alias store []=") }
+  end
+
   test "keywords after a receiver are method names" do
     receiver = AST::ReceiverCall.new(literal(:self), :".", :class, [])
     assert_equal(AST::Program.new([AST::ReceiverCall.new(receiver, :".", :to_s, [])]),

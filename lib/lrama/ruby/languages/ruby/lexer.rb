@@ -1099,12 +1099,15 @@ module Lrama
             text = OPERATORS.sort_by { |operator| -operator.bytesize }.find do |operator|
               next false if ["[]", "[]="].include?(operator) && start.positive? &&
                 [9, 10, 11, 12, 13, 32].include?(@source.getbyte(start - 1)) &&
-                ![:keyword_def, :keyword_alias].include?(@previous)
+                ![:keyword_def, :keyword_alias].include?(@previous) &&
+                @previous_previous != :keyword_alias
               next false if ["[]", "[]="].include?(operator) &&
-                [:tIDENTIFIER, :tCONSTANT, :tFID, :tINTEGER, :tSTRING_END, :tREGEXP_END].include?(@previous)
+                [:tIDENTIFIER, :tCONSTANT, :tFID, :tINTEGER, :tSTRING_END, :tREGEXP_END].include?(@previous) &&
+                @previous_previous != :keyword_alias
               @source.byteslice(@index, operator.bytesize) == operator
             end
-            operator_method = [:keyword_def, :keyword_alias, ".", :tCOLON2, :tANDDOT, :tSYMBEG].include?(@previous)
+            operator_method = [:keyword_def, :keyword_alias, ".", :tCOLON2, :tANDDOT, :tSYMBEG].include?(@previous) ||
+              @previous_previous == :keyword_alias
             if text && !(begin_expression? && !operator_method && ["[]", "[]="].include?(text))
               advance(text.bytesize)
               token = if text == "**" && @context.begin_expression
