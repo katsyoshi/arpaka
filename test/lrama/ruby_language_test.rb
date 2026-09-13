@@ -685,6 +685,14 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("Module.new do\n  define_method(:up) do\n    1\n  end\n  define_method(:down) do\n    2\n  end\nend\n") }
   end
 
+  test "source lexer keeps block newlines at their owning delimiter" do
+    source = "f(-> {\n  if condition\n    first\n  else\n    second\n  end\n})\n"
+    assert_nothing_raised { Arpaka.parse_source(source) }
+
+    nested = "f {\n  g(\n    first,\n    second\n  )\n}\n"
+    assert_nothing_raised { Arpaka.parse_source(nested) }
+  end
+
   test "source lexer ignores newlines after operator assignments" do
     assert_nothing_raised { Arpaka.parse_source("value ||=\n  if condition\n    fallback\n  end\n") }
   end

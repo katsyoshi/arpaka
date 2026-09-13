@@ -33,6 +33,7 @@ module Lrama
             @token_history = []
             @state_history = []
             @block_stack = []
+            @block_delimiter_depths = []
             @scope_stack = []
             @parser_events = []
             @parser_delimiter_stack = []
@@ -78,16 +79,22 @@ module Lrama
             @condition_stack.any?
           end
 
-          def push_block(value)
+          def push_block(value, delimiter_depth: self.delimiter_depth)
             @block_stack << value
+            @block_delimiter_depths << delimiter_depth
           end
 
           def pop_block
+            @block_delimiter_depths.pop
             @block_stack.pop
           end
 
           def block_depth
             @block_stack.length
+          end
+
+          def block_body_at_current_delimiter?
+            @block_delimiter_depths.last == delimiter_depth
           end
 
           def push_scope(value)
@@ -362,7 +369,7 @@ module Lrama
           end
 
           def newline_ignored?
-            ignored = (@context.delimiter_depth.positive? && @previous != "}" &&
+            ignored = (@context.delimiter_depth.positive? && !@context.block_body_at_current_delimiter? && @previous != "}" &&
               !(@previous == :keyword_end && @context.block_depth.positive?)) || @previous == "\n" ||
               ["+", "-", "*", "/", "%", "=", "?", ":", ",", ".", "&", "|", "^", "<<", ">>", "&&", "||", "=>", :keyword_and, :keyword_or, :keyword_not, :tAMPER, :tPIPE, :tSTAR, :tDSTAR, :tDOT2, :tDOT3, :tPOW, :tCMP, :tEQ, :tEQQ, :tNEQ, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH, :tLSHFT, :tRSHFT, :tASSOC, :tLAMBDA, :tCOLON2, :tANDDOT].include?(@previous) ||
               @previous == :tLABEL ||
