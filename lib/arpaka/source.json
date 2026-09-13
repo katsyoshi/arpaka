@@ -1,0 +1,11 @@
+{
+  "revision": "37d60dd3241d5fdb10ca43f36077f5d556ae1b8d",
+  "repository": "https://github.com/ruby/ruby",
+  "files": {
+    "parse.y": "e301da1ee65b740f0bf55345c48229ef0e52e01325d7afc3ceb5dd527b97086c",
+    "tool/id2token.rb": "bf7eef9acc93fe2b5c9207f8c5b4e44670a0ba51ee87f0508d2297a5c71be714",
+    "defs/id.def": "4c8a5c45677c000527f288da9d2f2a7cf7069e6010bbca4da4cf89db343f0ec0",
+    "COPYING": "4ebe48076b3ee165fbb9350aa8a9552f8043c8ed8a7edca2089133d33c1ea45f",
+    "BSDL": "36a9a6e7347214bbba599a412617204e65bff065dcbe5c46f5cb454c80de9eb0"
+  }
+}

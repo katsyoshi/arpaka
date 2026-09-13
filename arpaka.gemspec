@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
   spec.files = IO.popen(%w[git ls-files -z], chdir: __dir__, err: IO::NULL) do |ls|
     ls.readlines("\x0", chomp: true).reject do |f|
       (f == gemspec) ||
-        f.start_with?(*%w[bin/ Gemfile .gitignore test/ .github/ tool/ vendor/]) ||
+        f.start_with?(*%w[bin/ benchmark/ Gemfile .gitignore test/ .github/ .local/ tool/ vendor/]) ||
         %w[AGENTS.md DESIGN.md plan.md].include?(f)
     end
   end

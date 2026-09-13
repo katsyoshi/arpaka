@@ -1,9 +1,21 @@
 # Arpaka
 
-A Ruby language parser frontend and Ruby output backend for
-[Lrama](https://github.com/ruby/lrama). `Arpaka` parses Ruby tokens into an AST,
-while `Lrama::Ruby` generates standalone Ruby parsers with Ruby semantic actions.
-The Ruby frontend is experimental and partial.
+<p align="center">
+  Generate Ruby parsers with Lrama, and use their ASTs from Ruby.
+</p>
+
+Arpaka provides a Ruby output backend for
+[Lrama](https://github.com/ruby/lrama) and a tool for generating a Ruby language
+frontend. Its goal is to make Ruby syntax accessible as an AST from Ruby code.
+
+`Lrama::Ruby` turns Yacc-style grammars with Ruby semantic actions into
+standalone Ruby parsers using Lrama's LALR/IELR tables. Arpaka applies its Ruby
+Action mappings to a Ruby source tree supplied by the user and emits a single
+Ruby file containing the parser, lexer, AST and builder. Users choose the output
+location and regenerate when updating the grammar or Actions.
+
+The Ruby frontend is experimental and partial. The gem contains generation
+support, not a bundled `parse.y` or a pre-generated Ruby frontend.
 
 ## Requirements
 
@@ -111,68 +123,74 @@ the tree's shape. Parentheses affect grouping but are omitted from the AST by
 the action `$$ = $2`. Evaluation or compilation of the resulting tree belongs
 to the application; even `1 / 0` produces a tree without performing division.
 
-### Using the bundled Ruby grammar
+### Generating a Ruby frontend
+
+Provide a Ruby source tree containing `parse.y`, `tool/id2token.rb`,
+`defs/id.def`, `COPYING` and `BSDL`. Arpaka does not download Ruby sources.
+The first supported source profile is ruby/ruby revision
+`37d60dd3241d5fdb10ca43f36077f5d556ae1b8d`; other revisions are not automatically
+supported. Input checksums and expanded rule mappings are checked before
+applying Actions. Changed input files are reported and generation stops.
+Even comment-only changes currently require updating the source profile.
+
+```sh
+RUBY_BOX=1 bundle exec arpaka generate \
+  --ruby-source /path/to/ruby \
+  --class-name MyRubyParser \
+  --output lib/my_library/ruby_parser.rb
+```
+
+The output directory must already exist. `--class-name` defaults to
+`RubyParser` and must be a single Ruby constant name. Existing output files are
+preserved unless `--force` is supplied. A failed generation leaves the previous
+file intact. The output includes its source profile, generator version and
+copyright/license notices.
+
+The consumer only needs the generated file and Ruby 4.0 or later:
+
+```ruby
+require_relative "lib/my_library/ruby_parser"
+
+tree = MyRubyParser.parse("a = 1\na + 2", filename: "example.rb")
+# MyRubyParser::AST::Program containing the assignment and addition
+```
+
+`parse` takes Ruby source and returns an AST. The parser, lexer and builder are
+internal; callers do not need to supply tokens. Each call has fresh parsing and
+local-variable state. No Arpaka/Lrama gem, Ruby Box, grammar files, network access
+or filesystem writes are needed at runtime.
+
+For generation from Ruby, `Arpaka.generate` returns that same standalone source.
+To try a frontend in memory, use `Arpaka.compile`; both require `RUBY_BOX=1`:
 
 ```ruby
 require "arpaka"
 
-tree = Arpaka.parse(
-  [[:tIDENTIFIER, :a], ["=", nil], [:tINTEGER, 1]]
-)
-# Arpaka::AST::Program containing LocalWrite(:a, Literal(1))
+frontend = Arpaka.compile(ruby_source: "/path/to/ruby", class_name: "MyRubyParser")
+tree = frontend.parse("a = 1")
+
+code = Arpaka.generate(ruby_source: "/path/to/ruby", class_name: "MyRubyParser")
+File.write("ruby_parser.rb", code)
 ```
 
-Run with `RUBY_BOX=1`. The first call generates and compiles the bundled grammar
-in memory; later calls reuse the class. Each call has its own parser and local
-variable table. No build command, network access or writable working directory
-is needed. `language:` is required; currently only the symbol `:ruby` is supported.
+The former `Arpaka.parse`, `Arpaka.parse_source` and `Lrama::Ruby.parse`
+APIs have been replaced by explicitly generating or compiling a frontend.
+The generic `Lrama::Ruby.generate` and `Lrama::Ruby.compile` APIs are unchanged.
 
-Supply token pairs from your own lexer. `tINTEGER` values are Integers, `tFLOAT`
-values are Floats, and `tIDENTIFIER` values are Symbols or Strings. Operators and
-keywords may carry `nil`. Parentheses use Ruby's context-dependent token names
-(for example `tLPAREN` followed by `")"`), not a source string tokenizer.
+This is not a complete Ruby frontend. Existing support includes literals,
+assignments, calls, collections and portions of control flow and definitions.
+Some constructs parse without preserving all their semantics in the current
+AST, and nodes do not have source locations. Known unported rules raise
+`MyRubyParser::UnsupportedSyntax`, exposing `rule` and upstream `line`.
+Syntax errors raise `MyRubyParser::ParseError`, exposing `token` and `state`.
+Lexer failures raise `MyRubyParser::LexerError` with filename, line and byte
+column. These inherit from the generated `MyRubyParser::Error`.
 
-For source input, use `Arpaka.parse_source`:
-
-```ruby
-tree = Arpaka.parse_source("a = 1\na + 2", filename: "example.rb")
-```
-
-The source lexer is byte-oriented and context-sensitive. It supports the same
-frontend slice as the token API, including numbers, variables, calls, arrays,
-hashes, control flow, definitions, strings, regular expressions, percent
-literals and static heredocs. Lexer failures include filename, line and byte
-column. Ruby interpolation and syntax whose value cannot be represented by the
-current AST raises an explicit lexer error.
-
-The supported slice includes numeric and nil/boolean literals, binary `+ - * /`,
-unary `+ -`, single-expression parentheses, simple local assignments, and
-statements separated by semicolons or newlines. Every successful parse returns
-an `AST::Program`. Its frozen `statements` array contains immutable Data nodes:
-`Literal(value)`, `Binary(operator, left, right)`, `Unary(operator, operand)`,
-`LocalRead(name)`, `LocalWrite(name, value)`, and `BareCall(name)`.
-An unassigned bare identifier is a `BareCall`; assignment registers a local
-before reading its right-hand side, including in `a = a`.
-
-Explicit receiver calls without blocks produce
-`ReceiverCall(receiver, operator, name, arguments)`. They preserve chained calls,
-ordered positional arguments, the `.` / `::` / `&.` operator, and the implicit
-`call` method in `handler.(message)`. Receiverless calls use `Call(name, arguments)`.
-
-Double quoted strings and backtick strings may contain simple interpolation and
-produce `InterpolatedString(parts)`, where each part is a string or an AST node.
-
-This is not yet a complete Ruby frontend. Percent literal interpolation, blocks,
-method argument scopes, qualified constant paths, and other constructs are still incomplete; a successful
-parse does not guarantee that all source semantics appear in the AST. Nodes have
-no source locations. Token input must already reflect the lexical decisions
-Ruby's parser and lexer normally make together; use `parse_source` for source text.
-
-`Arpaka::ParseError` exposes `token` and `state`. `Arpaka::UnsupportedSyntax`
-exposes the original `rule` and upstream `line`. Both inherit from
-`Lrama::Ruby::Error`. Unported rules raise
-instead of returning a partial AST. Lexer exceptions and invalid token values
-propagate to the caller.
+The generated frontend has also been exercised against real-world source. On
+Ruby 4.0.6, it parsed all 3,436 Ruby files in a local Rails checkout. It parsed
+12 of 23 Ruby files in the `trick18` checkout; the remaining files use Ruby
+syntax that is not yet represented by the current Action mappings. These are
+smoke-test results, not a claim of complete Ruby language coverage.
 
 ## Current scope
 
@@ -186,7 +204,7 @@ Locations, typed values/`%union`, `%code`, prologues, epilogues, parse/lex param
 initial actions, hooks, printers, destructors and error recovery are not implemented.
 The generator rejects these features rather than dropping their behavior.
 Use plain Ruby values in actions; C actions are not translated into Ruby.
-Prism tokenizes Ruby actions and checks generated syntax; Bison is not required.
+A Ruby action scanner handles semantic action tokens; Bison is not required.
 
 ### Inspecting a C grammar
 
@@ -219,26 +237,57 @@ ruby /path/to/ruby/tool/id2token.rb /path/to/ruby/parse.y > parse.preprocessed.y
 ## Development
 
 ```sh
+RUBY_BOX=1 bundle exec rake
 RUBY_BOX=1 bundle exec rake test
-RUBY_BOX=1 bin/console
+RUBY_BOX=1 bundle exec rake ruby:check
+RUBY_BOX=1 OUTPUT=/path/to/frontend.rb bundle exec rake ruby:generate
+RUBY_BOX=1 bundle exec rake benchmark:parse
 ```
 
-Tests cover generated parsers, Ruby actions, parse errors and Box isolation,
-including execution of a generated file without gems. CI uses Ruby 4.0.6.
-`Gemfile.lock` stays local and is not tracked.
+Development commands default to the pinned Ruby source fixture in `vendor/ruby`.
+In an uninstalled checkout, invoke the CLI with
+`RUBY_BOX=1 bundle exec ruby -Ilib exe/arpaka generate ...`.
+Set `RUBY_SOURCE` to select another source directory. Normal CLI/API usage always
+requires an explicit Ruby source tree. `ruby:check` verifies the source profile,
+Action inventory, grammar transformation and generated frontend without editing
+artifacts. `ruby:generate` writes the standalone frontend to `OUTPUT`.
 
-The default task also checks the bundled Ruby grammar against the pinned
-upstream source in `vendor/ruby`. `tool/ruby/actions.rb` defines the ported
-actions; `tool/ruby/upstream_rules.json` records the original expanded rules.
-Run `bundle exec rake ruby:generate` after changing action definitions, and
-`bundle exec rake ruby:check` to check for stale artifacts without writing files.
-The check compares every production, token ID and precedence, including empty
-productions representing midrule actions. Update the pinned revision and rule
-inventory together when deliberately upgrading upstream.
+`lib/arpaka/actions.rb` holds the Ruby Action mappings;
+`lib/arpaka/upstream_rules.json` records the expected expanded upstream rules.
+Update these and the source checksums together when adding support for a changed
+Ruby grammar. Runtime templates live under `lib/arpaka/runtime/`.
 
-Runtime grammar and rule metadata are packaged; upstream source and developer
-tools are not. Ruby-derived artifacts retain the upstream license notices in
-`lib/lrama/ruby/languages/ruby/COPYING` and `BSDL`.
+Tests exercise the generated frontend and the generic backend. Package checks
+install the gem, generate from external Ruby sources, and execute the resulting
+file with gems and Ruby Box disabled. `Gemfile.lock` stays local and untracked.
+Developer fixtures and tools are excluded from the gem.
+
+### Benchmark
+
+`benchmark:parse` measures frontend generation separately from loading the
+generated file and parsing in a fresh process with Ruby Box disabled.
+Set `ITERATIONS` to change the measured parsing iterations (default: 100).
+Each warm measurement follows ten warmup calls. File reading/class definition
+is measured separately; process startup and `require "prism"` are not timed.
+
+The RubyVM and Prism measurements use the same source but return different AST
+representations. They are reference measurements, not equivalent-work guarantees.
+
+Example results on Ruby 4.0.6, x86_64 Linux, YJIT disabled, Prism 1.9.0
+(1,697-byte input, 100 measured iterations, ten warmup calls):
+
+```text
+generate frontend                   2.165377s total,  2165.377ms/call
+load generated file                 0.019743s total,    19.743ms/call
+parse (first)                       0.006092s total,     6.092ms/call
+parse (warm)                        0.530678s total,     5.307ms/call
+RubyVM::AbstractSyntaxTree.parse    0.008975s total,     0.090ms/call
+Prism.parse                         0.014352s total,     0.144ms/call
+```
+
+Generation is a one-time build step per regeneration, not a cost of parsing an
+input file. The generated frontend is loaded and measured with Ruby Box disabled.
+Results vary with input and environment.
 
 ## License
 

@@ -10,22 +10,30 @@ Rake::TestTask.new(:test) do |t|
 end
 
 namespace :ruby do
-  desc "Regenerate the bundled Ruby grammar and action metadata"
+  desc "Generate a standalone Ruby frontend (requires OUTPUT; optional RUBY_SOURCE)"
   task :generate do
-    ruby "tool/ruby/grammar.rb"
+    abort "Set OUTPUT to the destination Ruby file" unless ENV["OUTPUT"]
+    ruby "tool/ruby/grammar.rb", "--output", ENV.fetch("OUTPUT")
   end
 
-  desc "Verify the bundled Ruby grammar against the pinned upstream source"
+  desc "Verify the Ruby source profile, Action mappings and generated frontend"
   task :check do
     ruby "tool/ruby/grammar.rb", "--check"
   end
 end
 
 namespace :package do
-  desc "Build and install a local gem and verify its bundled language runtime"
+  desc "Verify installed frontend generation and standalone execution"
   task :check do
     ruby "tool/check_package.rb"
   end
 end
 
 task default: ["ruby:check", :test, "package:check"]
+
+namespace :benchmark do
+  desc "Benchmark Ruby source and token parsing"
+  task :parse do
+    ruby "benchmark/parse.rb"
+  end
+end
