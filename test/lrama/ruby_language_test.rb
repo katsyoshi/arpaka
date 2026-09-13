@@ -699,6 +699,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("def values() [1] end\n") }
   end
 
+  test "source lexer uses regular brace blocks after ternary branches" do
+    tokens = Arpaka.const_get(:Lexer, false).new("touch ? callback { 1 } : fallback\n").each.to_a
+    assert_equal("{", tokens.map(&:first)[3])
+    assert_nothing_raised { Arpaka.parse_source("touch ? callback { 1 } : fallback\n") }
+  end
+
   test "source lexer preserves newlines inside command blocks" do
     assert_nothing_raised do
       Arpaka.parse_source("app = lambda { |env|\n  req = Request.new(env)\n  res = response(req)\n}\n")
