@@ -482,6 +482,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(1, block_states.find { |entry| entry.fetch(:token) == :keyword_do_block }.fetch(:block_depth))
     assert_equal(0, block_states.find { |entry| entry.fetch(:token) == :keyword_end }.fetch(:block_depth))
 
+    brace_lexer = Arpaka.const_get(:Lexer, false).new("f { 1 }")
+    brace_lexer.each.to_a
+    brace_states = brace_lexer.context.state_history
+    assert_equal(1, brace_states.find { |entry| entry.fetch(:token) == :tLBRACE_ARG }.fetch(:block_depth))
+    assert_equal(0, brace_states.find { |entry| entry.fetch(:token) == "}" }.fetch(:block_depth))
+
     other = Arpaka.const_get(:Lexer, false).new("value")
     assert_equal(:expr_beg, other.context.lex_state)
     assert_true(other.context.command_start)

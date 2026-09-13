@@ -359,7 +359,7 @@ module Lrama
               @context.push_block(:do_block)
             when :keyword_do_LAMBDA, :tLAMBEG
               @context.push_block(:lambda)
-            when "{"
+            when "{", :tLBRACE_ARG
               @context.push_block(:brace_block)
             when "}"
               @context.pop_block if @context.block_stack.last == :brace_block
