@@ -401,6 +401,26 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { Arpaka.parse_source("calculate(:/, value)\ncalculate(:%, value)") }
   end
 
+  test "operator symbols end an alias expression" do
+    assert_nothing_raised { Arpaka.parse_source("alias_method :regular_writer, :[]=\nunless condition\nend") }
+  end
+
+  test "ampersand symbols end an expression" do
+    assert_nothing_raised { Arpaka.parse_source("name == :&\nname\n") }
+  end
+
+  test "source lexer recognizes lambda as a lambda expression" do
+    assert_nothing_raised { Arpaka.parse_source("value = lambda do\n  work\nend\n") }
+  end
+
+  test "method bodies may start with an array literal after arguments" do
+    assert_nothing_raised { Arpaka.parse_source("def multi(a, b, c) [a, b, c] end") }
+  end
+
+  test "singleton method definitions may parenthesize their receiver" do
+    assert_nothing_raised { Arpaka.parse_source("def (object.foo).bar(value)\n  value\nend") }
+  end
+
   test "if, unless, elsif and else build conditional AST nodes" do
     expected = AST::Program.new([AST::If.new(literal(true), [literal(1)], [literal(2)])])
     assert_equal(expected, parse([:keyword_if, nil], [:keyword_true, nil], [:keyword_then, nil], [:tINTEGER, 1], [:keyword_else, nil], [:tINTEGER, 2], [:keyword_end, nil]))

@@ -10,7 +10,8 @@ module Lrama
         class LexicalContext
           attr_accessor :begin_expression, :condition_do, :condition_line,
             :ternary_depth, :lambda_pending, :alias_context, :argument_label,
-            :lex_state, :command_start, :label_pending, :singleton_class_depth, :control_depth
+            :lex_state, :command_start, :label_pending, :singleton_class_depth, :control_depth,
+            :method_header, :method_body_start
           attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack,
             :token_history, :state_history, :block_stack, :scope_stack, :parser_events,
             :parser_delimiter_stack, :parser_cmdarg_stack, :parser_block_stack,
@@ -27,6 +28,8 @@ module Lrama
             @label_pending = false
             @singleton_class_depth = 0
             @control_depth = 0
+            @method_header = false
+            @method_body_start = false
             @lex_state = :expr_beg
             @command_start = true
             @delimiter_stack = []
@@ -382,7 +385,7 @@ module Lrama
               (@previous == "{" && next_non_space_byte == 124) ||
               next_chain_byte == 46
             ignored = false if @previous_previous == :tSYMBEG &&
-              [:tLSHFT, :tRSHFT, :tSTAR, :tDSTAR, :tPOW, :tEQ, :tEQQ, :tNEQ,
+              [:tLSHFT, :tRSHFT, :tSTAR, :tDSTAR, :tPOW, :tEQ, :tEQQ, :tNEQ, "&",
                 :tCMP, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH,
                 :tASSOC, :tOP_ASGN].include?(@previous)
             @context.condition_line = false if ignored && @context.condition_line
@@ -424,6 +427,8 @@ module Lrama
               }.fetch(token)
               @context.pop_delimiter(opener)
               @context.pop_cmdarg
+              @context.method_body_start = true if token == ")" && @context.method_header
+              @context.method_header = false if token == ")"
             end
           end
 
@@ -441,6 +446,7 @@ module Lrama
             return false if token == ")" || token == "]" || token == "}"
             return false if token == :keyword_end
             return false if token == :tINTEGER || token == :tFLOAT || token == :tRATIONAL || token == :tIMAGINARY
+            return false if @previous_previous == :tSYMBEG && [:tASET, "&"].include?(token)
             return false if token == :tIDENTIFIER || token == :tCONSTANT || token == :tFID || token == :tSTRING_END || token == :tREGEXP_END
             return false if token == :keyword_true || token == :keyword_false || token == :keyword_nil || token == :keyword_self
             return false if [:keyword__LINE__, :keyword__FILE__, :keyword__ENCODING__].include?(token)
@@ -461,6 +467,7 @@ module Lrama
               :tCONSTANT, :tFID, :tIVAR, :tGVAR, :tCVAR, :tNTH_REF,
               :keyword_true, :keyword_false, :keyword_nil, :keyword_self,
               :keyword__LINE__, :keyword__FILE__, :keyword__ENCODING__].include?(token)
+            return :expr_end if @previous_previous == :tSYMBEG && [:tASET, "&"].include?(token)
             return :expr_label if token == :tLABEL
             :expr_beg
           end
@@ -475,6 +482,7 @@ module Lrama
               :keyword_while, :keyword_until, :keyword_for
               @context.control_depth += 1
             when :keyword_def
+              @context.method_header = true
               @context.push_scope(:method)
             when :keyword_do, :keyword_do_block
               @context.push_block(:do_block)
@@ -504,6 +512,12 @@ module Lrama
                 @context.pop_scope if @context.scope_stack.last == :lambda
               end
             end
+            if @context.method_header && token != :keyword_def && token != "(" &&
+                !@context.delimiter_stack.include?("(") &&
+                !(@previous_previous == :keyword_def && [:tIDENTIFIER, :tFID].include?(token))
+              @context.method_header = false
+            end
+            @context.method_body_start = false unless [")", "\n"].include?(token)
           end
 
           def identifier_token(start)
@@ -581,6 +595,8 @@ module Lrama
             elsif @context.lambda_pending
               @context.lambda_pending = false
               :keyword_do_LAMBDA
+            elsif @previous == :tIDENTIFIER && @previous_previous == :tLABEL && @previous_value == :lambda
+              :keyword_do
             elsif @previous == ")" && @context.token_history.each_cons(2).any? { |left, right| left == :tUMINUS && right == :tLPAREN }
               :keyword_do_block
             elsif [")", :keyword_super, :keyword_yield].include?(@previous)
@@ -1191,7 +1207,7 @@ module Lrama
                 if command_arg
                   return [:tLPAREN_ARG, nil]
                 end
-                method_definition = @previous_previous == :keyword_def
+                method_definition = @previous == :keyword_def || @previous_previous == :keyword_def
                 return [@context.begin_expression && !method_definition &&
                   ![".", :tCOLON2, :tANDDOT, :keyword_super, :keyword_yield, :tLAMBDA, :tAREF].include?(@previous) ? :tLPAREN : "(", nil]
               end
@@ -1204,11 +1220,16 @@ module Lrama
                 [:tIDENTIFIER, :tFID, :tCONSTANT].include?(@previous)
               array_argument ||= value == "[" && @previous == ")" &&
                 @previous_previous == "(" && @context.scope_stack.last == :method
+              array_argument ||= value == "[" && @context.method_body_start
               return [value == "[" && (@context.begin_expression || array_argument) ? :tLBRACK : (value == "[" ? "[" : (brace_block ? "{" : :tLBRACE)), nil]
             elsif value == ")" || value == "]" || value == "}"
               opener = { ")" => "(", "]" => "[", "}" => "{" }.fetch(value)
               @context.pop_delimiter(opener)
               @context.pop_cmdarg
+              if value == ")" && @context.method_header
+                @context.method_body_start = true
+                @context.method_header = false
+              end
             elsif value == "-" && @context.begin_expression
               return [:tUMINUS, nil]
             elsif value == "+" && @context.begin_expression
