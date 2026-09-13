@@ -12,7 +12,7 @@ module Lrama
             :ternary_depth, :lambda_pending, :alias_context, :argument_label,
             :lex_state, :command_start
           attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack,
-            :token_history, :state_history
+            :token_history, :state_history, :block_stack
 
           def initialize
             @begin_expression = true
@@ -29,6 +29,7 @@ module Lrama
             @condition_stack = []
             @token_history = []
             @state_history = []
+            @block_stack = []
           end
 
           def delimiter_depth
@@ -67,6 +68,18 @@ module Lrama
             @condition_stack.any?
           end
 
+          def push_block(value)
+            @block_stack << value
+          end
+
+          def pop_block
+            @block_stack.pop
+          end
+
+          def block_depth
+            @block_stack.length
+          end
+
           def remember_token(token)
             @token_history << token
             @token_history.shift while @token_history.length > 4
@@ -80,7 +93,8 @@ module Lrama
               command_start: @command_start,
               delimiter_depth: delimiter_depth,
               cmdarg_depth: @cmdarg_stack.length,
-              condition_depth: @condition_stack.length
+              condition_depth: @condition_stack.length,
+              block_depth: @block_stack.length
             }.freeze
           end
         end
@@ -192,6 +206,7 @@ module Lrama
               @context.begin_expression = expression_begin_after(value[0])
               @context.lex_state = lexical_state_after(value[0])
               @context.command_start = command_start_after(value[0])
+              update_block_context(value[0])
               @context.remember_state(value[0])
               return value
             end
@@ -244,6 +259,7 @@ module Lrama
             @context.begin_expression = expression_begin_after(value && value[0])
             @context.lex_state = lexical_state_after(value && value[0])
             @context.command_start = command_start_after(value && value[0])
+            update_block_context(value && value[0])
             @context.remember_state(value && value[0])
             value
           end
@@ -335,6 +351,21 @@ module Lrama
 
           def command_start_after(token)
             [nil, 0, "\n", ";"].include?(token)
+          end
+
+          def update_block_context(token)
+            case token
+            when :keyword_do_block
+              @context.push_block(:do_block)
+            when :keyword_do_LAMBDA, :tLAMBEG
+              @context.push_block(:lambda)
+            when "{"
+              @context.push_block(:brace_block)
+            when "}"
+              @context.pop_block if @context.block_stack.last == :brace_block
+            when :keyword_end
+              @context.pop_block if [:do_block, :lambda].include?(@context.block_stack.last)
+            end
           end
 
           def identifier_token(start)

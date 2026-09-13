@@ -476,6 +476,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(1, command_states.find { |entry| entry.fetch(:token) == :tLPAREN_ARG }.fetch(:cmdarg_depth))
     assert_equal(0, command_states.find { |entry| entry.fetch(:token) == ")" }.fetch(:cmdarg_depth))
 
+    block_lexer = Arpaka.const_get(:Lexer, false).new("f do; 1; end")
+    block_lexer.each.to_a
+    block_states = block_lexer.context.state_history
+    assert_equal(1, block_states.find { |entry| entry.fetch(:token) == :keyword_do_block }.fetch(:block_depth))
+    assert_equal(0, block_states.find { |entry| entry.fetch(:token) == :keyword_end }.fetch(:block_depth))
+
     other = Arpaka.const_get(:Lexer, false).new("value")
     assert_equal(:expr_beg, other.context.lex_state)
     assert_true(other.context.command_start)
