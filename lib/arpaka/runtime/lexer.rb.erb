@@ -1,0 +1,1371 @@
+# Lexer for Ruby source input.  This deliberately does not use Prism:
+# the parser needs the same small amount of lexical context that CRuby
+# keeps in its parser (EXPR_BEG/EXPR_END and delimiter nesting).
+class LexicalContext
+  attr_accessor :begin_expression, :condition_do, :condition_line,
+    :ternary_depth, :lambda_pending, :alias_context, :argument_label,
+    :lex_state, :command_start, :label_pending, :singleton_class_depth, :control_depth,
+    :method_header, :method_body_start
+  attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack,
+    :token_history, :state_history, :block_stack, :scope_stack, :parser_events,
+    :parser_delimiter_stack, :parser_cmdarg_stack, :parser_block_stack,
+    :parser_condition_stack, :parser_scope_stack
+
+  def initialize
+    @begin_expression = true
+    @condition_do = false
+    @condition_line = false
+    @ternary_depth = 0
+    @lambda_pending = false
+    @alias_context = false
+    @argument_label = nil
+    @label_pending = false
+    @singleton_class_depth = 0
+    @control_depth = 0
+    @method_header = false
+    @method_body_start = false
+    @lex_state = :expr_beg
+    @command_start = true
+    @delimiter_stack = []
+    @cmdarg_stack = []
+    @condition_stack = []
+    @token_history = []
+    @state_history = []
+    @block_stack = []
+    @block_delimiter_depths = []
+    @scope_stack = []
+    @parser_events = []
+    @parser_delimiter_stack = []
+    @parser_cmdarg_stack = []
+    @parser_block_stack = []
+    @parser_condition_stack = []
+    @parser_scope_stack = []
+  end
+
+  def delimiter_depth
+    @delimiter_stack.length
+  end
+
+  def push_delimiter(value)
+    @delimiter_stack << value
+  end
+
+  def pop_delimiter(value)
+    openers = case value
+    when ")", "(" then ["(", :tLPAREN, :tLPAREN_ARG]
+    when "]" then ["[", :tLBRACK]
+    when "}" then ["{"]
+    else [value]
+    end
+    @delimiter_stack.pop if openers.include?(@delimiter_stack.last)
+  end
+
+  def push_cmdarg(value)
+    @cmdarg_stack << value
+  end
+
+  def pop_cmdarg
+    @cmdarg_stack.pop
+  end
+
+  def cmdarg?
+    @cmdarg_stack.last == true
+  end
+
+  def push_condition(value = true)
+    @condition_stack << value
+  end
+
+  def pop_condition
+    @condition_stack.pop
+  end
+
+  def condition?
+    @condition_stack.any?
+  end
+
+  def push_block(value, delimiter_depth: self.delimiter_depth)
+    @block_stack << value
+    @block_delimiter_depths << delimiter_depth
+  end
+
+  def pop_block
+    @block_delimiter_depths.pop
+    @block_stack.pop
+  end
+
+  def block_depth
+    @block_stack.length
+  end
+
+  def block_body_at_current_delimiter?
+    @block_delimiter_depths.last == delimiter_depth
+  end
+
+  def push_scope(value)
+    @scope_stack << value
+  end
+
+  def pop_scope
+    @scope_stack.pop
+  end
+
+  def scope_depth
+    @scope_stack.length
+  end
+
+  def remember_token(token)
+    @token_history << token
+    @token_history.shift while @token_history.length > 8
+  end
+
+  def remember_state(token)
+    @state_history << {
+      token: token,
+      lex_state: @lex_state,
+      begin_expression: @begin_expression,
+      command_start: @command_start,
+      delimiter_depth: delimiter_depth,
+      cmdarg_depth: @cmdarg_stack.length,
+      condition_depth: @condition_stack.length,
+      block_depth: @block_stack.length,
+      scope_depth: @scope_stack.length
+    }.freeze
+  end
+
+  def parser_shift(token, value, state, action)
+    @parser_events << [:shift, token, state, action].freeze
+    if ["(", "[", :tLPAREN_ARG].include?(token)
+      @parser_delimiter_stack << token
+      @parser_cmdarg_stack << (token == :tLPAREN_ARG)
+    elsif [")", "]", "}"].include?(token)
+      opener = {")" => "(", "]" => "[", "}" => "{"
+      }.fetch(token)
+      parser_openers = {
+        "(" => ["(", :tLPAREN, :tLPAREN_ARG],
+        "[" => ["[", :tLBRACK],
+        "{" => ["{"]
+      }
+      @parser_delimiter_stack.pop if parser_openers.fetch(opener).include?(@parser_delimiter_stack.last)
+      @parser_cmdarg_stack.pop
+    end
+    if [:keyword_do, :keyword_do_block, :keyword_do_LAMBDA, :tLAMBEG].include?(token) ||
+        token == "{" || token == :tLBRACE_ARG
+      @parser_block_stack << token
+    elsif token == "}" && @parser_block_stack.last
+      @parser_block_stack.pop
+    elsif token == :keyword_end && @parser_block_stack.last
+      @parser_block_stack.pop
+    end
+    if [:keyword_while, :keyword_until, :keyword_for].include?(token)
+      @parser_condition_stack << token
+    elsif token == :keyword_do_cond && @parser_condition_stack.last
+      @parser_condition_stack.pop
+    elsif token == :keyword_end && @parser_condition_stack.last
+      @parser_condition_stack.pop
+    end
+    if token == :keyword_def
+      @parser_scope_stack << :method
+    elsif [:keyword_class, :keyword_module].include?(token)
+      @parser_scope_stack << token
+    elsif token == :tLAMBDA
+      @parser_scope_stack << :lambda
+    elsif token == "}" && @parser_scope_stack.last == :lambda
+      @parser_scope_stack.pop
+    elsif token == :keyword_end && @parser_scope_stack.last
+      @parser_scope_stack.pop
+    end
+  end
+
+  def parser_reduce(rule, state)
+    @parser_events << [:reduce, rule, state].freeze
+  end
+end
+
+class Lexer
+  Error = LexerError
+
+  attr_reader :context
+
+  KEYWORDS = {
+    "class" => :keyword_class, "module" => :keyword_module,
+    "def" => :keyword_def, "undef" => :keyword_undef, "begin" => :keyword_begin,
+    "rescue" => :keyword_rescue, "ensure" => :keyword_ensure,
+    "end" => :keyword_end, "if" => :keyword_if,
+    "unless" => :keyword_unless, "then" => :keyword_then,
+    "elsif" => :keyword_elsif, "else" => :keyword_else,
+    "case" => :keyword_case, "when" => :keyword_when,
+    "while" => :keyword_while, "until" => :keyword_until,
+    "for" => :keyword_for, "break" => :keyword_break,
+    "next" => :keyword_next, "redo" => :keyword_redo,
+    "retry" => :keyword_retry, "return" => :keyword_return,
+    "yield" => :keyword_yield, "super" => :keyword_super,
+    "self" => :keyword_self, "nil" => :keyword_nil,
+    "true" => :keyword_true, "false" => :keyword_false,
+    "and" => :keyword_and, "or" => :keyword_or,
+    "not" => :keyword_not, "alias" => :keyword_alias,
+    "defined?" => :keyword_defined, "in" => :keyword_in,
+    "BEGIN" => :keyword_BEGIN, "END" => :keyword_END,
+    "__LINE__" => :keyword__LINE__, "__FILE__" => :keyword__FILE__,
+    "__ENCODING__" => :keyword__ENCODING__
+  }.freeze
+
+  OPERATORS = %w[[]= [] ... .. <=> === == != =~ !~ >= <= && || << >> ** => :: &. -> += -= *= /= %= **= <<= >>= &&= ||= |= &= ^=].freeze
+  OP_TOKENS = {
+    "**" => :tPOW, "<=>" => :tCMP, "==" => :tEQ, "===" => :tEQQ,
+    "!=" => :tNEQ, ">=" => :tGEQ, "<=" => :tLEQ, "&&" => :tANDOP,
+    "||" => :tOROP, "=~" => :tMATCH, "!~" => :tNMATCH,
+    ".." => :tDOT2, "..." => :tDOT3, "<<" => :tLSHFT,
+    ">>" => :tRSHFT, "&." => :tANDDOT, "::" => :tCOLON2,
+    "=>" => :tASSOC, "->" => :tLAMBDA, "[]" => :tAREF, "[]=" => :tASET
+  }.freeze
+
+  def initialize(source, filename: "(ruby)")
+    unless source.is_a?(String)
+      raise ArgumentError, "source must be a String"
+    end
+    unless [Encoding::UTF_8, Encoding::US_ASCII].include?(source.encoding) && source.valid_encoding?
+      raise Error, "#{filename}:1:0: invalid UTF-8 source"
+    end
+    @source = source.b
+    @filename = filename
+    @index = 0
+    @line = 1
+    @column = 0
+    @previous_previous = nil
+    @previous = nil
+    @previous_value = nil
+    @context = LexicalContext.new
+    @pending = []
+    @heredoc_queue = []
+    @deferred_suffix = nil
+    @heredoc_newline_pending = false
+    @class_superclass = false
+    @local_variables = {}
+  end
+
+  def each
+    return enum_for(__method__) unless block_given?
+    until eof? && @pending.empty? && @heredoc_queue.empty? && @deferred_suffix.nil?
+      token = next_token
+      yield token if token
+    end
+    yield [0, nil]
+  end
+
+  private
+
+  def eof?
+    @index >= @source.bytesize
+  end
+
+  def byte(offset = 0)
+    @source.getbyte(@index + offset)
+  end
+
+  def advance(count = 1)
+    count.times do
+      value = byte
+      @index += 1
+      if value == 10
+        @line += 1
+        @column = 0
+      else
+        @column += 1
+      end
+    end
+  end
+
+  def fail!(message, index = @index, line = @line, column = @column)
+    raise Error, "#{@filename}:#{line}:#{column}: #{message}"
+  end
+
+  def next_token
+    if @pending.empty? && @heredoc_queue.any?
+      load_queued_heredoc
+    elsif @pending.empty? && @deferred_suffix
+      suffix = @deferred_suffix
+      @deferred_suffix = nil
+      @pending.concat(heredoc_suffix_tokens(suffix))
+      @pending.pop if @pending.last == [0, nil]
+      @pending << ["\n", nil]
+      @heredoc_newline_pending = false
+    elsif @pending.empty? && @heredoc_newline_pending
+      @pending << ["\n", nil]
+      @heredoc_newline_pending = false
+    end
+    unless @pending.empty?
+      value = @pending.shift
+      return next_token if value[0] == "\n" && newline_ignored?
+      @previous_previous = @previous
+      @previous = value[0]
+      @previous_value = value[1]
+      update_pending_delimiter(value[0])
+      update_argument_label(value[0], value[1])
+      @context.alias_context = false if value[0] == ";"
+      @context.remember_token(value[0])
+      @context.begin_expression = expression_begin_after(value[0])
+      @context.lex_state = lexical_state_after(value[0])
+      @context.command_start = command_start_after(value[0])
+      update_block_context(value[0])
+      @context.remember_state(value[0])
+      return value
+    end
+    skip_space_and_comments
+    return nil if eof?
+
+    start = @index
+    value = case byte
+    when 10
+      advance
+      return next_token if @previous == "\n"
+      return next_token if next_chain_byte == 46
+      if @context.alias_context && [:tEQ, :tUMINUS, :tUPLUS].include?(@previous)
+        @context.alias_context = false
+        ["\n", nil]
+      elsif @class_superclass && next_word_is_terminator?
+        @class_superclass = false
+        return [";", nil]
+      else
+        @class_superclass = false
+        return next_token if newline_ignored? || @previous == ";"
+        @context.pop_condition if @context.condition? && @context.condition_do
+        @context.condition_do = false
+        ["\n", nil]
+      end
+    when 39, 34, 96
+      if byte == 96 && @previous == :tSYMBEG
+        operator_or_punctuation(start)
+      else
+        string_token(byte, start)
+      end
+    when 47
+      [:keyword_def, :keyword_alias, :tSYMBEG].include?(@previous) ? operator_or_punctuation(start) : regexp_or_operator(start)
+    when 37
+      [:keyword_def, :keyword_alias, :tSYMBEG].include?(@previous) ? operator_or_punctuation(start) : percent_token(start)
+    when 60
+      heredoc_or_operator(start)
+    when 48..57
+      number_token(start)
+    when 36, 64
+      variable_token(start)
+    when 63
+      character_or_question(start)
+    when 58
+      symbol_or_colon(start)
+    when 65..90, 95, 97..122, 128..255
+      identifier_token(start)
+    else
+      operator_or_punctuation(start)
+    end
+    @previous_previous = @previous
+    @previous = value && value[0]
+    @previous_value = value && value[1]
+    update_argument_label(value && value[0], value && value[1])
+    @context.alias_context = false if value && value[0] == ";"
+    @context.remember_token(value && value[0])
+    @context.begin_expression = expression_begin_after(value && value[0])
+    @context.lex_state = lexical_state_after(value && value[0])
+    @context.command_start = command_start_after(value && value[0])
+    update_block_context(value && value[0])
+    @context.remember_state(value && value[0])
+    value
+  end
+
+  def skip_space_and_comments
+    loop do
+      while [9, 11, 12, 13, 32].include?(byte)
+        advance
+      end
+      if byte == 92 && byte(1) == 10
+        advance(2)
+        next
+      end
+      break unless byte == 35
+      advance
+      advance while !eof? && byte != 10
+    end
+  end
+
+  def newline_ignored?
+    ignored = (@context.delimiter_depth.positive? &&
+      ["(", "[", "{", :tLPAREN, :tLPAREN_ARG, :tLBRACK, :tLBRACE, :tLBRACE_ARG].include?(@previous)) ||
+      (["[", :tLBRACK].include?(@context.delimiter_stack.last) && next_non_space_byte == 93) ||
+      @previous == "\n" ||
+      ["+", "-", "*", "/", "%", "=", "?", ":", ",", ".", "&", "|", "^", "!", "<<", ">>", "&&", "||", "=>", "<", ">", :keyword_and, :keyword_or, :keyword_not, :tAMPER, :tPIPE, :tSTAR, :tDSTAR, :tUMINUS, :tUPLUS, :tDOT2, :tDOT3, :tPOW, :tCMP, :tEQ, :tEQQ, :tNEQ, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH, :tLSHFT, :tRSHFT, :tASSOC, :tLAMBDA, :tCOLON2, :tCOLON3, :tANDDOT].include?(@previous) ||
+      @previous == :tLABEL ||
+      [:modifier_if, :modifier_unless, :modifier_while, :modifier_until].include?(@previous) ||
+      [:tANDOP, :tOROP, :tMATCH, :tNMATCH, :tASSOC, :tOP_ASGN].include?(@previous) ||
+      (@previous == "{" && next_non_space_byte == 124) ||
+      (@context.ternary_depth.positive? && next_non_space_byte == 58) ||
+      @previous == :keyword_def ||
+      next_chain_byte == 46
+    ignored = false if @previous_previous == :tSYMBEG &&
+      [:tLSHFT, :tRSHFT, :tSTAR, :tDSTAR, :tPOW, :tEQ, :tEQQ, :tNEQ, "&",
+        :tCMP, :tGEQ, :tLEQ, :tANDOP, :tOROP, :tMATCH, :tNMATCH,
+        :tASSOC, :tOP_ASGN, :tUMINUS, :tUPLUS, "<", ">"].include?(@previous)
+    ignored = false if @previous_previous == :keyword_def &&
+      [:tUMINUS, :tUPLUS].include?(@previous)
+    @context.condition_line = false if ignored && @context.condition_line
+    ignored
+  end
+
+  def next_word_is_terminator?
+    position = @index
+    position += 1 while [9, 11, 12, 13, 32].include?(@source.getbyte(position))
+    %w[else elsif end when].any? do |word|
+      @source.byteslice(position, word.bytesize) == word &&
+        !identifier_byte?(@source.getbyte(position + word.bytesize))
+    end
+  end
+
+  def next_non_space_byte
+    position = @index
+    position += 1 while [9, 11, 12, 13, 32].include?(@source.getbyte(position))
+    @source.getbyte(position)
+  end
+
+  def next_chain_byte
+    position = @index
+    loop do
+      position += 1 while [9, 11, 12, 13, 32, 10].include?(@source.getbyte(position))
+      break unless @source.getbyte(position) == 35
+      position += 1
+      position += 1 while @source.getbyte(position) && @source.getbyte(position) != 10
+    end
+    @source.getbyte(position)
+  end
+
+  def update_pending_delimiter(token)
+    if ["(", "[", :tLPAREN_ARG].include?(token)
+      @context.push_delimiter(token)
+      @context.push_cmdarg(token == :tLPAREN_ARG)
+    elsif [")", "]", "}"].include?(token)
+      opener = {")" => "(", "]" => "[", "}" => "{"
+      }.fetch(token)
+      @context.pop_delimiter(opener)
+      @context.pop_cmdarg
+      @context.method_body_start = true if token == ")" && @context.method_header
+      @context.method_header = false if token == ")"
+    end
+  end
+
+  def update_argument_label(token, value)
+    if token == :tLABEL
+      @context.argument_label = value
+      @context.label_pending = true
+    elsif ["\n", ";"].include?(token)
+      @context.argument_label = nil
+    end
+  end
+
+  def expression_begin_after(token)
+    return true if token.nil? || token == "\n"
+    return false if receiver_operator?(token)
+    return false if token == ")" || token == "]" || token == "}"
+    return false if token == :keyword_end
+    return false if token == :tINTEGER || token == :tFLOAT || token == :tRATIONAL || token == :tIMAGINARY || token == :tCHAR
+    return false if @previous_previous == :tSYMBEG && [:tASET, "&"].include?(token)
+    return false if token == :tIDENTIFIER || token == :tCONSTANT || token == :tFID || token == :tSTRING_END || token == :tREGEXP_END
+    return false if token == :keyword_true || token == :keyword_false || token == :keyword_nil || token == :keyword_self
+    return false if [:keyword__LINE__, :keyword__FILE__, :keyword__ENCODING__].include?(token)
+    return false if token == :tIVAR || token == :tGVAR || token == :tCVAR || token == :tNTH_REF
+    return false if token == :keyword_redo
+    true
+  end
+
+  def lexical_state_after(token)
+    return :expr_beg if token.nil? || token == "\n"
+    return :expr_arg if receiver_operator?(token)
+    return :expr_fname if @previous_previous == :keyword_def || @context.alias_context
+    return :expr_end if token == 0
+    if @context.label_pending && token != :tLABEL
+      @context.label_pending = false
+      return :expr_labeled
+    end
+    return :expr_end if [")", "]", "}", :keyword_end, :tSTRING_END, :tREGEXP_END,
+      :tINTEGER, :tFLOAT, :tRATIONAL, :tIMAGINARY, :tCHAR, :tIDENTIFIER,
+      :tCONSTANT, :tFID, :tIVAR, :tGVAR, :tCVAR, :tNTH_REF,
+      :keyword_true, :keyword_false, :keyword_nil, :keyword_self,
+      :keyword__LINE__, :keyword__FILE__, :keyword__ENCODING__].include?(token)
+    return :expr_end if @previous_previous == :tSYMBEG && [:tASET, "&"].include?(token)
+    return :expr_label if token == :tLABEL
+    :expr_beg
+  end
+
+  def command_start_after(token)
+    [nil, 0, "\n", ";"].include?(token)
+  end
+
+  def update_block_context(token)
+    case token
+    when :keyword_if, :keyword_unless, :keyword_case, :keyword_begin,
+      :keyword_while, :keyword_until, :keyword_for
+      @context.control_depth += 1
+    when :keyword_def
+      @context.method_header = true
+      @context.push_scope(:method)
+    when :keyword_do, :keyword_do_block
+      @context.push_block(:do_block)
+    when :keyword_do_LAMBDA
+      @context.push_block(:lambda)
+    when :tLAMBDA
+      @context.push_scope(:lambda)
+    when :tLSHFT
+      @context.singleton_class_depth += 1 if @previous_previous == :keyword_class
+    when :tLAMBEG
+      @context.push_block(:lambda)
+    when "{", :tLBRACE_ARG
+      @context.push_block(:brace_block)
+    when "}"
+      @context.pop_block if [:brace_block, :lambda].include?(@context.block_stack.last)
+      @context.pop_scope if @context.scope_stack.last == :lambda
+    when :keyword_end
+      if @context.control_depth.positive?
+        @context.control_depth -= 1
+      elsif @context.singleton_class_depth.positive?
+        @context.singleton_class_depth -= 1
+        @context.pop_scope if @context.scope_stack.last == :keyword_class
+      elsif [:method, :keyword_class, :keyword_module].include?(@context.scope_stack.last)
+        @context.pop_scope
+      else
+        @context.pop_block if [:do_block, :lambda].include?(@context.block_stack.last)
+        @context.pop_scope if @context.scope_stack.last == :lambda
+      end
+    end
+    if @context.method_header && token != :keyword_def && token != "(" &&
+        ![".", :tCOLON2, :tANDDOT].include?(token) &&
+        !(@context.method_header && [".", :tCOLON2, :tANDDOT].include?(@previous_previous)) &&
+        !@context.delimiter_stack.include?("(") &&
+        !(@previous_previous == :keyword_def &&
+          [:keyword_self, :tIDENTIFIER, :tCONSTANT, :tIVAR, :tCVAR, :tGVAR, :tFID].include?(token))
+      @context.method_header = false
+    end
+    @context.method_body_start = false unless [")", "\n"].include?(token)
+  end
+
+  def identifier_token(start)
+    while identifier_byte?(byte)
+      advance
+    end
+    word = @source.byteslice(start, @index - start).force_encoding(Encoding::UTF_8)
+    if byte == 63 && word == "defined"
+      advance
+      word = "defined?"
+    end
+    if @previous == :keyword_undef && (KEYWORDS.key?(word) || word == "do")
+      return [:tFID, word.to_sym]
+    end
+    if byte == 63 && byte(1) == 58
+      advance(2)
+      return [:tLABEL, (word + "?").to_sym]
+    end
+    if [33, 63].include?(byte) && byte(1) != 61
+      suffix = byte.chr
+      advance
+      return [:tFID, (word + suffix).to_sym]
+    end
+    if byte == 61 && byte(1) != 61 &&
+        (@previous == :keyword_def ||
+          @context.method_header && [".", :tCOLON2, :tANDDOT].include?(@previous))
+      advance
+      return [:tFID, (word + "=").to_sym]
+    end
+    if byte == 61 && @context.alias_context
+      advance
+      return [:tFID, (word + "=").to_sym]
+    end
+    if byte == 61 && byte(1) != 61 && @previous == :tSYMBEG
+      advance
+      return [:tIDENTIFIER, (word + "=").to_sym]
+    end
+    @local_variables[word.to_sym] = true if byte == 61 && byte(1) != 61 &&
+      ![".", :tCOLON2, :tANDDOT].include?(@previous)
+    label_in_ternary = ["(", "[", :tLPAREN, :tLPAREN_ARG, :tLBRACK, ","].include?(@previous)
+    if byte == 58 && byte(1) != 58 &&
+        (@context.ternary_depth.zero? || label_in_ternary) &&
+        (byte(1).nil? || [9, 10, 11, 12, 13, 32, 44, 41, 93, 125, 124].include?(byte(1)) || @context.delimiter_stack.any?)
+      advance
+      return [:tLABEL, word.to_sym]
+    end
+    if word == "do" && [".", :tCOLON2, :tANDDOT].include?(@previous)
+      return [:tFID, word.to_sym]
+    end
+    if word == "do" && @context.lambda_pending
+      return [do_token, word.to_sym]
+    end
+    if word == "do" && !@context.condition_do && no_argument_block?
+      return [:keyword_do, word.to_sym]
+    end
+    token = KEYWORDS[word]
+    if token && [".", :tCOLON2, :tANDDOT].include?(@previous)
+      token = next_non_space_byte == 61 ? :tIDENTIFIER : :tFID
+    elsif token && @previous == :keyword_def && word != "self"
+      token = :tFID
+    elsif (!@context.begin_expression || @context.alias_context && @previous == :keyword_for || [:keyword_return, :keyword_break, :keyword_next, :keyword_end, :keyword_yield, :keyword_super].include?(@previous)) && { "if" => :modifier_if, "unless" => :modifier_unless,
+      "while" => :modifier_while, "until" => :modifier_until,
+      "rescue" => :modifier_rescue }.key?(word)
+      token = { "if" => :modifier_if, "unless" => :modifier_unless,
+        "while" => :modifier_while, "until" => :modifier_until,
+        "rescue" => :modifier_rescue }.fetch(word, token)
+    end
+    token ||= word == "do" ? do_token : (word.getbyte(0).between?(65, 90) ? :tCONSTANT : :tIDENTIFIER)
+    if [:keyword_while, :keyword_until, :keyword_for].include?(token)
+      @context.condition_do = true
+      @context.push_condition
+    end
+    @context.alias_context = true if token == :keyword_alias
+    [token, word.to_sym]
+  rescue EncodingError
+    fail!("invalid UTF-8 identifier", start)
+  end
+
+  def identifier_byte?(value)
+    value && (value == 95 || value.between?(65, 90) || value.between?(97, 122) || value >= 128 || value.between?(48, 57))
+  end
+
+  def do_token
+    if @context.condition_do && @context.condition?
+      @context.pop_condition
+      @context.condition_do = false
+      :keyword_do_cond
+    elsif @context.lambda_pending
+      @context.lambda_pending = false
+      :keyword_do_LAMBDA
+    elsif @previous == :tIDENTIFIER && @previous_previous == :tLABEL && @previous_value == :lambda
+      :keyword_do
+    elsif @previous == ")" && @context.token_history.each_cons(2).any? { |left, right| left == :tUMINUS && right == :tLPAREN }
+      :keyword_do_block
+    elsif [")", :keyword_super, :keyword_yield].include?(@previous)
+      :keyword_do
+    elsif @previous == :tLAMBDA
+      :keyword_do_LAMBDA
+    else
+      :keyword_do_block
+    end
+  end
+
+  def no_argument_block?
+    return false unless [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
+    return false if @context.argument_label == :at && [".", :tCOLON2, :tANDDOT].include?(@previous_previous)
+    return false if @context.token_history == ["+", :tINTEGER, ".", :tIDENTIFIER]
+    return false if [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous_previous)
+    return false if [:tSYMBEG, :tLABEL, :tCOLON2].include?(@previous_previous)
+    return true if @previous_value == :lambda && @previous_previous == :tLSHFT
+    return false if [:tLSHFT, :tLAMBDA].include?(@previous_previous)
+    true
+  end
+
+  def no_argument_brace_block?
+    return false if [".", :tCOLON2].include?(@previous_previous)
+    return false if [:tLABEL, :tLSHFT, :tOROP, :tANDOP, :tASSOC, :tAMPER, "=", "(", ",", ":", "?"].include?(@previous_previous)
+    no_argument_block?
+  end
+
+  def number_token(start)
+    base = 10
+    if byte == 48 && [120, 88, 98, 66, 111, 79].include?(byte(1))
+      base = { 120 => 16, 88 => 16, 98 => 2, 66 => 2, 111 => 8, 79 => 8 }.fetch(byte(1))
+      advance(2)
+      digit_start = @index
+      advance while digit_byte?(byte, base) || byte == 95
+      fail!("invalid numeric literal", start) if @index == digit_start
+      text = @source.byteslice(digit_start, @index - digit_start).delete("_")
+      return [:tINTEGER, text.to_i(base)]
+    end
+    advance while digit_byte?(byte, 10) || byte == 95
+    float = false
+    if byte == 46 && digit_byte?(byte(1), 10)
+      float = true
+      advance
+      advance while digit_byte?(byte, 10) || byte == 95
+    end
+    if byte == 101 || byte == 69
+      float = true
+      advance
+      advance if byte == 43 || byte == 45
+      fail!("invalid numeric literal", start) unless digit_byte?(byte, 10)
+      advance while digit_byte?(byte, 10) || byte == 95
+    end
+    suffix = byte
+    advance if [105, 114].include?(suffix)
+    text = @source.byteslice(start, @index - start).delete("_")
+    return [:tRATIONAL, Rational(text.delete_suffix("r"))] if suffix == 114
+    return [:tIMAGINARY, Complex(0, text.delete_suffix("i").to_f)] if suffix == 105
+    [float ? :tFLOAT : :tINTEGER, float ? text.to_f : text.to_i]
+  rescue ArgumentError, ZeroDivisionError
+    fail!("invalid numeric literal", start)
+  end
+
+  def digit_byte?(value, base)
+    return false unless value
+    value.between?(48, 57) && value - 48 < base || base == 16 && value.between?(65, 70) || base == 16 && value.between?(97, 102)
+  end
+
+  def variable_token(start)
+    marker = byte
+    advance
+    advance if marker == 64 && byte == 64
+    if marker == 36 && [33, 38, 39, 42, 43, 46, 47, 58, 60, 62, 61, 63, 96, 126].include?(byte)
+      advance
+      text = @source.byteslice(start, @index - start)
+      return [:tGVAR, text.to_sym]
+    end
+    if marker == 36 && byte == 36
+      advance
+      return [:tGVAR, :"$$"]
+    end
+    if marker == 36 && byte && byte.between?(48, 57)
+      advance while byte && byte.between?(48, 57)
+      return [:tNTH_REF, @source.byteslice(start + 1, @index - start - 1).to_i]
+    end
+    advance while identifier_byte?(byte)
+    text = @source.byteslice(start, @index - start)
+    token = marker == 36 ? :tGVAR : (text.start_with?("@@") ? :tCVAR : :tIVAR)
+    [token, text.to_sym]
+  end
+
+  def character_or_question(start)
+    # Since Ruby 2.4, `?""` is the ternary operator followed by an empty
+    # string, rather than a character literal.  Keep the question mark as
+    # punctuation in this one ambiguous case.
+    if [39, 34].include?(byte(1)) && byte(1) == byte(2)
+      advance(3)
+      @pending = [[:tSTRING_BEG, nil], [:tSTRING_END, nil]]
+      return ["?", nil]
+    end
+    command_character = !@context.begin_expression &&
+      [:tIDENTIFIER, :tCONSTANT, :tFID, :tCHAR].include?(@previous) &&
+      start.positive? && [9, 32].include?(@source.getbyte(start - 1))
+    command_character = true if @previous == :tFID && @previous_value.to_s.end_with?("!")
+    command_character = true if @previous == :tCHAR && start.positive? && [9, 32].include?(@source.getbyte(start - 1))
+    command_character = false if command_character && ternary_question?(start)
+    return operator_or_punctuation(start) unless (@context.begin_expression || command_character) &&
+      byte(1) && byte(1) != 32 && byte(1) != 10
+    advance
+    value = if byte == 92
+      escape_sequence(start)
+    else
+      length = utf8_character_length(byte)
+      character = @source.byteslice(@index, length).force_encoding(Encoding::UTF_8)
+      advance(length)
+      character
+    end
+    [:tCHAR, value]
+  end
+
+  def ternary_question?(start)
+    depth = 0
+    quote = nil
+    escaped = false
+    index = start + 1
+    while index < @source.bytesize
+      value = @source.getbyte(index)
+      if quote
+        if escaped
+          escaped = false
+        elsif value == 92
+          escaped = true
+        elsif value == quote
+          quote = nil
+        end
+      else
+        case value
+        when 39, 34, 96
+          quote = value
+        when 40, 91, 123
+          depth += 1
+        when 41, 93, 125
+          depth -= 1 if depth.positive?
+        when 58
+          return true if depth.zero?
+        when 10, 59
+          return false if depth.zero?
+        end
+      end
+      index += 1
+    end
+    false
+  end
+
+  def utf8_character_length(first_byte)
+    return 1 if first_byte < 0x80
+    return 2 if first_byte.between?(0xC2, 0xDF)
+    return 3 if first_byte.between?(0xE0, 0xEF)
+    return 4 if first_byte.between?(0xF0, 0xF4)
+    fail!("invalid UTF-8 character")
+  end
+
+  def symbol_or_colon(start)
+    symbol_position = @context.begin_expression || ([:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) && @context.ternary_depth.zero?)
+    return operator_or_punctuation(start) unless symbol_position && byte(1) &&
+      ![9, 10, 11, 12, 13, 32].include?(byte(1)) && byte(1) != 58
+    advance
+    if byte == 39 || byte == 34
+      quote = byte
+      advance
+      @pending = read_interpolated_quoted(quote, start)
+      @pending << [:tSTRING_END, nil]
+    end
+    [:tSYMBEG, nil]
+  end
+
+  def string_token(quote, start)
+    advance
+    content_tokens = read_interpolated_quoted(quote, start)
+    label = byte == 58 && @context.ternary_depth.zero?
+    advance if label
+    terminator = label ? :tLABEL_END : :tSTRING_END
+    @pending = content_tokens
+    @pending << [terminator, nil]
+    [quote == 96 ? :tXSTRING_BEG : :tSTRING_BEG, nil]
+  end
+
+  def read_interpolated_quoted(quote, start)
+    return [[:tSTRING_CONTENT, read_quoted(quote, interpolate: false, start: start)]] if quote == 39
+    content = +""
+    tokens = []
+    until eof?
+      value = byte
+      if value == quote
+        advance
+        tokens << [:tSTRING_CONTENT, content] unless content.empty?
+        return tokens
+      elsif value == 92
+        content << escape_sequence(start)
+      elsif value == 35 && byte(1) == 123
+        tokens << [:tSTRING_CONTENT, content] unless content.empty?
+        content = +""
+        advance(2)
+        expression = read_interpolation_source(start)
+        inner = self.class.new(expression, filename: @filename).each.to_a
+        inner.pop if inner.last == [0, nil]
+        tokens << [:tSTRING_DBEG, nil]
+        tokens.concat(inner)
+        tokens << [:tSTRING_DEND, nil]
+      else
+        content << value.chr
+        advance
+      end
+    end
+    fail!("unterminated literal", start)
+  end
+
+  def read_interpolation_source(start)
+    begin_index = @index
+    depth = 1
+    quote = nil
+    escaped = false
+    while !eof?
+      value = byte
+      if quote
+        if escaped
+          escaped = false
+        elsif value == 92
+          escaped = true
+        elsif value == quote
+          quote = nil
+        end
+      elsif [39, 34, 96].include?(value) && @source.getbyte(@index - 1) != 36
+        quote = value
+      elsif value == 123
+        depth += 1
+      elsif value == 125
+        depth -= 1
+        if depth.zero?
+          expression = @source.byteslice(begin_index, @index - begin_index)
+          advance
+          return expression.force_encoding(Encoding::UTF_8)
+        end
+      end
+      advance
+    end
+    fail!("unterminated string interpolation", start)
+  end
+
+  def read_quoted(quote, interpolate:, start:)
+    result = +""
+    until eof?
+      value = byte
+      if value == quote
+        advance
+        return result
+      elsif value == 92
+        result << escape_sequence(start)
+      elsif value == 35 && interpolate && byte(1) == 123
+        fail!("string interpolation cannot be represented by the AST", start)
+      else
+        result << value
+        advance
+      end
+    end
+    fail!("unterminated literal", start)
+  end
+
+  def escape_sequence(start)
+    advance
+    fail!("unterminated escape", start) if eof?
+    value = byte
+    advance
+    return "\n" if value == 110
+    return "\t" if value == 116
+    return "\r" if value == 114
+    return "\f" if value == 102
+    return "\a" if value == 97
+    return "\e" if value == 101
+    return value.chr if value == 92 || value == 34 || value == 39
+    value.chr
+  end
+
+  def regexp_or_operator(start)
+    return operator_or_punctuation(start) if [".", :tCOLON2, :tANDDOT, :keyword_def, :tSYMBEG].include?(@previous)
+    if @context.begin_expression
+      advance
+      value = read_regexp(start)
+      content = value.is_a?(Array) ? value : [[:tSTRING_CONTENT, value]]
+      @pending = content + [[:tREGEXP_END, nil]]
+      return [:tREGEXP_BEG, nil]
+    end
+    operator_or_punctuation(start)
+  end
+
+  def read_regexp(start)
+    result = +""
+    tokens = []
+    interpolated = false
+    in_class = false
+    until eof?
+      value = byte
+      if value == 92
+        result << value.chr
+        advance
+        fail!("unterminated regexp", start) if eof?
+        result << byte.chr
+        advance
+      elsif value == 91
+        in_class = true
+        result << value.chr
+        advance
+      elsif value == 93
+        in_class = false
+        result << value.chr
+        advance
+      elsif value == 35 && byte(1) == 123 && !in_class
+        tokens << [:tSTRING_CONTENT, result] unless result.empty?
+        result = +""
+        interpolated = true
+        advance(2)
+        expression = read_interpolation_source(start)
+        inner = self.class.new(expression, filename: @filename).each.to_a
+        inner.pop if inner.last == [0, nil]
+        tokens << [:tSTRING_DBEG, nil]
+        tokens.concat(inner)
+        tokens << [:tSTRING_DEND, nil]
+      elsif value == 47 && !in_class
+        advance
+        advance while byte && byte.between?(97, 122)
+        tokens << [:tSTRING_CONTENT, result] unless result.empty?
+        return interpolated ? tokens : result
+      else
+        result << value.chr
+        advance
+      end
+    end
+    fail!("unterminated regexp", start)
+  end
+
+  def percent_token(start)
+    return operator_or_punctuation(start) if [".", :tCOLON2, :tANDDOT].include?(@previous)
+    literal_kind = [113, 81, 119, 87, 105, 73, 114, 115, 120, 88].include?(byte(1))
+    command_argument = start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
+      [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) &&
+      ![:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous_previous)
+    shorthand_delimiter = byte(1) && !identifier_byte?(byte(1)) &&
+      ![9, 10, 11, 12, 13, 32, 61].include?(byte(1))
+    return operator_or_punctuation(start) unless @context.begin_expression ||
+      ((literal_kind || shorthand_delimiter) && command_argument)
+    advance
+    kind = byte
+    if [113, 81, 119, 87, 105, 73, 114, 115, 120, 88].include?(kind)
+      advance
+    else
+      kind = 81
+    end
+    delimiter = byte
+    fail!("invalid percent literal", start) unless delimiter
+    advance
+    closing = { 40 => 41, 91 => 93, 123 => 125, 60 => 62 }.fetch(delimiter, delimiter)
+    interpolate = [81, 87, 73, 114, 120, 88].include?(kind)
+    content = interpolate ?
+      read_interpolated_delimited(closing, start) :
+      read_delimited(closing, start, interpolate: interpolate)
+    advance while kind == 114 && byte && byte.between?(97, 122)
+    token = { 113 => :tSTRING_BEG, 81 => :tSTRING_BEG, 119 => :tWORDS_BEG, 87 => :tQWORDS_BEG,
+              105 => :tSYMBOLS_BEG, 73 => :tQSYMBOLS_BEG, 114 => :tREGEXP_BEG,
+              115 => :tSYMBEG, 120 => :tXSTRING_BEG, 88 => :tXSTRING_BEG }.fetch(kind)
+    terminator = kind == 114 ? :tREGEXP_END : :tSTRING_END
+    @pending = if [119, 87, 105, 73].include?(kind)
+      content = content.map { |token, value| value.to_s }.join if content.is_a?(Array)
+      word_tokens(content, symbols: [105, 73].include?(kind)) + [[terminator, nil]]
+    elsif content.is_a?(Array)
+      content + [[terminator, nil]]
+    else
+      [[:tSTRING_CONTENT, content], [terminator, nil]]
+    end
+    [token, nil]
+  end
+
+  def word_tokens(content, symbols:)
+    words = content.split(/[\t\n\f\r ]+/).reject(&:empty?)
+    tokens = [[" ", nil]]
+    words.each do |word|
+      tokens << [:tSTRING_CONTENT, symbols ? word.to_sym : word]
+      tokens << [" ", nil]
+    end
+    tokens
+  end
+
+  def read_delimited(closing, start, interpolate: false)
+    result = +""
+    depth = 0
+    until eof?
+      value = byte
+      if value == 92
+        result << escape_sequence(start)
+      elsif value == 35 && interpolate && byte(1) == 123
+        fail!("string interpolation cannot be represented by the AST", start)
+      elsif value == closing && depth.zero?
+        advance
+        return result
+      else
+        depth += 1 if value == ({ 41 => 40, 93 => 91, 125 => 123, 62 => 60 }.fetch(closing, -1))
+        depth -= 1 if value == closing && depth.positive?
+        result << value.chr
+        advance
+      end
+    end
+    fail!("unterminated percent literal", start)
+  end
+
+  def read_interpolated_delimited(closing, start)
+    result = +""
+    tokens = []
+    depth = 0
+    opening = { 41 => 40, 93 => 91, 125 => 123, 62 => 60 }.fetch(closing, -1)
+    until eof?
+      value = byte
+      if value == 92
+        result << escape_sequence(start)
+      elsif value == 35 && byte(1) == 123
+        tokens << [:tSTRING_CONTENT, result] unless result.empty?
+        result = +""
+        advance(2)
+        expression = read_interpolation_source(start)
+        inner = self.class.new(expression, filename: @filename).each.to_a
+        inner.pop if inner.last == [0, nil]
+        tokens << [:tSTRING_DBEG, nil]
+        tokens.concat(inner)
+        tokens << [:tSTRING_DEND, nil]
+      elsif value == closing && depth.zero?
+        advance
+        tokens << [:tSTRING_CONTENT, result] unless result.empty?
+        return tokens
+      else
+        depth += 1 if value == opening
+        depth -= 1 if value == closing && depth.positive?
+        result << value.chr
+        advance
+      end
+    end
+    fail!("unterminated percent literal", start)
+  end
+
+  def interpolated_content_tokens(source, start)
+    return [[:tSTRING_CONTENT, source]] unless source.include?("#" + "{")
+    tokens = []
+    literal = +""
+    index = 0
+    while index < source.bytesize
+      if source.getbyte(index) == 35 && source.getbyte(index + 1) == 123
+        tokens << [:tSTRING_CONTENT, literal] unless literal.empty?
+        depth = 1
+        expr_start = index + 2
+        index = expr_start
+        while index < source.bytesize && depth.positive?
+          depth += 1 if source.getbyte(index) == 123
+          depth -= 1 if source.getbyte(index) == 125
+          index += 1
+        end
+        fail!("unterminated string interpolation", start) unless depth.zero?
+        expression = source.byteslice(expr_start, index - expr_start - 1)
+        inner = self.class.new(expression, filename: @filename).each.to_a
+        inner.pop if inner.last == [0, nil]
+        tokens << [:tSTRING_DBEG, nil]
+        tokens.concat(inner)
+        tokens << [:tSTRING_DEND, nil]
+        literal = +""
+      else
+        literal << source.getbyte(index).chr
+        index += 1
+      end
+    end
+    tokens << [:tSTRING_CONTENT, literal] unless literal.empty?
+    tokens
+  end
+
+  def heredoc_or_operator(start)
+    return operator_or_punctuation(start) if [".", :keyword_class].include?(@previous)
+    if byte(1) == 60 && heredoc_prefix?
+      heredoc_after_command = @previous == :tIDENTIFIER && start.positive? &&
+        [9, 32].include?(@source.getbyte(start - 1))
+      return heredoc_token(start) if @context.begin_expression || heredoc_after_command
+    end
+    operator_or_punctuation(start)
+  end
+
+  def heredoc_prefix?
+    value = byte(2)
+    return false unless value
+    if [45, 126].include?(value)
+      value = byte(3)
+    end
+    if [39, 34, 96].include?(value)
+      modifier = [45, 126].include?(@source.getbyte(@index + 2))
+      value = byte(modifier ? 4 : 3)
+    end
+    identifier_byte?(value)
+  end
+
+  def heredoc_token(start)
+    advance(2)
+    indent = byte == 45 || byte == 126
+    squiggly = byte == 126
+    advance if indent
+    quote = byte
+    if quote == 39 || quote == 34 || quote == 96
+      advance
+      delimiter_start = @index
+      advance while byte && byte != quote
+      fail!("unterminated heredoc identifier", start) if eof?
+      delimiter = @source.byteslice(delimiter_start, @index - delimiter_start)
+      advance
+    else
+      delimiter_start = @index
+      advance while identifier_byte?(byte)
+      delimiter = @source.byteslice(delimiter_start, @index - delimiter_start)
+    end
+    fail!("invalid heredoc identifier", start) if delimiter.empty?
+    suffix_start = @index
+    advance while byte && byte != 10
+    suffix = @source.byteslice(suffix_start, @index - suffix_start).force_encoding(Encoding::UTF_8)
+    advance if byte == 10
+    interpolate = quote != 39
+    body = read_heredoc_body(delimiter, indent, squiggly, start)
+    content_tokens = interpolate ? interpolated_content_tokens(body, start) : [[:tSTRING_CONTENT, body]]
+    @pending = content_tokens + [[:tSTRING_END, nil]]
+    prefix, headers, suffix = extract_heredoc_headers(suffix)
+    unless prefix.empty?
+      prefix_tokens = heredoc_suffix_tokens(prefix)
+      @pending.concat(prefix_tokens)
+    end
+    @heredoc_queue.concat(headers)
+    @deferred_suffix = suffix unless suffix.empty?
+    @heredoc_newline_pending = true
+    [quote == 96 ? :tXSTRING_BEG : :tSTRING_BEG, nil]
+  end
+
+  def read_heredoc_body(delimiter, indent, squiggly, start)
+    body = +""
+    loop do
+      line_start = @index
+      advance while !eof? && byte != 10
+      line = @source.byteslice(line_start, @index - line_start)
+      line_without_cr = line.delete_suffix("\r")
+      terminator = indent ? line_without_cr.sub(/\A[ \t]*/, "") : line_without_cr
+      if terminator == delimiter
+        advance if byte == 10
+        break
+      end
+      body << line << "\n"
+      advance if byte == 10
+      fail!("unterminated heredoc", start) if eof?
+    end
+    body = body.force_encoding(Encoding::UTF_8)
+    squiggly ? dedent_heredoc(body) : body
+  end
+
+  def extract_heredoc_headers(suffix)
+    pattern = /<<(\-|~)?([A-Za-z_][A-Za-z0-9_]*)/
+    match = pattern.match(suffix)
+    return [suffix, [], ""] unless match
+
+    headers = [{delimiter: match[2], indent: !match[1].nil?, squiggly: match[1] == "~", quote: nil}]
+    trailing = suffix[match.end(0)..].to_s.gsub(pattern) do
+      headers << {delimiter: Regexp.last_match(2), indent: !Regexp.last_match(1).nil?, squiggly: Regexp.last_match(1) == "~", quote: nil}
+      ""
+    end
+    [suffix[0...match.begin(0)], headers, trailing]
+  end
+
+  def heredoc_suffix_tokens(source)
+    suffix_lexer = self.class.new(source, filename: @filename)
+    suffix_lexer.context.begin_expression = false
+    suffix_lexer.context.lex_state = :expr_end
+    suffix_lexer.instance_variable_set(:@previous, :tSTRING_END)
+    tokens = suffix_lexer.each.to_a
+    tokens.pop if tokens.last == [0, nil]
+    if [:keyword_if, :keyword_unless, :keyword_while, :keyword_until, :keyword_rescue].include?(tokens.first&.first)
+      token = {keyword_if: :modifier_if, keyword_unless: :modifier_unless,
+        keyword_while: :modifier_while, keyword_until: :modifier_until,
+        keyword_rescue: :modifier_rescue}.fetch(tokens.first.first)
+      tokens[0] = [token, tokens.first.last]
+    end
+    tokens
+  end
+
+  def load_queued_heredoc
+    descriptor = @heredoc_queue.shift
+    body = read_heredoc_body(descriptor.fetch(:delimiter), descriptor.fetch(:indent), descriptor.fetch(:squiggly), @index)
+    content = descriptor.fetch(:quote) == 39 ? [[:tSTRING_CONTENT, body]] : interpolated_content_tokens(body, @index)
+    @pending.concat([descriptor.fetch(:quote) == 96 ? [:tXSTRING_BEG, nil] : [:tSTRING_BEG, nil], *content, [:tSTRING_END, nil]])
+  end
+
+  def dedent_heredoc(body)
+    indents = body.lines.filter_map do |line|
+      next if line.strip.empty?
+      line[/\A[ \t]*/].bytesize
+    end
+    return body if indents.empty?
+
+    width = indents.min
+    body.lines.map { |line| line.sub(/\A[ \t]{0,#{width}}/, "") }.join
+  end
+
+  def operator_or_punctuation(start)
+    if @previous == :keyword_def && @source.getbyte(@index) == 38
+      advance
+      return ["&", nil]
+    end
+    if @previous == :keyword_def && ["-@", "+@"].include?(@source.byteslice(@index, 2))
+      value = @source.byteslice(@index, 2)
+      advance(2)
+      return [value == "-@" ? :tUMINUS : :tUPLUS, nil]
+    end
+    if (@previous == :tSYMBEG || @context.alias_context) && ["-@", "+@"].include?(@source.byteslice(@index, 2))
+      value = @source.byteslice(@index, 2)
+      advance(2)
+      return [value == "-@" ? :tUMINUS : :tUPLUS, nil]
+    end
+    text = OPERATORS.sort_by { |operator| -operator.bytesize }.find do |operator|
+      next false if ["[]", "[]="].include?(operator) && start.positive? &&
+        [9, 10, 11, 12, 13, 32].include?(@source.getbyte(start - 1)) &&
+        ![:keyword_def, :keyword_alias].include?(@previous) &&
+        @previous_previous != :keyword_alias
+      next false if ["[]", "[]="].include?(operator) &&
+        [:tIDENTIFIER, :tCONSTANT, :tFID, :tGVAR, :tIVAR, :tCVAR, :tNTH_REF,
+          :tINTEGER, :tSTRING_END, :tREGEXP_END, "]", "}"].include?(@previous) &&
+        @previous_previous != :keyword_alias
+      @source.byteslice(@index, operator.bytesize) == operator
+    end
+    operator_method = [:keyword_def, :keyword_alias, :keyword_undef, ".", :tCOLON2, :tANDDOT, :tSYMBEG].include?(@previous) ||
+      @previous_previous == :keyword_alias
+    if text && !(begin_expression? && !operator_method && ["[]", "[]="].include?(text))
+      advance(text.bytesize)
+      token = if text == "**" && @context.begin_expression
+        :tDSTAR
+      elsif text == ".." && @context.begin_expression
+        :tBDOT2
+      elsif text == "..." && (@context.begin_expression || [:tLPAREN, "(", ","].include?(@previous))
+        :tBDOT3
+      elsif text == "::" && (@context.begin_expression ||
+        (start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
+          [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)))
+        :tCOLON3
+      elsif text == "&" && @previous == :keyword_def
+        "&"
+      else
+        OP_TOKENS.fetch(text, :tOP_ASGN)
+      end
+      @context.lambda_pending = true if token == :tLAMBDA
+      return [token, nil]
+    end
+    value = byte.chr
+    advance
+    if value == "(" || value == "[" || value == "{"
+      brace_block = value == "{" && @previous != "(" &&
+        ([:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) ||
+        (@previous == ")" && !(@previous_previous == :tSTAR && @context.scope_stack.last == :method)) ||
+        [".", :tCOLON2].include?(@previous_previous) ||
+        [:keyword_super, :keyword_yield].include?(@previous) ||
+        [:proc, :lambda].include?(@previous_value) ||
+        [:keyword_BEGIN, :keyword_END].include?(@previous))
+      lambda_block = value == "{" && @context.lambda_pending
+      command_arg = value == "(" && !@context.begin_expression && start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
+        [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) &&
+        !@context.method_header
+      unless brace_block || lambda_block
+        @context.push_delimiter(value)
+        @context.push_cmdarg(command_arg)
+      end
+      if value == "("
+        if command_arg
+          return [:tLPAREN_ARG, nil]
+        end
+        method_definition = @previous == :keyword_def || @previous_previous == :keyword_def
+        return [@context.begin_expression && !method_definition &&
+          ![".", :tCOLON2, :tANDDOT, :keyword_super, :keyword_yield, :tLAMBDA, :tAREF, :tASET].include?(@previous) ? :tLPAREN : "(", nil]
+      end
+      if value == "{" && @context.lambda_pending
+        @context.lambda_pending = false
+        return [:tLAMBEG, nil]
+      end
+      array_argument = value == "[" && start.positive? &&
+        [9, 10, 11, 12, 13, 32].include?(@source.getbyte(start - 1)) &&
+        [:tIDENTIFIER, :tFID, :tCONSTANT].include?(@previous)
+      array_argument ||= value == "[" && @previous == ")" &&
+        @previous_previous == "(" && @context.scope_stack.last == :method
+      array_argument ||= value == "[" && @context.method_body_start
+      array_argument = false if array_argument && @local_variables[@previous_value]
+      array_argument = false if array_argument && [",", "*"].include?(@previous_previous) &&
+        @context.delimiter_stack.any? { |delimiter| ["[", :tLBRACK].include?(delimiter) }
+      return [value == "[" && (@context.begin_expression || array_argument) ? :tLBRACK : (value == "[" ? "[" : (brace_block ? "{" : :tLBRACE)), nil]
+    elsif value == ")" || value == "]" || value == "}"
+      opener = { ")" => "(", "]" => "[", "}" => "{" }.fetch(value)
+      @context.pop_delimiter(opener)
+      @context.pop_cmdarg
+      if value == ")" && @context.method_header
+        @context.method_body_start = true
+        @context.method_header = false
+      end
+    elsif value == "-" && @context.begin_expression
+      return [:tUMINUS, nil]
+    elsif value == "+" && @context.begin_expression
+      return [:tUPLUS, nil]
+    elsif value == "*" && @context.begin_expression
+      return [:tSTAR, nil]
+    elsif value == "&" && @previous == :tSYMBEG
+      return [value, nil]
+    elsif value == "&" && @context.begin_expression
+      return [:tAMPER, nil]
+    elsif value == "?" && !@context.begin_expression
+      @context.ternary_depth += 1
+    elsif value == ":" && @context.ternary_depth.positive?
+      @context.ternary_depth -= 1
+    elsif value == "<" && @previous == :tCONSTANT && @previous_previous == :keyword_class
+      @class_superclass = true
+    end
+    [value, nil]
+  rescue EncodingError
+    fail!("invalid byte", start)
+  end
+
+  def begin_expression?
+    @context.begin_expression
+  end
+
+  def receiver_operator?(token)
+    [".", :tCOLON2, :tANDDOT].include?(@previous_previous) &&
+      ["/", :tLSHFT].include?(token)
+  end
+end
+private_constant :Lexer, :LexicalContext

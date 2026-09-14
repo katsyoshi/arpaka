@@ -1,14 +1,15 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require_relative "../generated_frontend_helper"
 
 class RubyReceiverCallTest < Test::Unit::TestCase
-  AST = Arpaka::AST
+  AST = GeneratedRubyFrontend::AST
 
   test "receiver calls retain their operator, method name and ordered arguments" do
     [".", "::", "&."].each do |operator|
       ["object#{operator}fetch(1, 2)", "object#{operator}fetch 1, 2"].each do |source|
-        tree = Arpaka.parse_source(source).statements.fetch(0)
+        tree = GeneratedRubyFrontend.parse(source).statements.fetch(0)
         assert_equal(AST::ReceiverCall.new(AST::BareCall.new(:object), operator.to_sym,
           :fetch, [AST::Literal.new(1), AST::Literal.new(2)]), tree, source)
         assert_predicate(tree.arguments, :frozen?)
@@ -21,7 +22,7 @@ class RubyReceiverCallTest < Test::Unit::TestCase
       source = "handler#{operator}(message)"
       expected = AST::ReceiverCall.new(AST::BareCall.new(:handler), operator.to_sym,
         :call, [AST::BareCall.new(:message)])
-      assert_equal(AST::Program.new([expected]), Arpaka.parse_source(source), source)
+      assert_equal(AST::Program.new([expected]), GeneratedRubyFrontend.parse(source), source)
     end
   end
 
@@ -30,7 +31,7 @@ class RubyReceiverCallTest < Test::Unit::TestCase
       source = "object&.#{name}(1)"
       expected = AST::ReceiverCall.new(AST::BareCall.new(:object), :"&.",
         name.to_sym, [AST::Literal.new(1)])
-      assert_equal(AST::Program.new([expected]), Arpaka.parse_source(source), source)
+      assert_equal(AST::Program.new([expected]), GeneratedRubyFrontend.parse(source), source)
     end
   end
 
@@ -45,7 +46,7 @@ class RubyReceiverCallTest < Test::Unit::TestCase
     ]
     sources.each do |source|
       expected = normalize_rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
-      actual = normalize_arpaka(Arpaka.parse_source(source).statements.fetch(0))
+      actual = normalize_arpaka(GeneratedRubyFrontend.parse(source).statements.fetch(0))
       assert_equal(expected, actual, source)
     end
   end

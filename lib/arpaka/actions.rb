@@ -2,7 +2,7 @@
 
 # Rule IDs refer to upstream_rules.json, validated against the pinned source.
 # Each entry is [classification, Ruby expression used as the reduction value].
-module RubyGrammarActions
+module Arpaka::RubyGrammarActions
   ACTIONS = {
     1 => ["empty", "nil"], 2 => ["empty", "nil"], 3 => ["empty", "nil"],
     4 => ["pass_through", "$1"], 5 => ["ported", "@builder.program($2)"],
@@ -116,8 +116,7 @@ module RubyGrammarActions
     526 => ["pass_through", "$1"],
     527 => ["ported", "[$1].freeze"],
     412 => ["pass_through", "nil"],
-    419 => ["pass_through", "nil"], 420 => ["pass_through", "nil"], 421 => ["pass_through", "nil"],
-    426 => ["empty", "nil"],
+    420 => ["pass_through", "nil"], 421 => ["pass_through", "nil"],
     95 => ["ported", "$2"],
     94 => ["pass_through", "$1"],
     82 => ["pass_through", "$1"],
@@ -253,7 +252,6 @@ module RubyGrammarActions
     452 => ["pass_through", "$1"],
     451 => ["pass_through", "$1"],
     448 => ["pass_through", "$1"],
-    445 => ["pass_through", "$1"],
     368 => ["ported", "@builder.block_call($1, $2)"],
     366 => ["ported", "@builder.block_call(@builder.call($1, []), $2)"],
     356 => ["pass_through", "$2"],
@@ -310,7 +308,7 @@ module RubyGrammarActions
     551 => ["pass_through", "$2"],
     550 => ["pass_through", "$2"],
     539 => ["pass_through", "$1"],
-    522 => ["pass_through", "$2"], 427 => ["pass_through", "$2"],
+    522 => ["pass_through", "$2"],
     630 => ["pass_through", "$1"], 631 => ["pass_through", "$1"],
     632 => ["empty", "nil"], 633 => ["pass_through", "$2"], 634 => ["empty", "nil"],
     635 => ["pass_through", "$2"],

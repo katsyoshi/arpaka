@@ -1,7 +1,15 @@
 module Arpaka
-  def self.parse: (Enumerable[[String | Symbol | Integer, untyped]] tokens) -> ::Lrama::Ruby::Languages::Ruby::AST::Program
-  def self.parse_source: (String source, ?filename: String) -> ::Lrama::Ruby::Languages::Ruby::AST::Program
+  interface _Program
+    def statements: () -> Array[untyped]
+  end
 
-  class LexerError < ::Lrama::Ruby::Error
+  interface _Frontend
+    def parse: (String source, ?filename: String) -> _Program
+  end
+
+  def self.generate: (ruby_source: String, ?class_name: String) -> String
+  def self.compile: (ruby_source: String, ?class_name: String) -> _Frontend
+
+  class Error < ::Lrama::Ruby::Error
   end
 end

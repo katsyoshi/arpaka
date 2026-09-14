@@ -1,0 +1,37 @@
+class Error < StandardError; end
+
+class ParseError < Error
+  attr_reader :token, :state
+
+  def initialize(error)
+    @token, @state = error.token, error.state
+    super(error.message)
+  end
+end
+
+class UnsupportedSyntax < Error
+  attr_reader :rule, :line
+
+  def initialize(rule, line)
+    @rule, @line = rule, line
+    super("Unsupported syntax: #{rule} (upstream parse.y:#{line})")
+  end
+end
+
+class LexerError < Error; end
+
+def self.parse(source, filename: "(ruby)")
+  lexer = Lexer.new(source, filename: filename)
+  parse_tokens(lexer.each, lexical_context: lexer.context)
+end
+
+def self.parse_tokens(tokens, lexical_context: nil)
+  parser = Parser.new
+  parser.instance_variable_set(:@builder, Builder.new)
+  parser.lexical_context = lexical_context
+  parser.parse(tokens)
+rescue Parser::ParseError => error
+  raise ParseError.new(error)
+end
+private_class_method :parse_tokens
+private_constant :Parser
