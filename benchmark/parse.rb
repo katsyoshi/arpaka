@@ -4,7 +4,11 @@ require "rbconfig"
 
 iterations = Integer(ENV.fetch("ITERATIONS", "100"))
 raise ArgumentError, "ITERATIONS must be positive" unless iterations.positive?
-source = (1..100).map { |index| "value#{index} = #{index} * 2\n" }.join + "value100 + 1\n"
+sources = {
+  small: "value = 1\n",
+  medium: (1..100).map { |index| "value#{index} = #{index} * 2\n" }.join + "value100 + 1\n",
+  large: (1..1_000).map { |index| "value#{index} = #{index} * 2\n" }.join + "value1000 + 1\n"
+}
 
 def measure(label, iterations = 1)
   GC.start
@@ -19,25 +23,32 @@ end
 if ARGV.first == "--runtime"
   puts "Runtime: #{RUBY_DESCRIPTION}; Ruby Box: #{Ruby::Box.enabled?}"
   measure("load generated file") { require File.expand_path(ARGV.fetch(1)) }
-  measure("parse (first)") { BenchmarkRuby.parse(source) }
-  10.times { BenchmarkRuby.parse(source) }
-  measure("parse (warm)", iterations) { BenchmarkRuby.parse(source) }
+  sources.each do |size, source|
+    puts "#{size}: #{source.bytesize} bytes"
+    measure("parse #{size} (first)") { BenchmarkRuby.parse(source) }
+    10.times { BenchmarkRuby.parse(source) }
+    measure("parse #{size} (warm)", iterations) { BenchmarkRuby.parse(source) }
+  end
 
   if defined?(RubyVM::AbstractSyntaxTree)
-    10.times { RubyVM::AbstractSyntaxTree.parse(source) }
-    measure("RubyVM::AbstractSyntaxTree.parse", iterations) { RubyVM::AbstractSyntaxTree.parse(source) }
+    sources.each do |size, source|
+      10.times { RubyVM::AbstractSyntaxTree.parse(source) }
+      measure("RubyVM AST #{size}", iterations) { RubyVM::AbstractSyntaxTree.parse(source) }
+    end
   end
   require "prism"
   puts "Prism: #{Prism::VERSION}"
-  10.times { Prism.parse(source) }
-  measure("Prism.parse", iterations) { Prism.parse(source) }
+  sources.each do |size, source|
+    10.times { Prism.parse(source) }
+    measure("Prism #{size}", iterations) { Prism.parse(source) }
+  end
 else
   require "arpaka"
   require "tmpdir"
   ruby_source = ENV.fetch("RUBY_SOURCE", File.expand_path("../vendor/ruby", __dir__))
   puts "Arpaka frontend benchmark"
   puts "Generator: #{RUBY_DESCRIPTION}"
-  puts "Input: #{source.bytesize} bytes; iterations: #{iterations}; warmup: 10"
+  puts "Inputs: small/medium/large; iterations: #{iterations}; warmup: 10"
   code = measure("generate frontend") do
     Arpaka.generate(ruby_source: ruby_source, class_name: "BenchmarkRuby")
   end
