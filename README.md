@@ -277,16 +277,17 @@ The RubyVM and Prism measurements use the same source but return different AST
 representations. They are reference measurements, not equivalent-work guarantees.
 
 Example results on Ruby 4.0.6, x86_64 Linux, YJIT disabled, Prism 1.9.0
-(1,697-byte input, 100 measured iterations, ten warmup calls):
+(10 measured iterations per input, ten warmup calls):
 
-```text
-generate frontend                   2.165377s total,  2165.377ms/call
-load generated file                 0.019743s total,    19.743ms/call
-parse (first)                       0.006092s total,     6.092ms/call
-parse (warm)                        0.530678s total,     5.307ms/call
-RubyVM::AbstractSyntaxTree.parse    0.008975s total,     0.090ms/call
-Prism.parse                         0.014352s total,     0.144ms/call
-```
+| Input | Arpaka (warm) | RubyVM AST | Prism |
+| ---: | ---: | ---: | ---: |
+| 10 bytes | 0.054 ms | 0.003 ms | 0.003 ms |
+| 1,697 bytes | 5.901 ms | 0.060 ms | 0.128 ms |
+| 18,800 bytes | 61.475 ms | 0.850 ms | 1.859 ms |
+
+Frontend generation took 2.190s and loading the generated file took 20.571ms
+in the same run. The first Arpaka parse took 0.130ms, 6.707ms and 73.381ms
+for the small, medium and large inputs respectively.
 
 Generation is a one-time build step per regeneration, not a cost of parsing an
 input file. The generated frontend is loaded and measured with Ruby Box disabled.
