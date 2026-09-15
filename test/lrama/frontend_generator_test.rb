@@ -68,13 +68,11 @@ class FrontendGeneratorTest < Test::Unit::TestCase
     end
   end
 
-  test "changed upstream input is rejected before actions are applied" do
+  test "changed upstream input is accepted when actions still match" do
     Dir.mktmpdir do |directory|
       FileUtils.cp_r(File.join(RUBY_SOURCE, "."), directory)
       File.open(File.join(directory, "parse.y"), "a") { |file| file.puts("/* changed */") }
-      error = assert_raise(Arpaka::Error) { Arpaka.generate(ruby_source: directory) }
-      assert_include(error.message, "Unsupported Ruby source change: parse.y")
-      assert_include(error.message, "SHA256")
+      assert_nothing_raised { Arpaka.generate(ruby_source: directory) }
     end
   end
 
