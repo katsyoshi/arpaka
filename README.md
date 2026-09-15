@@ -1,6 +1,10 @@
 # Arpaka
 
 <p align="center">
+  <img src="assets/arpaka-logo.svg" alt="Arpaka" width="720">
+</p>
+
+<p align="center">
   Generate Ruby parsers with Lrama, and use their ASTs from Ruby.
 </p>
 
