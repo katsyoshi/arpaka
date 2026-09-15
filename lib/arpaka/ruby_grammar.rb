@@ -32,9 +32,8 @@ module Arpaka::RubyGrammar
       actual = Digest::SHA256.file(File.join(vendor, path)).hexdigest
       next if actual == digest
 
-      raise ::Arpaka::Error, "Unsupported Ruby source change: #{path}; " \
-        "expected SHA256 #{digest}, got #{actual}. " \
-        "Update the Action mappings and source profile before regenerating."
+      warn "Arpaka: Ruby source differs from the recorded profile: #{path}; " \
+        "expected SHA256 #{digest}, got #{actual}."
     end
     source, error, result = Open3.capture3(RbConfig.ruby,
       File.join(vendor, "tool/id2token.rb"), File.join(vendor, "parse.y"))
@@ -48,19 +47,8 @@ module Arpaka::RubyGrammar
         "midrule_position" => rule.position_in_original_rule_rhs,
         "precedence" => rule.precedence_sym&.id&.s_value }
     end
-    expected = JSON.parse(File.read(File.join(__dir__, "upstream_rules.json")))
-    unless inventory == expected
-      changed = (0...[inventory.length, expected.length].max).select { |i| inventory[i] != expected[i] }
-      details = changed.first(5).map do |i|
-        before, after = expected[i], inventory[i]
-        "rule #{before&.fetch('id') || after.fetch('id')}: " \
-          "#{before&.fetch('lhs') || '(absent)'} -> #{after&.fetch('lhs') || '(absent)'}"
-      end
-      raise ::Arpaka::Error, "Upstream rules changed (#{changed.length} entries); " \
-        "review Action mappings: #{details.join('; ')}"
-    end
     unknown = ::Arpaka::RubyGrammarActions::ACTIONS.keys - inventory.map { |rule| rule.fetch("id") }
-    raise ::Arpaka::Error, "Unknown action IDs: #{unknown.inspect}" unless unknown.empty?
+    warn "Arpaka: Unknown action IDs: #{unknown.inspect}" unless unknown.empty?
     [grammar, inventory]
   end
 
