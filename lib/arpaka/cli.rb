@@ -11,8 +11,9 @@ module Arpaka
       force = false
       help = false
       parser = OptionParser.new do |opts|
-        opts.banner = "Usage: arpaka generate --ruby-source DIR --output FILE [--class-name NAME] [--force]"
+        opts.banner = "Usage: arpaka generate (--ruby-source DIR | --parse-y FILE) --output FILE [--class-name NAME] [--force]"
         opts.on("--ruby-source DIR", "Ruby source tree (provided by the user)") { |v| options[:ruby_source] = v }
+        opts.on("--parse-y FILE", "parse.y file (use Arpaka's token definitions)") { |v| options[:parse_y] = v }
         opts.on("--output FILE", "Write a standalone Ruby frontend") { |v| options[:output] = v }
         opts.on("--class-name NAME", "Generated class name (default: RubyParser)") { |v| options[:class_name] = v }
         opts.on("--force", "Replace an existing output file") { force = true }
@@ -31,7 +32,9 @@ module Arpaka
         return 0
       end
       raise OptionParser::InvalidArgument, args.join(" ") unless args.empty?
-      %i[ruby_source output].each do |key|
+      raise OptionParser::InvalidArgument, "specify exactly one of --ruby-source or --parse-y" if options[:ruby_source] == options[:parse_y]
+      raise OptionParser::MissingArgument, "--output" unless options[:output]
+      %i[output].each do |key|
         raise OptionParser::MissingArgument, "--#{key.to_s.tr('_', '-')}" unless options[key]
       end
       output = File.expand_path(options.delete(:output))

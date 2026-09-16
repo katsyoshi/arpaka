@@ -36,6 +36,17 @@ module Arpaka::RubyGrammar
     source = preprocess(File.read(File.join(vendor, "parse.y")),
       File.join(vendor, "defs/id.def"))
     grammar = parse(source, File.join(vendor, "parse.y"))
+    [grammar, inventory(grammar)]
+  end
+
+  def self.load_parse_y(parse_y)
+    path = File.expand_path(parse_y)
+    source = preprocess_names(File.read(path))
+    grammar = parse(source, path)
+    [grammar, inventory(grammar)]
+  end
+
+  def self.inventory(grammar)
     inventory = grammar.rules.reject(&:initial_rule?).map do |rule|
       { "id" => rule.id, "lhs" => rule.lhs.id.s_value,
         "rhs" => rule.rhs.map { |symbol| symbol.id.s_value },
@@ -46,7 +57,7 @@ module Arpaka::RubyGrammar
     end
     unknown = ::Arpaka::RubyGrammarActions::ACTIONS.keys - inventory.map { |rule| rule.fetch("id") }
     warn "Arpaka: Unknown action IDs: #{unknown.inspect}" unless unknown.empty?
-    [grammar, inventory]
+    inventory
   end
 
   # Ruby's id.def is Ruby code. Evaluate it in a Box so its temporary locals,
@@ -72,6 +83,10 @@ module Arpaka::RubyGrammar
     raise ::Arpaka::Error, "Ruby id.def preprocessing failed: #{error.message}"
   end
 
+  def self.preprocess_names(source)
+    source.gsub(/\bRUBY_TOKEN\(([A-Za-z_][A-Za-z0-9_]*)\)/, '\\1')
+  end
+
   def self.symbol_names(grammar)
     used = grammar.terms.map { |symbol| symbol.id.s_value }
     grammar.nterms.to_h do |symbol|
@@ -89,8 +104,12 @@ module Arpaka::RubyGrammar
     end
   end
 
-  def self.artifacts(ruby_source:)
-    grammar, inventory = load_upstream(ruby_source)
+  def self.artifacts(ruby_source: nil, parse_y: nil)
+    grammar, inventory = if ruby_source
+      load_upstream(ruby_source)
+    else
+      load_parse_y(parse_y)
+    end
     names = symbol_names(grammar)
     name = ->(symbol) { symbol.term ? symbol.id.s_value : names.fetch(symbol.id.s_value) }
     lines = ["/* Generated from ruby/ruby #{REVISION}. See Arpaka Action mappings. */",

@@ -150,6 +150,20 @@ preserved unless `--force` is supplied. A failed generation leaves the previous
 file intact. The output includes its source profile, generator version and
 copyright/license notices.
 
+When only `parse.y` is available, Arpaka can replace its `RUBY_TOKEN(NAME)`
+declarations with token names and generate a frontend without the rest of the
+Ruby source tree:
+
+```sh
+RUBY_BOX=1 bundle exec arpaka generate \
+  --parse-y /path/to/parse.y \
+  --class-name MyRubyParser \
+  --output lib/my_library/ruby_parser.rb
+```
+
+This mode embeds Arpaka's own license notices. The `--ruby-source` mode remains
+the compatibility-preserving path when the Ruby source tree is available.
+
 The consumer only needs the generated file and Ruby 4.0 or later:
 
 ```ruby

@@ -86,6 +86,13 @@ class FrontendGeneratorTest < Test::Unit::TestCase
     end
   end
 
+  test "generates from parse.y by preserving token names" do
+    source = Arpaka.generate(parse_y: File.join(RUBY_SOURCE, "parse.y"), class_name: "StandaloneRuby")
+    assert_include(source, "class StandaloneRuby")
+    assert_include(source, "Ruby source profile: parse.y only")
+    assert_include(source, "Redistribution and use in source and binary forms")
+  end
+
   test "CLI requires output and handles help" do
     out, err = StringIO.new, StringIO.new
     assert_equal(0, Arpaka::CLI.run(["--help"], out: out, err: err))
@@ -119,5 +126,15 @@ class FrontendGeneratorTest < Test::Unit::TestCase
     assert_false(Object.const_defined?(:IsolatedRuby, false))
     assert_false(Arpaka.respond_to?(:parse))
     assert_false(Lrama::Ruby.respond_to?(:parse))
+  end
+
+  test "CLI generates from parse.y" do
+    Dir.mktmpdir do |directory|
+      path = File.join(directory, "frontend.rb")
+      out, err = StringIO.new, StringIO.new
+      args = ["generate", "--parse-y", File.join(RUBY_SOURCE, "parse.y"), "--output", path]
+      assert_equal(0, Arpaka::CLI.run(args, out: out, err: err), err.string)
+      assert_include(File.read(path), "class RubyParser")
+    end
   end
 end
