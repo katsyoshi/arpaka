@@ -3,8 +3,6 @@
 require "lrama"
 require "json"
 require "digest"
-require "open3"
-require "rbconfig"
 require_relative "actions"
 
 module Arpaka::RubyGrammar
@@ -35,9 +33,8 @@ module Arpaka::RubyGrammar
       warn "Arpaka: Ruby source differs from the recorded profile: #{path}; " \
         "expected SHA256 #{digest}, got #{actual}."
     end
-    source, error, result = Open3.capture3(RbConfig.ruby,
-      File.join(vendor, "tool/id2token.rb"), File.join(vendor, "parse.y"))
-    raise ::Arpaka::Error, "Ruby preprocessing failed: #{error}" unless result.success?
+    source = preprocess(File.read(File.join(vendor, "parse.y")),
+      File.join(vendor, "defs/id.def"))
     grammar = parse(source, File.join(vendor, "parse.y"))
     inventory = grammar.rules.reject(&:initial_rule?).map do |rule|
       { "id" => rule.id, "lhs" => rule.lhs.id.s_value,
@@ -50,6 +47,29 @@ module Arpaka::RubyGrammar
     unknown = ::Arpaka::RubyGrammarActions::ACTIONS.keys - inventory.map { |rule| rule.fetch("id") }
     warn "Arpaka: Unknown action IDs: #{unknown.inspect}" unless unknown.empty?
     [grammar, inventory]
+  end
+
+  # Ruby's id.def is Ruby code. Evaluate it in a Box so its temporary locals,
+  # methods and constants cannot affect Arpaka or Lrama's process.
+  def self.preprocess(source, id_def)
+    box = ::Ruby::Box.new
+    ids = box.eval(File.read(id_def))
+    tokens = ids.fetch(:token_op).each_with_object({}) do |(_id, _op, token, id), result|
+      result[token] = id if token
+    end
+    return source unless tokens.any?
+
+    names = tokens.keys.map { |name| Regexp.escape(name) }.join("|")
+    token_pattern = /\bRUBY_TOKEN\((#{names})\)\s*(?=\s)/
+    source.lines.map do |line|
+      if line.start_with?("%token")
+        line.gsub(token_pattern) { tokens.fetch(Regexp.last_match(1)).to_s }
+      else
+        line
+      end
+    end.join
+  rescue KeyError, TypeError, SyntaxError => error
+    raise ::Arpaka::Error, "Ruby id.def preprocessing failed: #{error.message}"
   end
 
   def self.symbol_names(grammar)

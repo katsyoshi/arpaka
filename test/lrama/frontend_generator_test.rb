@@ -76,6 +76,16 @@ class FrontendGeneratorTest < Test::Unit::TestCase
     end
   end
 
+  test "preprocesses id.def inside a Ruby Box" do
+    source = "%token RUBY_TOKEN(tIDENTIFIER) RUBY_TOKEN(tINTEGER)\n%token RUBY_TOKEN(tUNKNOWN)\n"
+    Dir.mktmpdir do |directory|
+      id_def = File.join(directory, "id.def")
+      File.write(id_def, '{ token_op: [["identifier", "", "tIDENTIFIER", 1], ["integer", "", "tINTEGER", 2]] }')
+      assert_equal("%token 1 2\n%token RUBY_TOKEN(tUNKNOWN)\n",
+        Arpaka::RubyGrammar.preprocess(source, id_def))
+    end
+  end
+
   test "CLI requires output and handles help" do
     out, err = StringIO.new, StringIO.new
     assert_equal(0, Arpaka::CLI.run(["--help"], out: out, err: err))
