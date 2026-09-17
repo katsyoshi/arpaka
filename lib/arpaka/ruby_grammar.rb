@@ -158,7 +158,7 @@ module Arpaka::RubyGrammar
             rule.rhs.map { |symbol| symbol.id.s_value }]])&.first || "unsupported" }
     end
     { "parse.y" => source, "rules.json" => JSON.pretty_generate(compact) + "\n",
-      "profile" => profile.fetch("name") }
+      "runtime" => profile.fetch("runtime", {}) }
   end
 
   def self.verify_structure(original, source, names)

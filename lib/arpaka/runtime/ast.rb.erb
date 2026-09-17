@@ -6,7 +6,7 @@ module AST
   If = Data.define(:condition, :then_body, :else_body)
   LocalRead = Data.define(:name)
   LocalWrite = Data.define(:name, :value)
-<% if legacy -%>
+<% if runtime.fetch("ast_nodes", []).include?("assignment") -%>
   Assignment = Data.define(:target, :value)
   OpAssign = Data.define(:target, :operator, :value)
   MultipleAssign = Data.define(:targets, :value)
@@ -34,17 +34,17 @@ module AST
   XStringLiteral = Data.define(:value)
   For = Data.define(:variable, :enumerable, :body)
   Def = Data.define(:name, :arguments, :body)
-<% if legacy -%>
+<% if runtime.fetch("ast_nodes", []).include?("singleton_method") -%>
   SingletonMethodDef = Data.define(:receiver, :name, :arguments, :body)
 <% end -%>
   ClassDef = Data.define(:name, :superclass, :body)
   ModuleDef = Data.define(:name, :body)
-<% if legacy -%>
+<% if runtime.fetch("ast_nodes", []).include?("singleton_class") -%>
   SingletonClassDef = Data.define(:receiver, :body)
 <% end -%>
   When = Data.define(:patterns, :body)
   Case = Data.define(:expression, :whens, :else_body)
-<% if legacy -%>
+<% if runtime.fetch("ast_nodes", []).include?("pattern") -%>
   Pattern = Data.define(:kind, :values)
   RescueClause = Data.define(:exceptions, :variable, :body)
   FullRescue = Data.define(:body, :clauses, :else_body, :ensure_body)

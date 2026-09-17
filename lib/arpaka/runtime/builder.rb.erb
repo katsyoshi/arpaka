@@ -84,7 +84,7 @@ class Builder
   def def_node(name, arguments, body)
     AST::Def.new(name.to_sym, (arguments || []).freeze, body || [].freeze)
   end
-<% if legacy -%>
+<% if runtime.fetch("builder_methods", []).include?("singleton_method") -%>
   def singleton_method_node(receiver, name, arguments, body)
     AST::SingletonMethodDef.new(receiver, name.to_sym, (arguments || []).freeze,
       body_nodes(body))
@@ -98,7 +98,7 @@ class Builder
   def module_node(name, body)
     AST::ModuleDef.new(name.to_sym, body_nodes(body))
   end
-<% if legacy -%>
+<% if runtime.fetch("builder_methods", []).include?("singleton_class") -%>
   def singleton_class_node(receiver, body)
     AST::SingletonClassDef.new(receiver, body_nodes(body))
   end
@@ -181,7 +181,7 @@ class Builder
   def lambda_node(arguments, body)
     AST::Lambda.new((arguments || []).freeze, body_nodes(body))
   end
-<% if legacy -%>
+<% if runtime.fetch("builder_methods", []).include?("rescue") -%>
   def body_statement(body, clauses, else_body, ensure_body)
     clauses = clauses.nil? ? [] : Array(clauses)
     if clauses.empty? && else_body.nil? && ensure_body.nil?
@@ -259,7 +259,7 @@ class Builder
   def assign(name, value)
     AST::LocalWrite.new(name, value)
   end
-<% if legacy -%>
+<% if runtime.fetch("builder_methods", []).include?("assignment") -%>
   def assignment(name, value)
     if name.is_a?(AST::Field) || name.is_a?(AST::Index)
       AST::Assignment.new(name, value)

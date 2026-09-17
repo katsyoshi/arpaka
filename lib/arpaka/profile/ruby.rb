@@ -8,7 +8,8 @@ module Arpaka
       CURRENT = {
         "name" => "ruby-4.0",
         "actions" => ::Arpaka::RubyGrammarActions::ACTIONS,
-        "additional_expected_conflicts" => 0
+        "additional_expected_conflicts" => 0,
+        "runtime" => {}.freeze
       }.freeze
 
       def self.select(grammar)

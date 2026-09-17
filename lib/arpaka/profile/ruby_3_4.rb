@@ -1,6 +1,11 @@
 {"name" => "ruby-3.4",
  "source_revision" => "76cca827ab52ab1d346a728f068d5b8da3e2952b",
  "source_sha256" => "c3b4893af679eaeb5688d615cbfff0459a42077776a49df5d9514187cb56b1ec",
+ "runtime" => {
+   "ast_nodes" => %w[assignment singleton_method singleton_class pattern].freeze,
+   "builder_methods" => %w[assignment singleton_method singleton_class rescue].freeze,
+   "lexer" => {"source_text_tokens" => ["tOP_ASGN"].freeze}.freeze
+ }.freeze,
  "actions" =>
   {1 => ["empty", "nil"],
    2 => ["ported", "@builder.program($2)"],
