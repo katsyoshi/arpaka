@@ -84,6 +84,12 @@ class Builder
   def def_node(name, arguments, body)
     AST::Def.new(name.to_sym, (arguments || []).freeze, body || [].freeze)
   end
+<% if runtime.fetch("builder_methods", []).include?("singleton_method") -%>
+  def singleton_method_node(receiver, name, arguments, body)
+    AST::SingletonMethodDef.new(receiver, name.to_sym, (arguments || []).freeze,
+      body_nodes(body))
+  end
+<% end -%>
 
   def class_node(name, superclass, body)
     AST::ClassDef.new(name.to_sym, superclass, body_nodes(body))
@@ -92,6 +98,11 @@ class Builder
   def module_node(name, body)
     AST::ModuleDef.new(name.to_sym, body_nodes(body))
   end
+<% if runtime.fetch("builder_methods", []).include?("singleton_class") -%>
+  def singleton_class_node(receiver, body)
+    AST::SingletonClassDef.new(receiver, body_nodes(body))
+  end
+<% end -%>
 
   def body_nodes(body)
     value = body
@@ -170,6 +181,42 @@ class Builder
   def lambda_node(arguments, body)
     AST::Lambda.new((arguments || []).freeze, body_nodes(body))
   end
+<% if runtime.fetch("builder_methods", []).include?("rescue") -%>
+  def body_statement(body, clauses, else_body, ensure_body)
+    clauses = clauses.nil? ? [] : Array(clauses)
+    if clauses.empty? && else_body.nil? && ensure_body.nil?
+      body_nodes(body)
+    else
+      full_rescue(body, clauses, else_body, ensure_body)
+    end
+  end
+
+  def rescue_chain(clause, rest)
+    [clause] + (rest.nil? ? [] : Array(rest))
+  end
+
+  def pattern(kind, values)
+    AST::Pattern.new(kind.to_sym, Array(values).freeze)
+  end
+
+  def rescue_clause(exceptions, variable, body)
+    AST::RescueClause.new(Array(exceptions).freeze, variable, body_nodes(body))
+  end
+
+  def full_rescue(body, clauses, else_body, ensure_body)
+    AST::FullRescue.new(body_nodes(body), Array(clauses).freeze,
+      else_body.nil? ? nil : body_nodes(else_body),
+      ensure_body.nil? ? nil : body_nodes(ensure_body))
+  end
+
+  def begin_block(body)
+    AST::BeginBlock.new(body_nodes(body))
+  end
+
+  def end_block(body)
+    AST::EndBlock.new(body_nodes(body))
+  end
+<% end -%>
 
   def unary(operator, operand)
     AST::Unary.new(operator, operand)
@@ -212,6 +259,35 @@ class Builder
   def assign(name, value)
     AST::LocalWrite.new(name, value)
   end
+<% if runtime.fetch("builder_methods", []).include?("assignment") -%>
+  def assignment(name, value)
+    if name.is_a?(AST::Field) || name.is_a?(AST::Index)
+      AST::Assignment.new(name, value)
+    else
+      AST::LocalWrite.new(name, value)
+    end
+  end
+
+  def opassign(target, operator, value)
+    AST::OpAssign.new(target, operator.to_sym, value)
+  end
+
+  def multiple_assign(targets, value)
+    AST::MultipleAssign.new(Array(targets).freeze, value)
+  end
+
+  def field(receiver, operator, name)
+    AST::Field.new(receiver, operator.to_sym, name.to_sym)
+  end
+
+  def alias_node(new_name, old_name)
+    AST::Alias.new(new_name, old_name)
+  end
+
+  def undef_node(names)
+    AST::Undef.new(Array(names).freeze)
+  end
+<% end -%>
 
   def array(elements)
     AST::ArrayLiteral.new(elements.freeze)

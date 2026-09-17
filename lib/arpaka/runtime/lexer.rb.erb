@@ -1287,7 +1287,14 @@ class Lexer
         OP_TOKENS.fetch(text, :tOP_ASGN)
       end
       @context.lambda_pending = true if token == :tLAMBDA
+<% source_text_tokens = runtime.fetch("lexer", {}).fetch("source_text_tokens", []) -%>
+<% if source_text_tokens.empty? -%>
       return [token, nil]
+<% elsif source_text_tokens.one? -%>
+      return [token, token == <%= source_text_tokens.first.to_sym.inspect %> ? text : nil]
+<% else -%>
+      return [token, <%= source_text_tokens.map { |value| value.to_sym }.inspect %>.include?(token) ? text : nil]
+<% end -%>
     end
     value = byte.chr
     advance
