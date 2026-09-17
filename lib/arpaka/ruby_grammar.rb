@@ -4,13 +4,13 @@ require "lrama"
 require "json"
 require "digest"
 require_relative "actions"
+require_relative "profile/ruby"
 
 module Arpaka::RubyGrammar
   REVISION = "37d60dd3241d5fdb10ca43f36077f5d556ae1b8d"
   EXTENDED_RULES = {
     ["value_expr_command", ["command"]] => "tLBRACE_ARG"
   }.freeze
-
   def self.parse(source, filename)
     grammar = Lrama::Parser.new(source, filename).parse
     unless grammar.no_stdlib
@@ -55,8 +55,6 @@ module Arpaka::RubyGrammar
         "midrule_position" => rule.position_in_original_rule_rhs,
         "precedence" => rule.precedence_sym&.id&.s_value }
     end
-    unknown = ::Arpaka::RubyGrammarActions::ACTIONS.keys - inventory.map { |rule| rule.fetch("id") }
-    warn "Arpaka: Unknown action IDs: #{unknown.inspect}" unless unknown.empty?
     inventory
   end
 
@@ -112,8 +110,10 @@ module Arpaka::RubyGrammar
     end
     names = symbol_names(grammar)
     name = ->(symbol) { symbol.term ? symbol.id.s_value : names.fetch(symbol.id.s_value) }
+    profile = ::Arpaka::Profile::RUBY.select(grammar)
+    expected_conflicts = (grammar.expect || 0) + profile.fetch("additional_expected_conflicts", 0)
     lines = ["/* Generated from ruby/ruby #{REVISION}. See Arpaka Action mappings. */",
-      "%no-stdlib", "%expect #{grammar.expect || 0}"]
+      "%no-stdlib", "%expect #{expected_conflicts}"]
     lines << "%define lr.type ielr" if grammar.ielr_defined?
     grammar.terms.each do |symbol|
       next if symbol.error_symbol? || symbol.undef_symbol?
@@ -139,7 +139,9 @@ module Arpaka::RubyGrammar
       else
         ""
       end
-      expression = ::Arpaka::RubyGrammarActions::ACTIONS[rule.id]&.last || "@builder.unsupported(#{rule.id})"
+      key = [rule.lhs.id.s_value, rule.rhs.map { |symbol| symbol.id.s_value }]
+      action = profile.fetch("actions")[rule.id] || profile.fetch("compatibility_actions", {})[key]
+      expression = action&.last || "@builder.unsupported(#{rule.id})"
       lines << "/* upstream parse.y:#{metadata.fetch(rule.id).fetch('line')}: #{rule.as_comment} */"
       lines << "#{name.call(rule.lhs)}: #{rhs}#{precedence} { $$ = #{expression} };"
     end
@@ -151,9 +153,12 @@ module Arpaka::RubyGrammar
     compact = rules.map do |rule|
       { id: rule.id, rule: rule.as_comment,
         line: metadata.fetch(rule.id).fetch("line"),
-        status: ::Arpaka::RubyGrammarActions::ACTIONS[rule.id]&.first || "unsupported" }
+        status: (profile.fetch("actions")[rule.id] ||
+          profile.fetch("compatibility_actions", {})[[rule.lhs.id.s_value,
+            rule.rhs.map { |symbol| symbol.id.s_value }]])&.first || "unsupported" }
     end
-    { "parse.y" => source, "rules.json" => JSON.pretty_generate(compact) + "\n" }
+    { "parse.y" => source, "rules.json" => JSON.pretty_generate(compact) + "\n",
+      "profile" => profile.fetch("name") }
   end
 
   def self.verify_structure(original, source, names)
@@ -166,7 +171,7 @@ module Arpaka::RubyGrammar
       end.sort_by(&:inspect)
     end
     expected_rules = signature.call(original, names).map do |rule|
-      if rule[0] == names.fetch("value_expr_command") && rule[1] == [names.fetch("command")]
+      if names.key?("value_expr_command") && rule[0] == names.fetch("value_expr_command") && rule[1] == [names.fetch("command")]
         rule[0, 2] + ["tLBRACE_ARG"]
       else
         rule

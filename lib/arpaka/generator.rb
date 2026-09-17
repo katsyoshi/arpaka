@@ -22,9 +22,13 @@ module Arpaka
         filename: grammar_filename, class_name: "Parser", allow_error_rules: true)
       parser = parser.delete_prefix("# frozen_string_literal: true\n")
       rules = JSON.parse(artifacts.fetch("rules.json"))
+      legacy = artifacts.fetch("profile") == "ruby-3.4"
       runtime = %w[frontend ast builder lexer].map do |name|
         template = File.read(File.join(__dir__, "runtime", "#{name}.rb.erb"))
-        name == "builder" ? ERB.new(template).result_with_hash(rules: rules) : template
+        if name == "lexer" && legacy
+          template = template.sub("return [token, nil]", "return [token, token == :tOP_ASGN ? text : nil]")
+        end
+        ERB.new(template, trim_mode: "-").result_with_hash(rules: rules, legacy: legacy)
       end.join("\n")
       notices = [File.read(File.expand_path("../../LICENSE.txt", __dir__))]
       %w[COPYING BSDL].each do |name|

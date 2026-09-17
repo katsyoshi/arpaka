@@ -6,6 +6,14 @@ module AST
   If = Data.define(:condition, :then_body, :else_body)
   LocalRead = Data.define(:name)
   LocalWrite = Data.define(:name, :value)
+<% if legacy -%>
+  Assignment = Data.define(:target, :value)
+  OpAssign = Data.define(:target, :operator, :value)
+  MultipleAssign = Data.define(:targets, :value)
+  Field = Data.define(:receiver, :operator, :name)
+  Alias = Data.define(:new_name, :old_name)
+  Undef = Data.define(:names)
+<% end -%>
   BareCall = Data.define(:name)
   ArrayLiteral = Data.define(:elements)
   HashLiteral = Data.define(:pairs)
@@ -26,10 +34,23 @@ module AST
   XStringLiteral = Data.define(:value)
   For = Data.define(:variable, :enumerable, :body)
   Def = Data.define(:name, :arguments, :body)
+<% if legacy -%>
+  SingletonMethodDef = Data.define(:receiver, :name, :arguments, :body)
+<% end -%>
   ClassDef = Data.define(:name, :superclass, :body)
   ModuleDef = Data.define(:name, :body)
+<% if legacy -%>
+  SingletonClassDef = Data.define(:receiver, :body)
+<% end -%>
   When = Data.define(:patterns, :body)
   Case = Data.define(:expression, :whens, :else_body)
+<% if legacy -%>
+  Pattern = Data.define(:kind, :values)
+  RescueClause = Data.define(:exceptions, :variable, :body)
+  FullRescue = Data.define(:body, :clauses, :else_body, :ensure_body)
+  BeginBlock = Data.define(:body)
+  EndBlock = Data.define(:body)
+<% end -%>
   Lambda = Data.define(:arguments, :body)
   Sequence = Data.define(:statements)
 end
