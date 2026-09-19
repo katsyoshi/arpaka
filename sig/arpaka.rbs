@@ -7,8 +7,8 @@ module Arpaka
     def parse: (String source, ?filename: String) -> _Program
   end
 
-  def self.generate: (ruby_source: String, ?class_name: String) -> String
-  def self.compile: (ruby_source: String, ?class_name: String) -> _Frontend
+  def self.generate: (?ruby_source: String?, ?parse_y: String?, ?class_name: String) -> String
+  def self.compile: (?ruby_source: String?, ?parse_y: String?, ?class_name: String) -> _Frontend
 
   class Error < ::Lrama::Ruby::Error
   end

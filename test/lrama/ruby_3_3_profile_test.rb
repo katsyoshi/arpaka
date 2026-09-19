@@ -3,7 +3,7 @@
 require "test_helper"
 
 class Ruby33ProfileTest < Test::Unit::TestCase
-  PROFILE = Arpaka::Profile::RUBY.send(:load, "ruby_3_3.rb", "ruby-3.3")
+  PROFILE = Arpaka::Ruby::Profile.send(:load, "profiles/ruby_3_3.rb", "ruby-3.3")
 
   test "records the stable Ruby 3.3 source profile" do
     assert_equal("v3_3_10", PROFILE.fetch("source_tag"))

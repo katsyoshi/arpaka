@@ -273,10 +273,10 @@ requires an explicit Ruby source tree. `ruby:check` verifies the source profile,
 Action inventory, grammar transformation and generated frontend without editing
 artifacts. `ruby:generate` writes the standalone frontend to `OUTPUT`.
 
-`lib/arpaka/actions.rb` holds the Ruby Action mappings;
-`lib/arpaka/upstream_rules.json` records the expected expanded upstream rules.
+`lib/arpaka/ruby/actions.rb` holds the Ruby Action mappings;
+`lib/arpaka/ruby/upstream_rules.json` records the expected expanded upstream rules.
 Update these and the source checksums together when adding support for a changed
-Ruby grammar. Runtime templates live under `lib/arpaka/runtime/`.
+Ruby grammar. Runtime templates live under `lib/arpaka/ruby/runtime/`.
 
 Tests exercise the generated frontend and the generic backend. Package checks
 install the gem, generate from external Ruby sources, and execute the resulting
