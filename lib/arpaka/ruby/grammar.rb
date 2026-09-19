@@ -4,9 +4,9 @@ require "lrama"
 require "json"
 require "digest"
 require_relative "actions"
-require_relative "profile/ruby"
+require_relative "profile"
 
-module Arpaka::RubyGrammar
+module Arpaka::Ruby::Grammar
   REVISION = "37d60dd3241d5fdb10ca43f36077f5d556ae1b8d"
   EXTENDED_RULES = {
     ["value_expr_command", ["command"]] => "tLBRACE_ARG"
@@ -110,7 +110,7 @@ module Arpaka::RubyGrammar
     end
     names = symbol_names(grammar)
     name = ->(symbol) { symbol.term ? symbol.id.s_value : names.fetch(symbol.id.s_value) }
-    profile = ::Arpaka::Profile::RUBY.select(grammar)
+    profile = ::Arpaka::Ruby::Profile.select(grammar)
     expected_conflicts = (grammar.expect || 0) + profile.fetch("additional_expected_conflicts", 0)
     lines = ["/* Generated from ruby/ruby #{REVISION}. See Arpaka Action mappings. */",
       "%no-stdlib", "%expect #{expected_conflicts}"]

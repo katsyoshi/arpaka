@@ -26,8 +26,8 @@ versions is not currently promised.
 - `lib/lrama/ruby/parser.rb.erb`: standalone parser template.
 - `lib/lrama/ruby/backend.rb` and `action_code.rb`: internal files loaded in the generator's box.
 - `examples/calculator.y`: executable example grammar.
-- `lib/arpaka/`: frontend generator, CLI, source profile and Action mappings.
-- `lib/arpaka/runtime/`: AST, builder, lexer and frontend source templates.
+- `lib/arpaka/`: public frontend entry points and compatibility CLI.
+- `lib/arpaka/ruby/`: Ruby frontend generator, CLI, source profiles, Action mappings and runtime templates.
 - `exe/arpaka`: installed generation command.
 - `tool/ruby/`: development entry point for frontend generation and checks.
 - `vendor/ruby/`: pinned upstream grammar, preprocessing tools and license files.
