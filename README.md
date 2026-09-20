@@ -164,6 +164,17 @@ RUBY_BOX=1 bundle exec arpaka generate \
 This mode embeds Arpaka's own license notices. The `--ruby-source` mode remains
 the compatibility-preserving path when the Ruby source tree is available.
 
+The experimental sample plugin demonstrates the plugin command shape. It is
+selected by the first command argument and runs in its own Ruby Box; the host
+process writes the generated source:
+
+```sh
+RUBY_BOX=1 bundle exec arpaka sample generate \
+  -y /path/to/parser.y \
+  -c MyParser \
+  -o lib/my_library/parser.rb
+```
+
 The consumer only needs the generated file and Ruby 4.0 or later:
 
 ```ruby
