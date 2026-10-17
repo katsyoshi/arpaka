@@ -68,6 +68,27 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "yield defined back references and variable arity logic normalize soundly" do
+    ["def f; yield; end", "def f; yield(value); end", "defined?(value)", "defined?(@value)",
+      "$1", "$&", "$+", "a && b && c && d", "a || b || c || d"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
+  test "argument concatenation preserves splat distinctions" do
+    ["f(value, *values)", "f(value, *values, tail)", "def f; yield(value, *values); end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+    source = "f(*values)"
+    refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
+  test "normalization makes RubyVM-only constructs verified mismatches when candidate loses structure" do
+    [%q{values[index] += 1}, %q{object.value += 1}, %q{__FILE__}, %q{:"prefix#{value}"}, %q{`prefix#{value}`}].each do |source|
+      refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "class and module local scopes remain distinct from outer locals" do
     source = "outer = 1; module M; outer; end"
     refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)))
