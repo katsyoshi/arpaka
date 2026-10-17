@@ -22,6 +22,30 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "variable writes indexes and unless compare across both AST shapes" do
+    ["@value = 1", "@@value = 1", "$value = 1", "VALUE = 1",
+      "values[0]", "values[0] = 1", "unless ready; value; else; fallback; end",
+      "case value; when 1, 2; first; else; other; end", "`command`"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
+  test "known assignment and callable body losses become mismatches" do
+    ["object.value = 1", "fetch(name: 1)", "def self.value; 1; end", "-> { 1 }",
+      "while ready; value; end", "return 1", "super"].each do |source|
+      refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
+  test "block pass keyword parameters ensure rescue and multiple assignment retain reference structure" do
+    ["foo(&block)", "def f(required:, optional: 1); end", "a, b = values",
+      "begin; dangerous; rescue Error => error; fallback; ensure; cleanup; end"].each do |source|
+      rubyvm = normalized_rubyvm(source)
+      arpaka = @normalizer.arpaka(GeneratedRubyFrontend.parse(source))
+      refute_equal(rubyvm, arpaka, source)
+    end
+  end
+
   test "every supported primitive and empty container has a matching form" do
     ["nil", "true", "false", "1", "1.5", "\"text\"", ":symbol", "Foo", "[]", "{}", ""].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
