@@ -31,7 +31,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "known assignment and callable body losses become mismatches" do
-    ["object.value = 1", "def self.value; 1; end", "-> { 1 }",
+    ["object.value = 1", "fetch(name: 1)", "def self.value; 1; end", "-> { 1 }",
       "while ready; value; end", "return 1", "super"].each do |source|
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
