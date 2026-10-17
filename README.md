@@ -21,6 +21,13 @@ location and regenerate when updating the grammar or Actions.
 The Ruby frontend is experimental and partial. The gem contains generation
 support, not a bundled `parse.y` or a pre-generated Ruby frontend.
 
+Successful parsing does not guarantee a complete or correct AST. Known losses
+include block parameters and qualified constant paths. `%W` and `%I` also have
+incorrect Action mappings; their interpolated forms currently raise a lexer
+error instead of returning a flattened AST. Do not rely on these forms for AST
+analysis. The AST comparison task below records agreement separately from parse
+success.
+
 ## Requirements
 
 Ruby 4.0 or later. Start the generator with `RUBY_BOX=1`: Ruby Box isolates the
@@ -321,6 +328,53 @@ for the small, medium and large inputs respectively.
 Generation is a one-time build step per regeneration, not a cost of parsing an
 input file. The generated frontend is loaded and measured with Ruby Box disabled.
 Results vary with input and environment.
+
+### AST compatibility evidence
+
+The correctness benchmark compares the generated frontend's AST with
+`RubyVM::AbstractSyntaxTree` for every `.rb` file in explicitly supplied local
+source trees. It does not execute those files. Generate once with Ruby Box
+enabled; the comparison runs in a separate process with Ruby Box disabled:
+
+```sh
+RUBY_BOX=1 bundle exec ruby -Ilib benchmark/compatibility.rb \
+  --corpus rails=/path/to/rails \
+  --corpus trick13=/path/to/trick13 \
+  --report /tmp/arpaka-compatibility.jsonl
+```
+
+The Rake entry point accepts the same corpus selections through `CORPORA`,
+with optional `REPORT` and `RUBY_SOURCE`:
+
+```sh
+RUBY_BOX=1 CORPORA='rails=/path/to/rails trick13=/path/to/trick13' \
+  REPORT=/tmp/arpaka-compatibility.jsonl bundle exec rake benchmark:compatibility
+```
+
+AST comparison currently covers a basic syntax subset. A file is a match only
+when both entire ASTs can be normalized and agree. Differences are mismatches;
+unknown or ambiguous nodes make the file unverified, including unknown nodes
+nested inside otherwise supported constructs. Parsing failures and per-parser
+10-second timeouts are reported separately. A successful parse by itself never
+counts as AST agreement. Missing semantic information is not reconstructed from
+the input or the reference parser. When absent metadata would describe an empty
+parameter list or a regexp without flags, the result is unverified rather than
+assuming agreement or a defect.
+
+The JSONL report records runtime and revision information, source and generated
+frontend hashes, file-level outcomes, comparison diagnostics, and totals. These
+identify the exact inputs and distinguish complete matches from comparisons
+that remain unsupported. Internal comparison errors are also distinct from
+parser failures. The timeout includes worker startup and AST normalization.
+Exit status is 0 only when every file matches, 1 for
+any mismatch, unverified file, parsing failure, timeout or internal error, and 2 for invalid
+configuration. The current frontend has known semantic losses, so a corpus run
+can legitimately exit with status 1. Reports are local artifacts; external
+corpora are not downloaded or included in the gem.
+
+The normal test suite checks the comparison machinery and known semantic-loss
+examples. External corpus comparison is an explicit task, separate from the
+speed benchmark and the default CI checks.
 
 ## License
 

@@ -796,6 +796,27 @@ class Lexer
     fail!("invalid UTF-8 character")
   end
 
+  def source_character
+    length = utf8_character_length(byte)
+    value = @source.byteslice(@index, length).dup.force_encoding(Encoding::UTF_8)
+    advance(length)
+    value
+  end
+
+  def escaped_character
+    value = byte
+    if value >= 0x80
+      source_character
+    else
+      advance
+      value.chr.force_encoding(Encoding::UTF_8)
+    end
+  end
+
+  def append_source_character(result)
+    result << source_character
+  end
+
   def symbol_or_colon(start)
     symbol_position = @context.begin_expression || ([:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) && @context.ternary_depth.zero?)
     return operator_or_punctuation(start) unless symbol_position && byte(1) &&
@@ -829,10 +850,10 @@ class Lexer
       value = byte
       if value == quote
         advance
-        tokens << [:tSTRING_CONTENT, content] unless content.empty?
+        tokens << [:tSTRING_CONTENT, content] if tokens.empty? || !content.empty?
         return tokens
       elsif value == 92
-        content << escape_sequence(start)
+        content << escape_sequence(start, mode: :double, quote: quote)
       elsif value == 35 && byte(1) == 123
         tokens << [:tSTRING_CONTENT, content] unless content.empty?
         content = +""
@@ -844,8 +865,7 @@ class Lexer
         tokens.concat(inner)
         tokens << [:tSTRING_DEND, nil]
       else
-        content << value.chr
-        advance
+        append_source_character(content)
       end
     end
     fail!("unterminated literal", start)
@@ -891,30 +911,154 @@ class Lexer
         advance
         return result
       elsif value == 92
-        result << escape_sequence(start)
+        mode = quote == 39 ? :single : :double
+        result << escape_sequence(start, mode: mode, quote: quote)
       elsif value == 35 && interpolate && byte(1) == 123
         fail!("string interpolation cannot be represented by the AST", start)
       else
-        result << value
-        advance
+        append_source_character(result)
       end
     end
     fail!("unterminated literal", start)
   end
 
-  def escape_sequence(start)
+  def escape_sequence(start, mode: :double, quote: nil, delimiters: [])
     advance
     fail!("unterminated escape", start) if eof?
     value = byte
-    advance
+    escaped = escaped_character
+    case mode
+    when :single
+      return escaped if value == 92 || value == quote
+      "\\" + escaped
+    when :percent_q, :word, :regexp
+      if mode == :regexp
+        return escaped if delimiters.include?(value) && delimiters.uniq.length == 1
+        return "\\" + escaped
+      end
+      return escaped if value == 92 || delimiters.include?(value)
+      if mode == :word && whitespace_byte?(value)
+        return escaped
+      end
+      "\\" + escaped
+    when :double
+      double_quoted_escape(value, escaped, start, quote: quote, delimiters: delimiters)
+    else
+      fail!("unsupported escape mode", start)
+    end
+  end
+
+  def double_quoted_escape(value, escaped, start, quote:, delimiters:)
+    return "" if value == 10
+    if value == 13
+      advance if byte == 10
+      return ""
+    end
     return "\n" if value == 110
     return "\t" if value == 116
     return "\r" if value == 114
     return "\f" if value == 102
     return "\a" if value == 97
     return "\e" if value == 101
-    return value.chr if value == 92 || value == 34 || value == 39
-    value.chr
+    return "\b" if value == 98
+    return " " if value == 115
+    return "\v" if value == 118
+    return escaped if value == 92 || value == quote || delimiters.include?(value) || value == 34 || value == 39 || value == 96
+    return hexadecimal_escape(start) if value == 120
+    return octal_escape(value) if value.between?(48, 55)
+    return unicode_escape(start) if value == 117
+    return control_escape(start) if value == 99
+    return control_escape(start, dash: true) if value == 67
+    return meta_escape(start) if value == 77
+    escaped
+  end
+
+  def hexadecimal_escape(start)
+    digits = +""
+    2.times do
+      break unless hex_digit?(byte)
+      digits << byte.chr
+      advance
+    end
+    fail!("invalid hexadecimal escape", start) if digits.empty?
+    raw_byte(digits.to_i(16))
+  end
+
+  def octal_escape(first)
+    digits = first.chr
+    2.times do
+      break unless byte && byte.between?(48, 55)
+      digits << byte.chr
+      advance
+    end
+    raw_byte(digits.to_i(8) & 0xff)
+  end
+
+  def unicode_escape(start)
+    codepoints = []
+    if byte == 123
+      advance
+      loop do
+        advance while whitespace_byte?(byte)
+        digits = +""
+        while hex_digit?(byte)
+          digits << byte.chr
+          advance
+        end
+        fail!("invalid Unicode escape", start) if digits.empty? || digits.length > 6
+        codepoints << unicode_codepoint(digits.to_i(16), start)
+        advance while whitespace_byte?(byte)
+        break if byte == 125
+        fail!("invalid Unicode escape", start) unless byte
+      end
+      advance
+    else
+      4.times do
+        fail!("invalid Unicode escape", start) unless hex_digit?(byte)
+        codepoints << (byte.chr)
+        advance
+      end
+      codepoints = [unicode_codepoint(codepoints.join.to_i(16), start)]
+    end
+    codepoints.join
+  end
+
+  def unicode_codepoint(value, start)
+    fail!("invalid Unicode codepoint", start) if value > 0x10ffff || value.between?(0xd800, 0xdfff)
+    value.chr(Encoding::UTF_8)
+  end
+
+  def control_escape(start, dash: false)
+    if dash
+      fail!("invalid control escape", start) unless byte == 45
+      advance
+    end
+    fail!("unsupported compound control escape", start) if byte == 92
+    character = source_character
+    fail!("invalid control escape", start) unless character.bytesize == 1 && character.getbyte(0) < 128
+    value = character.getbyte(0)
+    raw_byte(value == 63 ? 127 : value & 0x9f)
+  end
+
+  def meta_escape(start)
+    fail!("invalid meta escape", start) unless byte == 45
+    advance
+    fail!("unsupported compound meta escape", start) if byte == 92
+    character = source_character
+    fail!("invalid meta escape", start) unless character.bytesize == 1 && character.getbyte(0) < 128
+    raw_byte(character.getbyte(0) | 0x80)
+  end
+
+  def raw_byte(value)
+    [value].pack("C").force_encoding(Encoding::UTF_8)
+  end
+
+  def hex_digit?(value)
+    value && (value.between?(48, 57) || value.between?(65, 70) || value.between?(97, 102))
+  end
+
+  def whitespace_byte?(value)
+    [9, 10, 11, 12, 13, 32].include?(value)
   end
 
   def regexp_or_operator(start)
@@ -996,17 +1140,22 @@ class Lexer
     advance
     closing = { 40 => 41, 91 => 93, 123 => 125, 60 => 62 }.fetch(delimiter, delimiter)
     interpolate = [81, 87, 73, 114, 120, 88].include?(kind)
-    content = interpolate ?
-      read_interpolated_delimited(closing, start) :
-      read_delimited(closing, start, interpolate: interpolate)
+    word_literal = [119, 87, 105, 73].include?(kind)
+    content = if word_literal
+      read_word_delimited(closing, delimiter, start, interpolate: [87, 73].include?(kind), symbols: [105, 73].include?(kind))
+    elsif interpolate
+      mode = kind == 114 ? :regexp : :double
+      read_interpolated_delimited(closing, start, mode: mode, delimiters: [closing, delimiter])
+    else
+      read_delimited(closing, start, mode: :percent_q, delimiters: [closing, delimiter])
+    end
     advance while kind == 114 && byte && byte.between?(97, 122)
     token = { 113 => :tSTRING_BEG, 81 => :tSTRING_BEG, 119 => :tWORDS_BEG, 87 => :tQWORDS_BEG,
               105 => :tSYMBOLS_BEG, 73 => :tQSYMBOLS_BEG, 114 => :tREGEXP_BEG,
               115 => :tSYMBEG, 120 => :tXSTRING_BEG, 88 => :tXSTRING_BEG }.fetch(kind)
     terminator = kind == 114 ? :tREGEXP_END : :tSTRING_END
-    @pending = if [119, 87, 105, 73].include?(kind)
-      content = content.map { |token, value| value.to_s }.join if content.is_a?(Array)
-      word_tokens(content, symbols: [105, 73].include?(kind)) + [[terminator, nil]]
+    @pending = if word_literal
+      content + [[terminator, nil]]
     elsif content.is_a?(Array)
       content + [[terminator, nil]]
     else
@@ -1015,23 +1164,50 @@ class Lexer
     [token, nil]
   end
 
-  def word_tokens(content, symbols:)
-    words = content.split(/[\t\n\f\r ]+/).reject(&:empty?)
+  def read_word_delimited(closing, opening, start, interpolate:, symbols:)
     tokens = [[" ", nil]]
-    words.each do |word|
-      tokens << [:tSTRING_CONTENT, symbols ? word.to_sym : word]
-      tokens << [" ", nil]
+    word = +""
+    depth = 0
+    paired_opening = { 41 => 40, 93 => 91, 125 => 123, 62 => 60 }.fetch(closing, -1)
+    flush_word = lambda do
+      unless word.empty?
+        value = symbols ? word.to_sym : word
+        tokens << [:tSTRING_CONTENT, value]
+        tokens << [" ", nil]
+        word = +""
+      end
     end
-    tokens
+
+    until eof?
+      value = byte
+      if value == 92
+        word << escape_sequence(start, mode: interpolate ? :double : :word,
+          delimiters: [closing, opening])
+      elsif value == 35 && interpolate && byte(1) == 123
+        fail!("interpolated percent words cannot be represented by the AST", start)
+      elsif value == closing && depth.zero?
+        flush_word.call
+        advance
+        return tokens
+      elsif whitespace_byte?(value)
+        flush_word.call
+        advance
+      else
+        depth += 1 if value == paired_opening
+        depth -= 1 if value == closing && depth.positive?
+        append_source_character(word)
+      end
+    end
+    fail!("unterminated percent literal", start)
   end
 
-  def read_delimited(closing, start, interpolate: false)
+  def read_delimited(closing, start, mode:, delimiters: [], interpolate: false)
     result = +""
     depth = 0
     until eof?
       value = byte
       if value == 92
-        result << escape_sequence(start)
+        result << escape_sequence(start, mode: mode, delimiters: delimiters)
       elsif value == 35 && interpolate && byte(1) == 123
         fail!("string interpolation cannot be represented by the AST", start)
       elsif value == closing && depth.zero?
@@ -1040,14 +1216,13 @@ class Lexer
       else
         depth += 1 if value == ({ 41 => 40, 93 => 91, 125 => 123, 62 => 60 }.fetch(closing, -1))
         depth -= 1 if value == closing && depth.positive?
-        result << value.chr
-        advance
+        append_source_character(result)
       end
     end
     fail!("unterminated percent literal", start)
   end
 
-  def read_interpolated_delimited(closing, start)
+  def read_interpolated_delimited(closing, start, mode:, delimiters: [])
     result = +""
     tokens = []
     depth = 0
@@ -1055,7 +1230,7 @@ class Lexer
     until eof?
       value = byte
       if value == 92
-        result << escape_sequence(start)
+        result << escape_sequence(start, mode: mode, delimiters: delimiters)
       elsif value == 35 && byte(1) == 123
         tokens << [:tSTRING_CONTENT, result] unless result.empty?
         result = +""
@@ -1068,13 +1243,12 @@ class Lexer
         tokens << [:tSTRING_DEND, nil]
       elsif value == closing && depth.zero?
         advance
-        tokens << [:tSTRING_CONTENT, result] unless result.empty?
+        tokens << [:tSTRING_CONTENT, result] if tokens.empty? || !result.empty?
         return tokens
       else
         depth += 1 if value == opening
         depth -= 1 if value == closing && depth.positive?
-        result << value.chr
-        advance
+        append_source_character(result)
       end
     end
     fail!("unterminated percent literal", start)

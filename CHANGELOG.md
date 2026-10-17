@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+- Fixed quote-specific escapes, escaped word boundaries and percent-regexp
+  delimiter escapes in generated Ruby frontends. Interpolated `%W` and `%I`
+  now fail explicitly instead of silently losing their interpolation.
+- Added an AST comparison benchmark that separates parse success from AST
+  agreement and records unsupported comparisons explicitly.
+
 ## [1.0.0] - 2026-09-19
 
 - Added frontend generation directly from a Ruby `parse.y` file.

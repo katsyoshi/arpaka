@@ -2,6 +2,7 @@
 
 require "bundler/gem_tasks"
 require "rake/testtask"
+require "shellwords"
 
 Rake::TestTask.new(:test) do |t|
   t.libs << "test"
@@ -38,5 +39,15 @@ namespace :benchmark do
   desc "Benchmark Ruby source and token parsing"
   task :parse do
     ruby "benchmark/parse.rb"
+  end
+
+  desc "Compare generated Ruby ASTs with RubyVM (requires CORPORA; optional REPORT and RUBY_SOURCE)"
+  task :compatibility do
+    arguments = Shellwords.split(ENV.fetch("CORPORA", "")).flat_map do |corpus|
+      ["--corpus", corpus]
+    end
+    arguments += ["--report", ENV.fetch("REPORT")] if ENV["REPORT"]
+    arguments += ["--ruby-source", ENV.fetch("RUBY_SOURCE")] if ENV["RUBY_SOURCE"]
+    ruby "benchmark/compatibility.rb", *arguments
   end
 end

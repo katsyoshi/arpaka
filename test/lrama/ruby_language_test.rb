@@ -992,7 +992,7 @@ class ArpakaTest < Test::Unit::TestCase
     tokens = GeneratedRubyFrontend.const_get(:Lexer, false).new(source).each.to_a
     assert_equal([:tREGEXP_BEG, :tSTRING_DBEG, :tIDENTIFIER, ".", :tIDENTIFIER,
       "(", :tREGEXP_BEG, :tSTRING_CONTENT, :tREGEXP_END, ",", :tSTRING_BEG,
-      :tSTRING_END, ")", :tSTRING_DEND, :tREGEXP_END, 0], tokens.map(&:first))
+      :tSTRING_CONTENT, :tSTRING_END, ")", :tSTRING_DEND, :tREGEXP_END, 0], tokens.map(&:first))
     assert_kind_of(AST::RegexpLiteral, GeneratedRubyFrontend.parse(source).statements.first)
   end
 
