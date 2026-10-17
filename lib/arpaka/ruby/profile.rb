@@ -9,7 +9,10 @@ module Arpaka
         "name" => "ruby-4.0",
         "actions" => ::Arpaka::Ruby::Actions::ACTIONS,
         "additional_expected_conflicts" => 0,
-        "runtime" => {}.freeze
+        "runtime" => {
+          "ast_nodes" => %w[singleton_method].freeze,
+          "builder_methods" => %w[singleton_method].freeze
+        }.freeze
       }.freeze
 
       def self.select(grammar)

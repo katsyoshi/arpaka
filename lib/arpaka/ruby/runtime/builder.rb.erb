@@ -92,11 +92,11 @@ class Builder
 <% end -%>
 
   def class_node(name, superclass, body)
-    AST::ClassDef.new(name.to_sym, superclass, body_nodes(body))
+    AST::ClassDef.new(declaration_name(name), superclass, body_nodes(body))
   end
 
   def module_node(name, body)
-    AST::ModuleDef.new(name.to_sym, body_nodes(body))
+    AST::ModuleDef.new(declaration_name(name), body_nodes(body))
   end
 <% if runtime.fetch("builder_methods", []).include?("singleton_class") -%>
   def singleton_class_node(receiver, body)
@@ -147,6 +147,22 @@ class Builder
 
   def variable(kind, name)
     AST::Variable.new(kind, name.is_a?(String) ? name.to_sym : name)
+  end
+
+  def constant_path(receiver, name)
+    AST::ConstantPath.new(receiver, name.to_sym)
+  end
+
+  def absolute_constant(name)
+    AST::AbsoluteConstant.new(name.to_sym)
+  end
+
+  def declaration_name(name)
+    if name.is_a?(AST::Variable) && name.kind == :constant
+      name.name
+    else
+      name
+    end
   end
 
   def rescue_modifier(expression, fallback)

@@ -115,8 +115,35 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::ModuleDef.new(:Bar, [literal(2)])]), parse(*module_tokens))
     assert_equal(AST::ClassDef.new(:Error, AST::Variable.new(:constant, :StandardError), []),
       GeneratedRubyFrontend.parse("class Error < StandardError\nend").statements.first)
-    assert_equal(:TrixEditor,
-      GeneratedRubyFrontend.parse("class Editor::TrixEditor\nend").statements.first.name)
+    assert_equal(AST::ClassDef.new(AST::ConstantPath.new(AST::Variable.new(:constant, :Editor), :TrixEditor), nil, []),
+      GeneratedRubyFrontend.parse("class Editor::TrixEditor\nend").statements.first)
+  end
+
+  test "qualified and absolute constants preserve their path" do
+    assert_equal(AST::ConstantPath.new(AST::Variable.new(:constant, :A), :B),
+      GeneratedRubyFrontend.parse("A::B").statements.first)
+    assert_equal(AST::AbsoluteConstant.new(:A),
+      GeneratedRubyFrontend.parse("::A").statements.first)
+    assert_equal(AST::ConstantPath.new(AST::ConstantPath.new(AST::Variable.new(:constant, :A), :B), :C),
+      GeneratedRubyFrontend.parse("A::B::C").statements.first)
+    assert_equal(AST::ConstantPath.new(AST::AbsoluteConstant.new(:A), :B),
+      GeneratedRubyFrontend.parse("::A::B").statements.first)
+  end
+
+  test "qualified and absolute class and module names preserve their paths" do
+    assert_equal(AST::ConstantPath.new(AST::Variable.new(:constant, :Outer), :Inner),
+      GeneratedRubyFrontend.parse("class Outer::Inner; end").statements.first.name)
+    assert_equal(AST::ConstantPath.new(AST::AbsoluteConstant.new(:Outer), :Inner),
+      GeneratedRubyFrontend.parse("class ::Outer::Inner; end").statements.first.name)
+    assert_equal(AST::ConstantPath.new(AST::Variable.new(:constant, :Outer), :Inner),
+      GeneratedRubyFrontend.parse("module Outer::Inner; end").statements.first.name)
+    assert_equal(AST::AbsoluteConstant.new(:Thing),
+      GeneratedRubyFrontend.parse("module ::Thing; end").statements.first.name)
+  end
+
+  test "singleton method definitions preserve receiver, name, and body" do
+    expected = AST::SingletonMethodDef.new(literal(:self), :value, [], [literal(1)])
+    assert_equal(expected, GeneratedRubyFrontend.parse("def self.value; 1; end").statements.first)
   end
 
   test "simple string literals preserve their content" do
@@ -951,7 +978,7 @@ class ArpakaTest < Test::Unit::TestCase
       GeneratedRubyFrontend.parse("def [](x); x; end").statements.first)
     assert_nothing_raised { GeneratedRubyFrontend.parse("def /(other); other; end") }
     assert_nothing_raised { GeneratedRubyFrontend.parse("def &(other); other; end") }
-    assert_equal(:Foo, GeneratedRubyFrontend.parse("::Foo").statements.first)
+    assert_equal(AST::AbsoluteConstant.new(:Foo), GeneratedRubyFrontend.parse("::Foo").statements.first)
   end
 
   test "source lexer preserves alias boundaries and symbol statement endings" do

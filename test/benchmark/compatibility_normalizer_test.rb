@@ -17,6 +17,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   test "basic expression families compare across both AST shapes" do
     ["{name: 1, count: 2}", "x && y", "x and y", "x || y", "x or y", "!flag", "1..3", "ready ? value : fallback",
       "if ready; value; else; fallback; end", "def value; 1; end", "object&.fetch(1)",
+      "A::B", "::A", "A::B::C", "::A::B", "def self.value; 1; end",
       "-1", "-0.0", "+1"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
@@ -31,7 +32,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "known assignment and callable body losses become mismatches" do
-    ["object.value = 1", "fetch(name: 1)", "def self.value; 1; end", "-> { 1 }",
+    ["object.value = 1", "fetch(name: 1)", "-> { 1 }",
       "while ready; value; end", "return 1", "super"].each do |source|
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
@@ -60,9 +61,10 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
-  test "qualified and absolute declaration paths expose lost candidate names" do
-    ["class Outer::Inner; end", "class ::Thing; end", "module Outer::Inner; end"].each do |source|
-      refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  test "qualified and absolute declaration paths compare across both AST shapes" do
+    ["class Outer::Inner; end", "class ::Thing; end", "class ::Outer::Inner; end",
+      "module Outer::Inner; end", "module ::Thing; end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
   end
 

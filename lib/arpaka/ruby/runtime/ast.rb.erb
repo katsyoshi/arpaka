@@ -29,6 +29,8 @@ module AST
   Loop = Data.define(:kind, :condition, :body)
   Control = Data.define(:kind)
   Variable = Data.define(:kind, :name)
+  ConstantPath = Data.define(:receiver, :name)
+  AbsoluteConstant = Data.define(:name)
   Rescue = Data.define(:expression, :fallback)
   RegexpLiteral = Data.define(:value)
   XStringLiteral = Data.define(:value)
