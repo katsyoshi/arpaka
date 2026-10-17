@@ -1,6 +1,9 @@
 module AST
   Program = Data.define(:statements)
   Literal = Data.define(:value)
+<% if runtime.fetch("ast_nodes", []).include?("self") -%>
+  Self = Data.define
+<% end -%>
   Binary = Data.define(:operator, :left, :right)
   Unary = Data.define(:operator, :operand)
   If = Data.define(:condition, :then_body, :else_body)

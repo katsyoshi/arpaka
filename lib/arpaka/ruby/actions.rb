@@ -500,7 +500,7 @@ module Arpaka::Ruby::Actions
     699 => ["ported", "@builder.identifier($1)"],
     700 => ["ported", "@builder.variable(:constant, $1)"],
     702 => ["ported", "@builder.literal(nil)"],
-    703 => ["ported", "@builder.literal(:self)"],
+    703 => ["ported", "@builder.self_node"],
     706 => ["ported", "@builder.literal(:__FILE__)"],
     707 => ["ported", "@builder.literal(:__LINE__)"],
     708 => ["ported", "@builder.literal(:__ENCODING__)"],

@@ -24,6 +24,12 @@ class Builder
     AST::Literal.new(value)
   end
 
+<% if runtime.fetch("builder_methods", []).include?("self") -%>
+  def self_node
+    AST::Self.new
+  end
+<% end -%>
+
   def reserved_word(value)
     value.to_sym
   end

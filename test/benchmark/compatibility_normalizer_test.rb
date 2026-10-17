@@ -70,6 +70,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
 
   test "yield defined back references and variable arity logic normalize soundly" do
     ["def f; yield; end", "def f; yield(value); end", "defined?(value)", "defined?(@value)",
+      "self", ":self", "self.name", "[self, :self]", "def self.value; self; end",
       "$1", "$&", "$+", "a && b && c && d", "a || b || c || d"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
@@ -142,10 +143,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_not_equal(normalized_rubyvm("1"), normalized_rubyvm("1; begin; end"))
   end
 
-  test "ambiguous self and unknown nested nodes are unverified" do
-    assert_raise(Compatibility::Unsupported) do
-      @normalizer.arpaka(GeneratedRubyFrontend.parse("self"))
-    end
+  test "self and symbol self remain distinct and unknown nested nodes are unverified" do
+    self_node = GeneratedRubyFrontend.parse("self").statements.first
+    symbol_node = GeneratedRubyFrontend.parse(":self").statements.first
+    assert_kind_of(GeneratedRubyFrontend::AST::Self, self_node)
+    assert_equal(GeneratedRubyFrontend::AST::Literal.new(:self), symbol_node)
+    assert_not_equal(@normalizer.arpaka(self_node), @normalizer.arpaka(symbol_node))
     unknown = Class.new(Data.define(:value)).new(1)
     tree = GeneratedRubyFrontend::AST::Program.new([GeneratedRubyFrontend::AST::ArrayLiteral.new([unknown])])
     error = assert_raise(Compatibility::Unsupported) { @normalizer.arpaka(tree) }

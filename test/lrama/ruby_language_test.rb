@@ -98,7 +98,7 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "keywords after a receiver are method names" do
-    receiver = AST::ReceiverCall.new(literal(:self), :".", :class, [])
+    receiver = AST::ReceiverCall.new(AST::Self.new, :".", :class, [])
     assert_equal(AST::Program.new([AST::ReceiverCall.new(receiver, :".", :to_s, [])]),
       GeneratedRubyFrontend.parse("self.class.to_s"))
   end
@@ -142,7 +142,7 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "singleton method definitions preserve receiver, name, and body" do
-    expected = AST::SingletonMethodDef.new(literal(:self), :value, [], [literal(1)])
+    expected = AST::SingletonMethodDef.new(AST::Self.new, :value, [], [literal(1)])
     assert_equal(expected, GeneratedRubyFrontend.parse("def self.value; 1; end").statements.first)
   end
 
@@ -208,7 +208,12 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "self is preserved as a literal value" do
-    assert_equal(AST::Program.new([literal(:self)]), parse([:keyword_self, nil]))
+    assert_equal(AST::Program.new([AST::Self.new]), parse([:keyword_self, nil]))
+    assert_equal(AST::Program.new([literal(:self)]), GeneratedRubyFrontend.parse(":self"))
+    assert_equal(AST::Program.new([AST::ReceiverCall.new(AST::Self.new, :".", :name, [])]),
+      GeneratedRubyFrontend.parse("self.name"))
+    assert_equal(AST::Program.new([AST::ArrayLiteral.new([AST::Self.new, literal(:self)])]),
+      GeneratedRubyFrontend.parse("[self, :self]"))
   end
 
   test "character, rational and imaginary literals preserve token values" do
