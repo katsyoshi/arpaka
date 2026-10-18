@@ -308,6 +308,15 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "block local variables compare separately from block parameters" do
+    tree = GeneratedRubyFrontend.parse("items.each { |item; local| local }")
+    parameters = tree.statements.first.parameters
+    assert_equal(:required, parameters.kind)
+    locals = parameters.value.last
+    assert_equal(:locals, locals.kind)
+    assert_equal([:local], locals.value)
+  end
+
   test "aliases, undef and expressionless case preserve their AST distinctions" do
     ["alias old_method new_method", "alias $old $new", "undef old_method, new_method",
       "case; when ready then value; else fallback; end", "case nil; when ready then value; end"].each do |source|

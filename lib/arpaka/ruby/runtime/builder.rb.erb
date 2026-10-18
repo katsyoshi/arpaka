@@ -126,24 +126,29 @@ class Builder
     BlockBody.new(parameters, body_nodes(body))
   end
 
-  def begin_block_parameters(value)
+  def begin_block_parameters(value, locals = nil)
     @block_local_scopes << @locals.dup
+    local_names = Array(locals).compact
+    local_names.each { |name| @locals[name] = true }
     case value
     when nil
-      AST::BlockParameters.new(:none, nil)
+      parameters = AST::BlockParameters.new(:none, nil)
     when Symbol
       @locals[value] = true
-      AST::BlockParameters.new(:required, [value].freeze)
+      parameters = AST::BlockParameters.new(:required, [value].freeze)
     when Array
       names = block_parameter_names(value)
       names.each { |name| @locals[name] = true }
-      AST::BlockParameters.new(:required, value.freeze)
+      parameters = AST::BlockParameters.new(:required, value.freeze)
     when AST::BlockParameters
       value.value.each { |name| @locals[name] = true } if value.kind == :destructured
-      value
+      parameters = value
     else
-      AST::BlockParameters.new(:unknown, value)
+      parameters = AST::BlockParameters.new(:unknown, value)
     end
+    return parameters if local_names.empty?
+    AST::BlockParameters.new(parameters.kind,
+      Array(parameters.value) + [AST::BlockParameters.new(:locals, local_names.freeze)])
   end
 
   def block_destructure(names)
