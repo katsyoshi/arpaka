@@ -227,7 +227,7 @@ class Builder
       options = regexp.options
       encoding = regexp.encoding.name
     end
-    AST::RegexpLiteral.new(pattern, options, encoding)
+    AST::RegexpLiteral.new(pattern, options, encoding, metadata.fetch(:once, false))
   end
 
   def xstring(value)

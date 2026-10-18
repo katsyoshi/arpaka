@@ -44,7 +44,12 @@ module AST
   ConstantPath = Data.define(:receiver, :name)
   AbsoluteConstant = Data.define(:name)
   Rescue = Data.define(:expression, :fallback)
-  RegexpLiteral = Data.define(:value, :options, :encoding)
+  RegexpLiteral = Data.define(:value, :options, :encoding, :once) do
+    constructor = method(:new)
+    define_singleton_method(:new) do |value, options = 0, encoding = nil, once = false|
+      constructor.call(value, options, encoding, once)
+    end
+  end
   XStringLiteral = Data.define(:value)
   For = Data.define(:variable, :enumerable, :body)
   Def = Data.define(:name, :arguments, :body)

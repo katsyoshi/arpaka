@@ -1137,7 +1137,8 @@ class Lexer
     when "u" then "UTF-8"
     end
     options |= encoding == "US-ASCII" ? 32 : 16 if encoding
-    { options: options, encoding: encoding, source_encoding: @source_encoding }.freeze
+    { options: options, encoding: encoding, source_encoding: @source_encoding,
+      once: modifiers.include?("o") }.freeze
   end
 
   def percent_token(start)

@@ -372,11 +372,26 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     arpaka = @normalizer.arpaka(GeneratedRubyFrontend.parse('%r{prefix#{value}suffix}im'))[1][0]
     assert_equal(rubyvm[1], arpaka[1])
     assert_equal(["unknown", "options"], rubyvm[2])
-    assert_equal(["known", 5], arpaka[2])
+    assert_equal(["unknown", "options"], arpaka[2])
     refute_equal(normalized_rubyvm('%r{left#{value}}'),
       @normalizer.arpaka(GeneratedRubyFrontend.parse('%r{right#{value}}')))
     unicode = GeneratedRubyFrontend.parse('%r{é#{value}}').statements.first
     assert_equal(Encoding::UTF_8, unicode.value.first.encoding)
+  end
+
+  test "regexp once modifier and for loop scopes normalize like RubyVM" do
+    [%q{/#{value}/o}, %q{/#{value}/}].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+    assert_equal(true, GeneratedRubyFrontend.parse(%q{/#{value}/o}).statements.first.once)
+    assert_equal(false, GeneratedRubyFrontend.parse(%q{/#{value}/}).statements.first.once)
+
+    explicit = GeneratedRubyFrontend.parse('%r{prefix#{value}suffix}imo').statements.first
+    assert_equal(5, explicit.options)
+    assert_equal(true, explicit.once)
+
+    source = "for item in items; :done; end"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
   test "absolute constant assignment metadata is left unverified safely" do
