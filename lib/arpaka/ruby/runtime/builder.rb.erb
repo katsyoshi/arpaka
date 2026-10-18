@@ -378,6 +378,11 @@ class Builder
   def lambda_node(arguments, body)
     AST::Lambda.new((arguments || []).freeze, body_nodes(body))
   end
+<% if runtime.fetch("builder_methods", []).include?("pattern") -%>
+  def pattern(kind, values)
+    AST::Pattern.new(kind.to_sym, Array(values).freeze)
+  end
+<% end -%>
 <% if runtime.fetch("builder_methods", []).include?("rescue") -%>
   def body_statement(body, clauses, else_body, ensure_body)
     clauses = clauses.nil? ? [] : Array(clauses)
@@ -390,10 +395,6 @@ class Builder
 
   def rescue_chain(clause, rest)
     [clause] + (rest.nil? ? [] : Array(rest))
-  end
-
-  def pattern(kind, values)
-    AST::Pattern.new(kind.to_sym, Array(values).freeze)
   end
 
   def rescue_clause(exceptions, variable, body)

@@ -410,6 +410,13 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse([:keyword_case, nil], [:keyword_when, nil], [:keyword_true, nil], [:keyword_then, nil], [:tINTEGER, 1], [:keyword_end, nil]))
   end
 
+  test "case in connects its expression, pattern, and body" do
+    pattern = AST::Pattern.new(:value, [literal(1)])
+    clause = AST::When.new([pattern], [literal(:one)])
+    expected = AST::Case.new(AST::BareCall.new(:value), [clause], nil)
+    assert_equal(expected, GeneratedRubyFrontend.parse("case value; in 1; :one; end").statements.first)
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))
