@@ -319,6 +319,11 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal([:local], locals.value)
   end
 
+  test "block-only parameters compare as block parameters" do
+    source = "items.each { |&block| block.call }"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
   test "aliases, undef and expressionless case preserve their AST distinctions" do
     ["alias old_method new_method", "alias $old $new", "undef old_method, new_method",
       "case; when ready then value; else fallback; end", "case nil; when ready then value; end"].each do |source|

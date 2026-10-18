@@ -554,6 +554,12 @@ class ArpakaTest < Test::Unit::TestCase
       GeneratedRubyFrontend.parse("each do |value| value end"))
   end
 
+  test "block-only parameters retain their block parameter kind" do
+    tree = GeneratedRubyFrontend.parse("items.each { |&block| block.call }")
+    parameters = tree.statements.first.parameters
+    assert_equal(AST::BlockParameters.new(:required, [AST::Parameter.new(:block, :block, nil)]), parameters)
+  end
+
   test "method bodies after splat arguments accept hash literals" do
     assert_nothing_raised do
       GeneratedRubyFrontend.parse('def decode(*) { foo: "decoded" } end')

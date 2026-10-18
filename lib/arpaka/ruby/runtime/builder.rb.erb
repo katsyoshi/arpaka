@@ -151,6 +151,13 @@ class Builder
     when AST::BlockParameters
       block_parameter_names(value.value).each { |name| @locals[name] = true } if value.kind == :destructured
       parameters = value
+    when AST::Parameter
+      # A block-only parameter (`|&block|`) is delivered by the grammar as a
+      # Parameter rather than an array of parameters. Keep it in the same
+      # representation as other block parameter forms instead of losing it as
+      # an unknown shape.
+      @locals[value.name] = true if value.name
+      parameters = AST::BlockParameters.new(:required, [value].freeze)
     else
       parameters = AST::BlockParameters.new(:unknown, value)
     end
@@ -183,6 +190,8 @@ class Builder
         when :rest, :post then [parameter.value].compact
         else []
         end
+      when AST::Parameter
+        parameter.name ? [parameter.name] : []
       else []
       end
     end
