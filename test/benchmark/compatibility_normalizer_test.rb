@@ -148,6 +148,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
+  test "constant and nested multiple assignment targets compare across both AST shapes" do
+    ["A, B = values", "a, (b, c) = values"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "postarg multiple assignment stays explicitly unverified until targets retain positions" do
     source = "before, *middle, after = values"
     body = RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2)
