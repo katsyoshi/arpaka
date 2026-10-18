@@ -521,6 +521,10 @@ class Builder
 
   def array(elements)
     elements = elements.is_a?(Array) ? elements : [elements]
+    pair_index = elements.index { |element| element.is_a?(AST::Pair) }
+    if pair_index && elements.drop(pair_index).all? { |element| element.is_a?(AST::Pair) }
+      elements = elements.take(pair_index) + [AST::HashLiteral.new(elements.drop(pair_index).freeze)]
+    end
     AST::ArrayLiteral.new(elements.freeze)
   end
 

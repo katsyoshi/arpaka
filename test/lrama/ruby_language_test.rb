@@ -647,6 +647,14 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Literal.new(1), assignment.value)
   end
 
+  test "association entries in arrays form a trailing hash element" do
+    expected = AST::ArrayLiteral.new([
+      AST::Literal.new(:from),
+      AST::HashLiteral.new([AST::Pair.new(AST::Literal.new(:attachments), AST::ArrayLiteral.new([]))])
+    ])
+    assert_equal(expected, GeneratedRubyFrontend.parse("[:from, attachments: []]").statements.first)
+  end
+
   test "bare names and parse state isolation" do
     expected = AST::Program.new([AST::BareCall.new(:a)])
     assert_equal(expected, parse([:tIDENTIFIER, "a"]))

@@ -74,6 +74,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     rubyvm_hash_argument = normalized_rubyvm("foo({name: 1})")
     assert_equal(:hash, rubyvm_keyword_arguments.dig(1, 0, 4, 0, 0))
     assert_equal(:hash, rubyvm_hash_argument.dig(1, 0, 4, 0, 0))
+
+    explicit_hash = "foo(1, {name: 2})"
+    assert_equal(normalized_rubyvm(explicit_hash), @normalizer.arpaka(GeneratedRubyFrontend.parse(explicit_hash)))
+
+    keyword_only = "foo(1, name: 2)"
+    refute_equal(normalized_rubyvm(keyword_only), @normalizer.arpaka(GeneratedRubyFrontend.parse(keyword_only)))
   end
 
   test "variable writes indexes and unless compare across both AST shapes" do
@@ -104,6 +110,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
 
   test "index opassign compares across both AST shapes" do
     ["values[index] += 1", "options[:root] ||= fallback", "values[0, 1] |= additions"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
+  test "bare association entries inside arrays normalize as a hash" do
+    ["[:from, attachments: []]", "[1, foo: 2, bar: 3]", "[[1, 2], data: {foo: \"bar\"}]"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
   end
