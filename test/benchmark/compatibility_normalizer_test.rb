@@ -35,6 +35,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "complex, imaginary, and symbol array literals compare across both AST shapes" do
+    ["1i", "1 + 2i", "1.5 + 2i", "[:a, :b]", "%i[a b]"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "nil VM block children preserve explicit trailing nil statements" do
     source = "def eager_load!; cache; nil; end"
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
