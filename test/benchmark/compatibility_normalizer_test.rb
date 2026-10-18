@@ -29,6 +29,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "regexp matches normalize named captures and dynamic match3" do
+    ["/(?<name>a)/ =~ text", %q{text =~ /#{pattern}/}].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "nil VM block children preserve explicit trailing nil statements" do
     source = "def eager_load!; cache; nil; end"
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
