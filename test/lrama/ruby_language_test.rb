@@ -533,6 +533,19 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::LocalWrite.new(:a, AST::LocalRead.new(:a))]), parse([:tIDENTIFIER, :a], ["=", nil], [:tIDENTIFIER, :a]))
   end
 
+  test "attribute assignments preserve their receiver and setter name" do
+    ["self.value = 1", "object.value = 1", "object::value = 1"].each do |source|
+      assignment = GeneratedRubyFrontend.parse(source).statements.first
+      assert_kind_of(AST::LocalWrite, assignment, source)
+      assert_kind_of(AST::Field, assignment.name, source)
+      assert_equal(:value, assignment.name.name, source)
+    end
+
+    local_assignment = GeneratedRubyFrontend.parse("value = 1").statements.first
+    assert_kind_of(AST::LocalWrite, local_assignment)
+    assert_equal(:value, local_assignment.name)
+  end
+
   test "bare names and parse state isolation" do
     expected = AST::Program.new([AST::BareCall.new(:a)])
     assert_equal(expected, parse([:tIDENTIFIER, "a"]))

@@ -43,9 +43,14 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
-  test "known assignment and callable body losses become mismatches" do
-    ["object.value = 1", "-> { 1 }",
-      "while ready; value; end", "return 1"].each do |source|
+  test "attribute writes compare across both AST shapes" do
+    ["self.value = 1", "object.value = 1", "object::value = 1"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
+  test "known callable body losses become mismatches" do
+    ["-> { 1 }", "while ready; value; end", "return 1"].each do |source|
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
   end
@@ -132,7 +137,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "known information losses remain visible as mismatches" do
-    %w[splat.rb optional_default_one.rb method_local_scope.rb required_argument_scope.rb].each do |fixture|
+    %w[splat.rb optional_default_one.rb].each do |fixture|
       source = File.read(File.expand_path("../../benchmark/fixtures/#{fixture}", __dir__))
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), fixture)
     end
