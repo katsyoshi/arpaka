@@ -485,11 +485,19 @@ class Builder
   end
 
   def opassign(target, operator, value)
-    AST::OpAssign.new(target, operator.to_sym, value)
+    AST::OpAssign.new(target, operator.to_s.delete_suffix("=").to_sym, value)
   end
 
   def multiple_assign(targets, value)
+    value = array(value) if value.is_a?(Array)
     AST::MultipleAssign.new(Array(targets).freeze, value)
+  end
+
+  def assign_mrhs(targets, value)
+    value = array(value) if value.is_a?(Array)
+    targets = targets.is_a?(Array) ? targets : [targets]
+    return assignment(targets.first, value) if targets.length == 1
+    multiple_assign(targets, value)
   end
 
   def field(receiver, operator, name)
