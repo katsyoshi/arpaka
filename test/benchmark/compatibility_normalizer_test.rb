@@ -23,6 +23,17 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "unverified VM nodes normalize for unary operators, rational values, and regexp match" do
+    ["~value", "1.25r", "/value/ =~ input"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
+  test "nil VM block children preserve explicit trailing nil statements" do
+    source = "def eager_load!; cache; nil; end"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
   test "single binary expression wrappers normalize without flattening sequences" do
     ["call((left + right))", "call((left + right), (other * value))"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
