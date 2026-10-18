@@ -168,6 +168,11 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(Encoding::UTF_8, unicode.value.first.encoding)
   end
 
+  test "absolute constant assignment metadata is left unverified safely" do
+    error = assert_raise(Compatibility::Unsupported) { normalized_rubyvm("::Rails = rails_backup") }
+    assert_match(/absolute constant assignment metadata/, error.detail)
+  end
+
   test "integer and float values retain distinct exact representations" do
     assert_not_equal(normalized_rubyvm("1"), normalized_rubyvm("1.0"))
     assert_not_equal(normalized_rubyvm("0.0"), normalized_rubyvm("-0.0"))
