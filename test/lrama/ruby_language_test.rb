@@ -262,17 +262,23 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "break and next become loop control nodes" do
-    assert_equal(AST::Program.new([AST::Control.new(:break)]), parse([:keyword_break, nil]))
-    assert_equal(AST::Program.new([AST::Control.new(:next)]), parse([:keyword_next, nil]))
+    assert_equal(AST::Program.new([AST::Control.new(:break, nil)]), parse([:keyword_break, nil]))
+    assert_equal(AST::Program.new([AST::Control.new(:next, nil)]), parse([:keyword_next, nil]))
   end
 
   test "redo and retry become loop control nodes" do
-    assert_equal(AST::Program.new([AST::Control.new(:redo)]), parse([:keyword_redo, nil]))
-    assert_equal(AST::Program.new([AST::Control.new(:retry)]), parse([:keyword_retry, nil]))
+    assert_equal(AST::Program.new([AST::Control.new(:redo, nil)]), parse([:keyword_redo, nil]))
+    assert_equal(AST::Program.new([AST::Control.new(:retry, nil)]), parse([:keyword_retry, nil]))
   end
 
   test "bare return becomes a control node" do
-    assert_equal(AST::Program.new([AST::Control.new(:return)]), parse([:keyword_return, nil]))
+    assert_equal(AST::Program.new([AST::Control.new(:return, nil)]), parse([:keyword_return, nil]))
+  end
+
+  test "return arguments stay on the return control node" do
+    expected = AST::Control.new(:return, literal(1))
+    tree = GeneratedRubyFrontend.parse("def f; return 1; end")
+    assert_equal(expected, tree.statements.first.body.first)
   end
 
   test "self is preserved as a literal value" do
@@ -359,8 +365,8 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Call.new(:f, [literal(1)])]), parse([:tIDENTIFIER, :f], [:tINTEGER, 1]))
   end
 
-  test "return with a value becomes a call node" do
-    assert_equal(AST::Program.new([AST::Call.new(:return, [literal(1)])]), parse([:keyword_return, nil], [:tINTEGER, 1]))
+  test "return with a value becomes a control node" do
+    assert_equal(AST::Program.new([AST::Control.new(:return, literal(1))]), parse([:keyword_return, nil], [:tINTEGER, 1]))
   end
 
   test "break and next with values become call nodes" do

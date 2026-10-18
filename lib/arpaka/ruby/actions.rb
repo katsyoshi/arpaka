@@ -98,7 +98,7 @@ module Arpaka::Ruby::Actions
     72 => ["ported", "@builder.unary(:\"!\", $3)"],
     287 => ["ported", "@builder.unary(:\"!\", $3)"],
     71 => ["ported", "@builder.binary(:or, $1, $3)"],
-    108 => ["ported", "@builder.call(:return, $2 || [])"],
+    108 => ["ported", "@builder.control(:return, $2 || [])"],
     107 => ["ported", "@builder.call(:yield, $2 || [])"],
     106 => ["ported", "@builder.super_call($2 || [])"],
     99 => ["ported", "@builder.call($1, $2 || [])"],

@@ -70,7 +70,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "known callable body losses become mismatches" do
-    ["-> { 1 }", "while ready; value; end", "return 1"].each do |source|
+    ["-> { 1 }", "while ready; value; end"].each do |source|
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
   end
@@ -80,7 +80,13 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
 
     explicit_nil = "def f; return nil; end"
-    refute_equal(normalized_rubyvm(explicit_nil), @normalizer.arpaka(GeneratedRubyFrontend.parse(explicit_nil)), explicit_nil)
+    assert_equal(normalized_rubyvm(explicit_nil), @normalizer.arpaka(GeneratedRubyFrontend.parse(explicit_nil)), explicit_nil)
+  end
+
+  test "return values normalize as control values" do
+    ["def f(value); return value; end", "def f; return 1; end", "def f; return 1, 2; end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
   end
 
   test "implicit and explicit super arguments compare distinctly" do

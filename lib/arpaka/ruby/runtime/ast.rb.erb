@@ -39,7 +39,7 @@ module AST
   DynamicSymbol = Data.define(:parts)
   Index = Data.define(:receiver, :arguments)
   Loop = Data.define(:kind, :condition, :body)
-  Control = Data.define(:kind)
+  Control = Data.define(:kind, :value)
   Variable = Data.define(:kind, :name)
   ConstantPath = Data.define(:receiver, :name)
   AbsoluteConstant = Data.define(:name)

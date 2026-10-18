@@ -316,8 +316,14 @@ class Builder
     AST::Loop.new(kind, condition, body)
   end
 
-  def control(kind)
-    AST::Control.new(kind)
+  def control(kind, arguments = nil)
+    arguments = arguments.nil? ? [] : arguments.is_a?(Array) ? arguments : [arguments]
+    value = case arguments.length
+    when 0 then nil
+    when 1 then arguments.first
+    else AST::ArrayLiteral.new(arguments.freeze)
+    end
+    AST::Control.new(kind, value)
   end
 
   def variable(kind, name)
