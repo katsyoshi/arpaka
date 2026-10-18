@@ -406,9 +406,9 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
-  test "absolute constant assignment metadata is left unverified safely" do
-    error = assert_raise(Compatibility::Unsupported) { normalized_rubyvm("::Rails = rails_backup") }
-    assert_match(/absolute constant assignment metadata/, error.detail)
+  test "absolute constant assignments normalize through their COLON3 wrapper" do
+    source = "::Rails = rails_backup"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
   test "integer and float values retain distinct exact representations" do
