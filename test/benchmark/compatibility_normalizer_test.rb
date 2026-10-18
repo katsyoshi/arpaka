@@ -61,6 +61,13 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "single required block parameters and their local reads compare" do
+    ["items.each { |item| item }", "items.each do |item| item end",
+      "outer = 1; items.each { |item| outer + item }; outer"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "qualified and absolute declaration paths compare across both AST shapes" do
     ["class Outer::Inner; end", "class ::Thing; end", "class ::Outer::Inner; end",
       "module Outer::Inner; end", "module ::Thing; end"].each do |source|
@@ -96,7 +103,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "known information losses remain visible as mismatches" do
-    %w[splat.rb optional_default_one.rb regexp_i.rb regexp_m.rb block_parameter.rb
+    %w[splat.rb optional_default_one.rb regexp_i.rb regexp_m.rb
       method_local_scope.rb required_argument_scope.rb].each do |fixture|
       source = File.read(File.expand_path("../../benchmark/fixtures/#{fixture}", __dir__))
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), fixture)

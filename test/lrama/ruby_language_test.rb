@@ -337,9 +337,11 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "command blocks accept block parameters" do
-    assert_equal(AST::Program.new([AST::BlockCall.new(AST::Call.new(:each, []), [AST::BareCall.new(:value)])]),
+    parameters = AST::BlockParameters.new(:required, [:value])
+    body = [AST::LocalRead.new(:value)]
+    assert_equal(AST::Program.new([AST::BlockCall.new(AST::Call.new(:each, []), parameters, body)]),
       GeneratedRubyFrontend.parse("each { |value| value }"))
-    assert_equal(AST::Program.new([AST::BlockCall.new(AST::Call.new(:each, []), [AST::BareCall.new(:value)])]),
+    assert_equal(AST::Program.new([AST::BlockCall.new(AST::Call.new(:each, []), parameters, body)]),
       GeneratedRubyFrontend.parse("each do |value| value end"))
   end
 
@@ -777,9 +779,9 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "source lexer accepts argumentless command blocks" do
-    assert_equal(AST::BlockCall.new(AST::Call.new(:included, []), [literal(1)]),
+    assert_equal(AST::BlockCall.new(AST::Call.new(:included, []), AST::BlockParameters.new(:none, nil), [literal(1)]),
       GeneratedRubyFrontend.parse("included do\n  1\nend").statements.first)
-    assert_equal(AST::BlockCall.new(AST::ReceiverCall.new(AST::BareCall.new(:foo), :".", :bar, []), [literal(1)]),
+    assert_equal(AST::BlockCall.new(AST::ReceiverCall.new(AST::BareCall.new(:foo), :".", :bar, []), AST::BlockParameters.new(:none, nil), [literal(1)]),
       GeneratedRubyFrontend.parse("foo.bar do\n  1\nend").statements.first)
     assert_nothing_raised { GeneratedRubyFrontend.parse("foo before: :bar do |value| value end\n") }
     tokens = GeneratedRubyFrontend.const_get(:Lexer, false).new("items << lambda do").each.to_a
@@ -846,7 +848,7 @@ class ArpakaTest < Test::Unit::TestCase
   test "source lexer uses ordinary do after parenthesized calls" do
     tokens = GeneratedRubyFrontend.const_get(:Lexer, false).new("each(1) do\nend").each.to_a
     assert_equal(:keyword_do, tokens.map(&:first)[-4])
-    assert_equal(AST::BlockCall.new(AST::Call.new(:each, [literal(1)]), []),
+    assert_equal(AST::BlockCall.new(AST::Call.new(:each, [literal(1)]), AST::BlockParameters.new(:none, nil), []),
       GeneratedRubyFrontend.parse("each(1) do\nend").statements.first)
   end
 
@@ -868,7 +870,7 @@ class ArpakaTest < Test::Unit::TestCase
 
   test "grammar precedence accepts block calls as parenthesized arguments" do
     tree = GeneratedRubyFrontend.parse("call(lambda do\nend)\n")
-    assert_equal(AST::Call.new(:call, [AST::BlockCall.new(AST::Call.new(:lambda, []), [])]), tree.statements.first)
+    assert_equal(AST::Call.new(:call, [AST::BlockCall.new(AST::Call.new(:lambda, []), AST::BlockParameters.new(:none, nil), [])]), tree.statements.first)
 
     assert_nothing_raised do
       GeneratedRubyFrontend.parse("subscribe(x, handler, lambda do\n  work\nend)\n")

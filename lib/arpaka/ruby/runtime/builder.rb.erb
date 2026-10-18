@@ -1,9 +1,13 @@
 class Builder
+  BlockBody = Data.define(:parameters, :body)
+  private_constant :BlockBody
+
   RULES = <%= rules.inspect %>.to_h { |rule| [rule.fetch("id"), rule.freeze] }.freeze
   private_constant :RULES
 
   def initialize
     @locals = {}
+    @block_local_scopes = []
   end
 
   def program(statements)
@@ -59,7 +63,29 @@ class Builder
   end
 
   def block_call(call, body)
-    AST::BlockCall.new(call, body_nodes(body))
+    if body.is_a?(BlockBody)
+      AST::BlockCall.new(call, body.parameters, body.body)
+    else
+      AST::BlockCall.new(call, nil, body_nodes(body))
+    end
+  end
+
+  def block_body(parameters, body)
+    @locals = @block_local_scopes.pop if @block_local_scopes.any?
+    BlockBody.new(parameters, body_nodes(body))
+  end
+
+  def begin_block_parameters(value)
+    @block_local_scopes << @locals.dup
+    case value
+    when nil
+      AST::BlockParameters.new(:none, nil)
+    when Symbol
+      @locals[value] = true
+      AST::BlockParameters.new(:required, [value].freeze)
+    else
+      AST::BlockParameters.new(:unknown, value)
+    end
   end
 
   def append_arguments(arguments, argument)
