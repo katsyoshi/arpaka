@@ -54,6 +54,12 @@ class ArpakaTest < Test::Unit::TestCase
       GeneratedRubyFrontend.parse("BEGIN { 1 }"))
   end
 
+  test "BEGIN blocks inside statements retain their node" do
+    assert_equal(AST::Program.new([
+      AST::If.new(AST::Literal.new(true), [AST::BeginBlock.new([literal(1)])], nil)
+    ]), GeneratedRubyFrontend.parse("if true; BEGIN { 1 }; end"))
+  end
+
   test "precedence and grouping" do
     tree = AST::Binary.new(:+, literal(2), AST::Binary.new(:*, literal(3), literal(4)))
     assert_equal(AST::Program.new([tree]), parse([:tINTEGER, 2], ["+", nil], [:tINTEGER, 3], ["*", nil], [:tINTEGER, 4]))

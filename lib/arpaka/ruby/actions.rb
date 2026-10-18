@@ -643,7 +643,7 @@ module Arpaka::Ruby::Actions
     840 => ["ported", "@builder.operator(\".\")"], 841 => ["ported", "@builder.operator(\"&.\")"],
     842 => ["pass_through", "$1"], 843 => ["ported", "@builder.operator(\"::\")"],
     398 => ["empty", "nil"],
-    24 => ["pass_through", "$3"], 26 => ["pass_through", "$1"],
+    26 => ["pass_through", "$1"],
     28 => ["ported", "@builder.alias_node(:method, $2, $4)"],
     29 => ["ported", "@builder.alias_node(:variable, $2, $3)"],
     30 => ["ported", "@builder.alias_node(:variable, $2, $3)"],

@@ -15,6 +15,8 @@ module Arpaka
         "compatibility_actions" => {
           ["top_stmt", ["keyword_BEGIN", "begin_block"]] =>
             ["ported", "@builder.begin_block($2)"],
+          ["stmt_or_begin", ["keyword_BEGIN", "$@5", "begin_block"]] =>
+            ["ported", "@builder.begin_block($3)"],
           ["begin_block", ["block_open", "compstmt_top_stmts", "'}'"]] =>
             ["pass_through", "$2"],
           ["stmt", ["k_END", "block_open", "compstmt_stmts", "'}'"]] =>
