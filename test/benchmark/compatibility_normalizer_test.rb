@@ -120,6 +120,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "defined expression grouping matches RubyVM around logical operators" do
+    ["defined?(A) && defined?(B)", "defined?(A) && B", "defined?(A && B)", "defined? A && B"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "known callable body losses become mismatches" do
     ["-> { 1 }", "while ready; value; end"].each do |source|
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)

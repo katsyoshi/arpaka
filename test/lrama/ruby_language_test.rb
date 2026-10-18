@@ -655,6 +655,17 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(expected, GeneratedRubyFrontend.parse("[:from, attachments: []]").statements.first)
   end
 
+  test "defined expression parentheses stop before following logical operators" do
+    left = AST::Call.new(:defined, [AST::Variable.new(:constant, :A)])
+    right = AST::Call.new(:defined, [AST::Variable.new(:constant, :B)])
+    expected = AST::Binary.new(:"&&", left, right)
+    assert_equal(expected, GeneratedRubyFrontend.parse("defined?(A) && defined?(B)").statements.first)
+
+    grouped = GeneratedRubyFrontend.parse("defined?(A && B)").statements.first
+    assert_equal(AST::Call.new(:defined, [AST::Binary.new(:"&&",
+      AST::Variable.new(:constant, :A), AST::Variable.new(:constant, :B))]), grouped)
+  end
+
   test "bare names and parse state isolation" do
     expected = AST::Program.new([AST::BareCall.new(:a)])
     assert_equal(expected, parse([:tIDENTIFIER, "a"]))

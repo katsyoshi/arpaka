@@ -432,8 +432,44 @@ class Builder
   end
 
   def parentheses(statements, rule_id)
+    return AST::Sequence.new(statements.freeze) if @defined_depth.to_i.positive?
     return statements.first if statements.length == 1
     AST::Sequence.new(statements.freeze)
+  end
+
+  def begin_defined
+    @defined_depth = @defined_depth.to_i + 1
+    nil
+  end
+
+  def defined_call(value)
+    @defined_depth = [@defined_depth.to_i - 1, 0].max
+    value = defined_group_value(value)
+    operand = defined_logical_operand(value)
+    return operand if operand
+    AST::Call.new(:defined, [value].freeze)
+  end
+
+  def defined_group_value(value)
+    while value.is_a?(AST::Sequence) && value.statements.length == 1
+      value = value.statements.first
+    end
+    value
+  end
+
+  def defined_logical_operand(value)
+    return unless value.is_a?(AST::Binary)
+
+    left = value.left
+    if left.is_a?(AST::Sequence)
+      operand = defined_group_value(left)
+      return AST::Binary.new(value.operator, AST::Call.new(:defined, [operand].freeze), value.right)
+    end
+
+    nested = defined_logical_operand(left)
+    return unless nested
+
+    AST::Binary.new(value.operator, nested, value.right)
   end
 
   def identifier(value)
