@@ -498,6 +498,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
       @normalizer.arpaka(GeneratedRubyFrontend.parse("%I[static].first")))
   end
 
+  test "static dynamic xstrings compare with xstrings" do
+    source = "%x[printf static]"
+    assert_equal(normalized_rubyvm(source),
+      @normalizer.arpaka(GeneratedRubyFrontend.parse(source)))
+  end
+
   private
 
   def normalized_rubyvm(source)
