@@ -499,7 +499,7 @@ module Arpaka::Ruby::Actions
     703 => ["ported", "@builder.self_node"],
     706 => ["ported", "@builder.literal(:__FILE__)"],
     707 => ["ported", "@builder.literal(:__LINE__)"],
-    708 => ["ported", "@builder.literal(:__ENCODING__)"],
+    708 => ["ported", "@builder.encoding_literal"],
     713 => ["ported", "@builder.variable(:backref, $1)"],
     714 => ["ported", "@builder.variable(:backref, $1)"],
     348 => ["pass_through", "$1"],

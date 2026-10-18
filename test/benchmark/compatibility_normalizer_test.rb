@@ -481,6 +481,11 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_match(/node/, error.detail)
   end
 
+  test "encoding literals compare with RubyVM ENCODING nodes" do
+    source = "__ENCODING__"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)))
+  end
+
   private
 
   def normalized_rubyvm(source)

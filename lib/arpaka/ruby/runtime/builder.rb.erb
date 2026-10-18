@@ -30,6 +30,10 @@ class Builder
     AST::Literal.new(value)
   end
 
+  def encoding_literal
+    AST::EncodingLiteral.new(@source_encoding || Encoding::UTF_8.name)
+  end
+
 <% if runtime.fetch("builder_methods", []).include?("self") -%>
   def self_node
     AST::Self.new

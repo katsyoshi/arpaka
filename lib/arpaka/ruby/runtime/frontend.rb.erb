@@ -22,12 +22,14 @@ class LexerError < Error; end
 
 def self.parse(source, filename: "(ruby)")
   lexer = Lexer.new(source, filename: filename)
-  parse_tokens(lexer.each, lexical_context: lexer.context)
+  parse_tokens(lexer.each, lexical_context: lexer.context, source_encoding: source.encoding.name)
 end
 
-def self.parse_tokens(tokens, lexical_context: nil)
+def self.parse_tokens(tokens, lexical_context: nil, source_encoding: Encoding::UTF_8.name)
   parser = Parser.new
-  parser.instance_variable_set(:@builder, Builder.new)
+  builder = Builder.new
+  builder.instance_variable_set(:@source_encoding, source_encoding)
+  parser.instance_variable_set(:@builder, builder)
   parser.lexical_context = lexical_context
   parser.parse(tokens)
 rescue Parser::ParseError => error

@@ -332,9 +332,10 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "special keyword variables preserve their names" do
-    {keyword__FILE__: :__FILE__, keyword__LINE__: :__LINE__, keyword__ENCODING__: :__ENCODING__}.each do |token, value|
+    {keyword__FILE__: :__FILE__, keyword__LINE__: :__LINE__}.each do |token, value|
       assert_equal(AST::Program.new([literal(value)]), parse([token, nil]))
     end
+    assert_equal(AST::Program.new([AST::EncodingLiteral.new("UTF-8")]), parse([:keyword__ENCODING__, nil]))
   end
 
   test "numbered and named back references preserve their values" do

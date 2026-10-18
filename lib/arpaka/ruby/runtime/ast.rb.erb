@@ -1,6 +1,7 @@
 module AST
   Program = Data.define(:statements)
   Literal = Data.define(:value)
+  EncodingLiteral = Data.define(:value)
 <% if runtime.fetch("ast_nodes", []).include?("self") -%>
   Self = Data.define
 <% end -%>
