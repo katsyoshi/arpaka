@@ -155,6 +155,14 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Parameter.new(:keyword_rest_disabled, nil, nil), disabled)
   end
 
+  test "method argument forwarding is retained as a parameter marker" do
+    forwarded = GeneratedRubyFrontend.parse("def transmit(...); end").statements.first.arguments
+    assert_equal(AST::Parameter.new(:forwarding, nil, nil), forwarded)
+
+    with_required = GeneratedRubyFrontend.parse("def stream_for(args, ...); end").statements.first.arguments
+    assert_equal([:args, AST::Parameter.new(:forwarding, nil, nil)], with_required)
+  end
+
   test "setter method definitions preserve the equals suffix" do
     expected = AST::Program.new([AST::Def.new(:"value=", :value, [AST::LocalRead.new(:value)])])
     assert_equal(expected, GeneratedRubyFrontend.parse("def value=(value)\n  value\nend"))

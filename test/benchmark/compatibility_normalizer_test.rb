@@ -32,6 +32,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
       GeneratedRubyFrontend.parse("foo(*values, name: 1, &block)").statements.first)
   end
 
+  test "method argument forwarding matches RubyVM retained arguments" do
+    ["def transmit(...); end", "def stream_for(args, ...); end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "splat arguments, array elements, and assignment values compare across both AST shapes" do
     ["foo(*values)", "foo(1, *values, 2)", "[*values, 1]", "items = [*values, 1]"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)

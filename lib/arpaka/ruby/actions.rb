@@ -619,7 +619,7 @@ module Arpaka::Ruby::Actions
     763 => ["pass_through", "$1"], 767 => ["empty", "nil"],
     780 => ["pass_through", "$1"], 782 => ["pass_through", "$1"],
     783 => ["pass_through", "$1"], 784 => ["empty", "nil"],
-    786 => ["empty", "nil"], 787 => ["pass_through", "$1"],
+    786 => ["ported", "@builder.parameter(:forwarding, nil)"], 787 => ["pass_through", "$1"],
     791 => ["pass_through", "$1"],
     793 => ["ported", "@builder.declare_method_parameter($1)"], 794 => ["pass_through", "$1"],
     796 => ["pass_through", "$1"], 798 => ["ported", "@builder.declare_method_parameter($1)"],
