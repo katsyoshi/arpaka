@@ -650,7 +650,6 @@ module Arpaka::Ruby::Actions
     30 => ["ported", "@builder.alias_node(:variable, $2, $3)"],
     31 => ["ported", "@builder.alias_node(:variable, $2, $3)"],
     32 => ["ported", "@builder.undef_node($2)"],
-    38 => ["pass_through", "$3"],
     40 => ["ported", "@builder.multiple_assign($1, $4)"], 41 => ["ported", "@builder.assign_mrhs($1, $4)"],
     44 => ["ported", "@builder.multiple_assign($1, $4)"], 47 => ["ported", "@builder.assign_mrhs($1, $4)"],
     49 => ["ported", "@builder.opassign($1, $2, $4)"],

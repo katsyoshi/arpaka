@@ -44,6 +44,11 @@ class ArpakaTest < Test::Unit::TestCase
     end
   end
 
+  test "END blocks use the Ruby 4 grammar action" do
+    assert_equal(AST::Program.new([AST::EndBlock.new([literal(1)])]),
+      GeneratedRubyFrontend.parse("END { 1 }"))
+  end
+
   test "precedence and grouping" do
     tree = AST::Binary.new(:+, literal(2), AST::Binary.new(:*, literal(3), literal(4)))
     assert_equal(AST::Program.new([tree]), parse([:tINTEGER, 2], ["+", nil], [:tINTEGER, 3], ["*", nil], [:tINTEGER, 4]))

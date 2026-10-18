@@ -8,10 +8,18 @@ module Arpaka
       CURRENT = {
         "name" => "ruby-4.0",
         "actions" => ::Arpaka::Ruby::Actions::ACTIONS,
+        # Rule numbers are stable only within one parse.y revision.  Keep
+        # this Ruby 4.0-specific reduction keyed by its grammar signature so
+        # the shared action table cannot accidentally apply the old action to
+        # a shifted rule number.
+        "compatibility_actions" => {
+          ["stmt", ["k_END", "block_open", "compstmt_stmts", "'}'"]] =>
+            ["ported", "@builder.end_block($3)"],
+        }.freeze,
         "additional_expected_conflicts" => 0,
         "runtime" => {
           "ast_nodes" => %w[self assignment singleton_method singleton_class pattern keyword_arguments].freeze,
-          "builder_methods" => %w[self assignment singleton_method singleton_class pattern keyword_arguments].freeze,
+          "builder_methods" => %w[self assignment singleton_method singleton_class pattern keyword_arguments rescue].freeze,
           "lexer" => { "source_text_tokens" => ["tOP_ASGN"].freeze }.freeze
         }.freeze
       }.freeze
