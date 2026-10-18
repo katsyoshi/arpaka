@@ -30,6 +30,7 @@ module AST
   Super = Data.define(:arguments)
   ReceiverCall = Data.define(:receiver, :operator, :name, :arguments)
   BlockParameters = Data.define(:kind, :value)
+  Parameter = Data.define(:kind, :name, :value)
   BlockCall = Data.define(:call, :parameters, :body)
   StringLiteral = Data.define(:value)
   InterpolatedString = Data.define(:parts)

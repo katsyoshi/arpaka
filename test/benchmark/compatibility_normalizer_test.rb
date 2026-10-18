@@ -137,7 +137,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "known information losses remain visible as mismatches" do
-    %w[splat.rb optional_default_one.rb].each do |fixture|
+    %w[splat.rb].each do |fixture|
       source = File.read(File.expand_path("../../benchmark/fixtures/#{fixture}", __dir__))
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), fixture)
     end
@@ -207,6 +207,14 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_not_equal(required, post)
     assert_not_equal(normalized_rubyvm("def f(*rest, first, second); end"),
       normalized_rubyvm("def f(*rest, first, changed); end"))
+  end
+
+  test "optional and rest method parameters compare with RubyVM shapes" do
+    ["def f(*); end", "def f(*args); end", "def f(first = 1); end",
+      "def f(first, second = 1, third = 2); end", "def f(first, *rest, last); end",
+      "def f(&); end", "def f(&block); end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
   end
 
   test "trailing empty begin keeps its nil value" do

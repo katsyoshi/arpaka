@@ -102,6 +102,20 @@ class ArpakaTest < Test::Unit::TestCase
     assert(parameters.all? { |parameter| parameter.is_a?(AST::LocalRead) })
   end
 
+  test "method optional rest and block parameters retain their kinds" do
+    parameters = GeneratedRubyFrontend.parse("def sample(first, optional = 1, *rest, last, &block); end").statements.first.arguments
+    assert_equal(:first, parameters[0])
+    assert_equal([:optional, :rest], parameters.grep(AST::Parameter).first(2).map(&:kind))
+    assert_equal(:last, parameters[3])
+    assert_equal(:block, parameters[4].kind)
+    anonymous_rest = GeneratedRubyFrontend.parse("def sample(*); end").statements.first.arguments
+    assert_equal(:rest, anonymous_rest.kind)
+    assert_nil(anonymous_rest.name)
+    anonymous_block = GeneratedRubyFrontend.parse("def sample(&); end").statements.first.arguments
+    assert_equal(:block, anonymous_block.kind)
+    assert_nil(anonymous_block.name)
+  end
+
   test "setter method definitions preserve the equals suffix" do
     expected = AST::Program.new([AST::Def.new(:"value=", :value, [AST::LocalRead.new(:value)])])
     assert_equal(expected, GeneratedRubyFrontend.parse("def value=(value)\n  value\nend"))

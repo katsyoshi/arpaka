@@ -9,6 +9,7 @@ class Builder
     @locals = {}
     @block_local_scopes = []
     @method_local_scopes = []
+    @declaring_method_parameters = false
   end
 
   def program(statements)
@@ -137,7 +138,8 @@ class Builder
 
   def append_block_rest(parameters, rest, post = nil)
     values = Array(parameters).dup
-    values << AST::BlockParameters.new(:rest, Array(rest).first)
+    rest_name = rest.is_a?(AST::Parameter) ? rest.name : Array(rest).first
+    values << AST::BlockParameters.new(:rest, rest_name)
     values.concat(Array(post).map { |name| AST::BlockParameters.new(:post, name) }) unless post.nil?
     values.freeze
   end
@@ -160,6 +162,25 @@ class Builder
   def append_arguments(arguments, argument)
     list = arguments.is_a?(Array) ? arguments : [arguments]
     (list + [argument]).freeze
+  end
+
+  def parameter(kind, name, value = nil)
+    declare_local(name) if @declaring_method_parameters && name.is_a?(Symbol)
+    AST::Parameter.new(kind, name, value)
+  end
+
+  def finish_method_parameters(value)
+    @declaring_method_parameters = false
+    value
+  end
+
+  def parameter_list(*values)
+    parameters = values.flat_map do |value|
+      value.is_a?(Array) ? value : value.nil? ? [] : [value]
+    end
+    return nil if parameters.empty?
+    return parameters.first if parameters.length == 1
+    parameters.freeze
   end
 
   def string(value)
@@ -400,6 +421,7 @@ class Builder
   def begin_method_scope(value)
     @method_local_scopes << @locals
     @locals = {}
+    @declaring_method_parameters = true
     value
   end
 
@@ -413,6 +435,7 @@ class Builder
 
   def end_method_scope
     @locals = @method_local_scopes.pop if @method_local_scopes.any?
+    @declaring_method_parameters = false
   end
 
   def finish_method_scope(value)
