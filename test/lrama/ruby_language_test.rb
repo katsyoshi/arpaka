@@ -417,6 +417,18 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(expected, GeneratedRubyFrontend.parse("case value; in 1; :one; end").statements.first)
   end
 
+  test "case in array patterns preserves captures and rest captures" do
+    captures = AST::Pattern.new(:array, [[AST::Pattern.new(:variable, [:a]), AST::Pattern.new(:variable, [:b])], nil, []])
+    captures_clause = AST::When.new([captures], [literal(:pair)])
+    captures_case = AST::Case.new(AST::BareCall.new(:value), [captures_clause], nil)
+    assert_equal(captures_case, GeneratedRubyFrontend.parse("case value; in [a, b]; :pair; end").statements.first)
+
+    rest = AST::Pattern.new(:array, [[AST::Pattern.new(:variable, [:a])], AST::Pattern.new(:rest, [:rest]), []])
+    rest_clause = AST::When.new([rest], [literal(:rest)])
+    rest_case = AST::Case.new(AST::BareCall.new(:value), [rest_clause], nil)
+    assert_equal(rest_case, GeneratedRubyFrontend.parse("case value; in [a, *rest]; :rest; end").statements.first)
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))
