@@ -100,6 +100,19 @@ class CompatibilityRunnerTest < Test::Unit::TestCase
     end
   end
 
+  test "mismatch details skip accepted keyword argument representation differences" do
+    Dir.mktmpdir("compatibility-mismatch-detail-") do |directory|
+      File.write(File.join(directory, "mixed.rb"), "foo(name: 1)\nobject.value = 2\n")
+      results, = Compatibility::Runner.new(ruby_source: SOURCE,
+        corpora: [["arguments", directory]]).run
+      result = results.find { |file| file["type"] == "file" }
+
+      assert_equal("mismatch", result.fetch("status"))
+      assert_not_match(/keyword_arguments/, result.dig("difference", "arpaka"))
+      assert_not_match(/\"hash\"/, result.dig("difference", "rubyvm"))
+    end
+  end
+
   test "an internal normalization exception cannot turn two absent trees into agreement" do
     Dir.mktmpdir("compatibility-error-") do |directory|
       input = File.join(directory, "input.rb")
