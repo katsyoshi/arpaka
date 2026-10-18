@@ -81,6 +81,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "attribute opassign compares across both AST shapes" do
+    ["self.identifiers += values", "object.value ||= fallback", "object.value += 1", "object::value += 1"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "known callable body losses become mismatches" do
     ["-> { 1 }", "while ready; value; end"].each do |source|
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
@@ -192,7 +198,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "normalization makes RubyVM-only constructs verified mismatches when candidate loses structure" do
-    [%q{values[index] += 1}, %q{object.value += 1}, %q{__FILE__}, %q{:"prefix#{value}"}, %q{`prefix#{value}`}].each do |source|
+    [%q{values[index] += 1}, %q{__FILE__}, %q{:"prefix#{value}"}, %q{`prefix#{value}`}].each do |source|
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
   end

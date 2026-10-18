@@ -626,6 +626,14 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(:value, local_assignment.name)
   end
 
+  test "attribute opassign preserves its receiver and operator" do
+    assignment = GeneratedRubyFrontend.parse("self.identifiers += values").statements.first
+    assert_kind_of(AST::OpAssign, assignment)
+    assert_equal(:+, assignment.operator)
+    assert_equal(AST::Field.new(AST::Self.new, :".", :identifiers), assignment.target)
+    assert_equal(AST::BareCall.new(:values), assignment.value)
+  end
+
   test "bare names and parse state isolation" do
     expected = AST::Program.new([AST::BareCall.new(:a)])
     assert_equal(expected, parse([:tIDENTIFIER, "a"]))
