@@ -28,9 +28,11 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
       "def f(&); foo(&); end", "def f(&block); foo(&block); end"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
+    assert_kind_of(GeneratedRubyFrontend::AST::Call,
+      GeneratedRubyFrontend.parse("foo(*values, name: 1, &block)").statements.first)
   end
 
-  test "splat arguments, array elements, and multiple assignment compare across both AST shapes" do
+  test "splat arguments, array elements, and assignment values compare across both AST shapes" do
     ["foo(*values)", "foo(1, *values, 2)", "[*values, 1]", "items = [*values, 1]"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end

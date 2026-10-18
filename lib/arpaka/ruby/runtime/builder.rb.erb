@@ -178,6 +178,12 @@ class Builder
     (list + [argument]).freeze
   end
 
+  def combine_arguments(left, right)
+    left = left.nil? ? [] : left.is_a?(Array) ? left : [left]
+    right = right.nil? ? [] : right.is_a?(Array) ? right : [right]
+    (left + right).freeze
+  end
+
   def parameter(kind, name, value = nil)
     declare_local(name) if @declaring_method_parameters && name.is_a?(Symbol)
     AST::Parameter.new(kind, name, value)

@@ -347,7 +347,7 @@ module Arpaka::Ruby::Actions
     306 => ["ported", "($2 + [$4]).freeze"],
     307 => ["pass_through", "$2"],
     319 => ["ported", "@builder.call_arguments_with_block_pass($1, $2)"],
-    320 => ["ported", "@builder.call_arguments_with_block_pass(($1 || []) + ($3 || []), $4)"],
+    320 => ["ported", "@builder.call_arguments_with_block_pass(@builder.combine_arguments($1, $3), $4)"],
     324 => ["ported", "@builder.block_pass([], $2)"],
     326 => ["pass_through", "$2"],
     331 => ["ported", "@builder.append_arguments($1, $3)"],
