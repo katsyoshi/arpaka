@@ -65,6 +65,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     ["items.each { |item| item }", "items.each do |item| item end",
       "outer = 1; items.each { |item| outer + item }; outer",
       "items.each { |first, second| [first, second] }",
+      "items.each { |first, second, *rest| [first, second, rest] }",
       "items.each { |first, *rest| [first, rest] }", "items.each { |*rest| rest }",
       "items.each { |first, *| first }", "items.each { |(first, second)| [first, second] }",
       "items.each { |(first, second), tail| [first, second, tail] }"].each do |source|
