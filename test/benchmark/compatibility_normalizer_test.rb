@@ -102,6 +102,20 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     refute_equal(normalized_rubyvm(rescue_source), @normalizer.arpaka(GeneratedRubyFrontend.parse(rescue_source)), rescue_source)
   end
 
+  test "rescue modifiers normalize without changing begin rescue forms" do
+    modifier = "value rescue fallback"
+    assert_equal(normalized_rubyvm(modifier), @normalizer.arpaka(GeneratedRubyFrontend.parse(modifier)), modifier)
+    assert_equal(:rescue_modifier, normalized_rubyvm(modifier).dig(1, 0, 0))
+
+    ["begin; value; rescue; fallback; end",
+      "begin; value; rescue Error; fallback; else; other; end"].each do |source|
+      assert_equal(:rescue, normalized_rubyvm(source).dig(1, 0, 0), source)
+    end
+
+    ensure_source = "begin; value; rescue; fallback; ensure; cleanup; end"
+    assert_equal(:ensure, normalized_rubyvm(ensure_source).dig(1, 0, 0), ensure_source)
+  end
+
   test "every supported primitive and empty container has a matching form" do
     ["nil", "true", "false", "1", "1.5", "\"text\"", ":symbol", "Foo", "[]", "{}", ""].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
