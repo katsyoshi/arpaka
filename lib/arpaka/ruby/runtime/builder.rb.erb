@@ -383,6 +383,10 @@ class Builder
     AST::Pattern.new(kind.to_sym, Array(values).freeze)
   end
 
+  def pattern_constant(value)
+    value.is_a?(Symbol) ? variable(:constant, value) : value
+  end
+
   def pattern_value(value)
     return value if value.is_a?(AST::Pattern)
     return pattern(:variable, [value]) if value.is_a?(Symbol)

@@ -454,6 +454,19 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(expected, GeneratedRubyFrontend.parse(source).statements.first)
   end
 
+  test "qualified hash patterns preserve their constant receiver" do
+    pair = AST::Pair.new(literal(:key), AST::Pattern.new(:variable, [:value]))
+    constant = AST::Variable.new(:constant, :Integer)
+    pattern = AST::Pattern.new(:hash, [[pair], nil, constant])
+    clause = AST::When.new([pattern], [AST::BareCall.new(:matched)])
+    expected = AST::Case.new(AST::BareCall.new(:input), [clause], nil)
+
+    ["case input; in Integer[key: value]; matched; end",
+      "case input; in Integer(key: value); matched; end"].each do |source|
+      assert_equal(expected, GeneratedRubyFrontend.parse(source).statements.first, source)
+    end
+  end
+
   test "nested case patterns preserve array and hash captures" do
     nested_hash = AST::Pattern.new(:hash, [[AST::Pair.new(literal(:key), AST::Pattern.new(:variable, [:b]))], nil])
     nested_array = AST::Pattern.new(:array, [[AST::Pattern.new(:variable, [:a]), nested_hash], nil, []])

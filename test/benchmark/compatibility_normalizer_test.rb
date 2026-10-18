@@ -60,6 +60,13 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "qualified hash patterns compare across both AST shapes" do
+    ["case input; in Integer[key: value]; :matched; end",
+      "case input; in Integer(key: value); :matched; end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "nested array and hash case patterns compare across both AST shapes" do
     ["case value; in [a, {key: b}]; :nested; end",
       "case value; in [[a], {key: [b, *rest]}]; :nested; end"].each do |source|
@@ -133,6 +140,14 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   test "multiple assignment preserves its targets and array value" do
     source = "@address, @mailbox_name = address, to"
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
+  test "postarg multiple assignment stays explicitly unverified until targets retain positions" do
+    source = "before, *middle, after = values"
+    body = RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2)
+    error = assert_raise(Compatibility::Unsupported) { @normalizer.rubyvm(body) }
+    assert_equal(:rubyvm, error.side)
+    assert_equal("assignment target POSTARG", error.detail)
   end
 
   test "keyword arguments keep a distinct tag from hash literals" do
