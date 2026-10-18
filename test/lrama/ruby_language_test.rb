@@ -322,7 +322,7 @@ class ArpakaTest < Test::Unit::TestCase
 
   test "case without an expression preserves when clauses" do
     clause = AST::When.new([literal(true)], [literal(1)])
-    expected = AST::Case.new(literal(nil), [clause], nil)
+    expected = AST::Case.new(nil, [clause], nil)
     assert_equal(AST::Program.new([expected]), parse([:keyword_case, nil], [:keyword_when, nil], [:keyword_true, nil], [:keyword_then, nil], [:tINTEGER, 1], [:keyword_end, nil]))
   end
 

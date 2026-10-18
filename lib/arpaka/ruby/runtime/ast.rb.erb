@@ -14,7 +14,7 @@ module AST
   OpAssign = Data.define(:target, :operator, :value)
   MultipleAssign = Data.define(:targets, :value)
   Field = Data.define(:receiver, :operator, :name)
-  Alias = Data.define(:new_name, :old_name)
+  Alias = Data.define(:kind, :new_name, :old_name)
   Undef = Data.define(:names)
 <% end -%>
   BareCall = Data.define(:name)

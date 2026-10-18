@@ -83,8 +83,42 @@ class Builder
     when Symbol
       @locals[value] = true
       AST::BlockParameters.new(:required, [value].freeze)
+    when Array
+      names = block_parameter_names(value)
+      names.each { |name| @locals[name] = true }
+      AST::BlockParameters.new(:required, value.freeze)
+    when AST::BlockParameters
+      value.value.each { |name| @locals[name] = true } if value.kind == :destructured
+      value
     else
       AST::BlockParameters.new(:unknown, value)
+    end
+  end
+
+  def block_destructure(names)
+    AST::BlockParameters.new(:destructured, Array(names).freeze)
+  end
+
+  def append_block_rest(parameters, rest, post = nil)
+    values = Array(parameters)
+    values = [parameters] unless parameters.is_a?(Array)
+    values << AST::BlockParameters.new(:rest, Array(rest).first)
+    values.concat(Array(post).map { |name| AST::BlockParameters.new(:post, name) }) unless post.nil?
+    values.freeze
+  end
+
+  def block_parameter_names(parameters)
+    parameters.flat_map do |parameter|
+      case parameter
+      when Symbol then [parameter]
+      when AST::BlockParameters
+        case parameter.kind
+        when :destructured then parameter.value
+        when :rest, :post then [parameter.value].compact
+        else []
+        end
+      else []
+      end
     end
   end
 
@@ -328,8 +362,8 @@ class Builder
     AST::Field.new(receiver, operator.to_sym, name.to_sym)
   end
 
-  def alias_node(new_name, old_name)
-    AST::Alias.new(new_name, old_name)
+  def alias_node(kind, new_name, old_name)
+    AST::Alias.new(kind, new_name, old_name)
   end
 
   def undef_node(names)

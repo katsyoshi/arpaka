@@ -63,7 +63,18 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
 
   test "single required block parameters and their local reads compare" do
     ["items.each { |item| item }", "items.each do |item| item end",
-      "outer = 1; items.each { |item| outer + item }; outer"].each do |source|
+      "outer = 1; items.each { |item| outer + item }; outer",
+      "items.each { |first, second| [first, second] }",
+      "items.each { |first, *rest| [first, rest] }", "items.each { |*rest| rest }",
+      "items.each { |first, *| first }", "items.each { |(first, second)| [first, second] }",
+      "items.each { |(first, second), tail| [first, second, tail] }"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
+  test "aliases, undef and expressionless case preserve their AST distinctions" do
+    ["alias old_method new_method", "alias $old $new", "undef old_method, new_method",
+      "case; when ready then value; else fallback; end", "case nil; when ready then value; end"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
   end
