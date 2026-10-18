@@ -154,6 +154,10 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "bare symbol assignment targets normalize as local targets" do
+    assert_equal([:local_target, [:symbol, [:bytes, "666f6f", "US-ASCII"]]], @normalizer.send(:rubyvm_target, :foo))
+  end
+
   test "postarg multiple assignment stays explicitly unverified until targets retain positions" do
     source = "before, *middle, after = values"
     body = RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2)
