@@ -207,6 +207,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "variable opassign targets compare as reads" do
+    ["@value ||= 1", "@@value &&= fallback", "$value += 1"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "index opassign compares across both AST shapes" do
     ["values[index] += 1", "options[:root] ||= fallback", "values[0, 1] |= additions"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
