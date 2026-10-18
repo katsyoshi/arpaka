@@ -639,6 +639,14 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::OpAssign.new(:pos, :+, AST::Literal.new(1)), assignment)
   end
 
+  test "index opassign retains its receiver and index arguments" do
+    assignment = GeneratedRubyFrontend.parse("values[index] += 1").statements.first
+    assert_kind_of(AST::OpAssign, assignment)
+    assert_equal(AST::Index.new(AST::BareCall.new(:values), [AST::BareCall.new(:index)]), assignment.target)
+    assert_equal(:+, assignment.operator)
+    assert_equal(AST::Literal.new(1), assignment.value)
+  end
+
   test "bare names and parse state isolation" do
     expected = AST::Program.new([AST::BareCall.new(:a)])
     assert_equal(expected, parse([:tIDENTIFIER, "a"]))
