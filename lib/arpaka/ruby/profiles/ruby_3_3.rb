@@ -615,7 +615,7 @@
   601 => ["ported", "@builder.concat_strings($1, $2)"],
   602 => ["ported", "@builder.string(@builder.join_strings($2))"],
   603 => ["ported", "@builder.xstring(@builder.join_strings($2))"],
-  604 => ["ported", "@builder.regexp(@builder.join_strings($2))"],
+  604 => ["ported", "@builder.regexp(@builder.join_strings($2), $3)"],
   605 => ["ported", "$1"],
   606 => ["ported", "$1"],
   607 => ["ported", "@builder.word_array($3 || [])"],

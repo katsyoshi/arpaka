@@ -20,18 +20,18 @@ class CompatibilityRunnerTest < Test::Unit::TestCase
         [file.fetch("path"), file]
       end
       assert_equal("match", examples.fetch("basic_match.rb").fetch("status"))
-      %w[splat.rb optional_default_one.rb optional_default_two.rb regexp_i.rb regexp_m.rb
-        block_parameter.rb method_local_scope.rb].each do |file|
+      %w[splat.rb optional_default_one.rb optional_default_two.rb
+        method_local_scope.rb].each do |file|
         assert_equal("mismatch", examples.fetch(file).fetch("status"), file)
         assert_not_nil(examples.fetch(file)["difference"])
       end
-      assert_equal("unverified", examples.fetch("ambiguous_self.rb").fetch("status"))
-      %w[empty_block.rb plain_regexp.rb].each do |path|
-        file = results.find { |entry| entry.fetch("corpus") == "invalid" && entry.fetch("path") == path }
-        assert_equal("unverified", file.fetch("status"))
-        assert_not_nil(file["reason"])
-        assert(file.fetch("outcomes").values.all? { |outcome| outcome.fetch("parsed") })
-      end
+      assert_equal("match", examples.fetch("block_parameter.rb").fetch("status"))
+      assert_equal("match", examples.fetch("ambiguous_self.rb").fetch("status"))
+      file = results.find { |entry| entry.fetch("corpus") == "invalid" && entry.fetch("path") == "empty_block.rb" }
+      assert_equal("match", file.fetch("status"))
+      assert(file.fetch("outcomes").values.all? { |outcome| outcome.fetch("parsed") })
+      regexp = results.find { |entry| entry.fetch("corpus") == "invalid" && entry.fetch("path") == "plain_regexp.rb" }
+      assert_equal("match", regexp.fetch("status"))
       invalid = results.find { |file| file.fetch("corpus") == "invalid" && file.fetch("path") == "invalid.rb" }
       assert_equal("parse_failure", invalid.fetch("status"))
       invalid.fetch("outcomes").each_value do |outcome|
@@ -56,7 +56,7 @@ class CompatibilityRunnerTest < Test::Unit::TestCase
       assert_equal(results.length + 1, records.length)
       summary = records.last
       assert_equal(results.length, summary.fetch("counts").values.sum)
-      assert_equal(1, summary.fetch("counts").fetch("match"))
+      assert_equal(7, summary.fetch("counts").fetch("match"))
       assert_equal(1, summary.fetch("counts").fetch("parse_failure"))
       assert_equal(examples.length, summary.fetch("corpora").fetch("examples").fetch("total"))
     end

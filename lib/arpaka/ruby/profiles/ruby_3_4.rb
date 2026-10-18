@@ -621,7 +621,7 @@
    612 => ["ported", "@builder.concat_strings($1, $2)"],
    613 => ["ported", "@builder.string(@builder.join_strings($2))"],
    614 => ["ported", "@builder.xstring(@builder.join_strings($2))"],
-   615 => ["ported", "@builder.regexp(@builder.join_strings($2))"],
+   615 => ["ported", "@builder.regexp(@builder.join_strings($2), $3)"],
    616 => ["pass_through", "nil"],
    617 => ["pass_through", "nil"],
    618 => ["pass_through", "$3"],
