@@ -81,6 +81,13 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Call.new(:f, [])]), parse([:tIDENTIFIER, :f], ["(", nil], [")", nil]))
   end
 
+  test "predicate and bang method identifiers become no-argument calls" do
+    assert_equal(AST::Call.new(:block_given?, []), GeneratedRubyFrontend.parse("block_given?").statements.first)
+    assert_equal(AST::ReceiverCall.new(AST::BareCall.new(:value), :".", :empty?, []),
+      GeneratedRubyFrontend.parse("value.empty?").statements.first)
+    assert_equal(AST::Call.new(:update!, []), GeneratedRubyFrontend.parse("update!").statements.first)
+  end
+
   test "block pass arguments remain distinct from ordinary symbols" do
     block_pass = GeneratedRubyFrontend.parse("map(&:to_s)").statements.first
     assert_equal(AST::Call.new(:map, [AST::BlockPass.new([], literal(:to_s))]), block_pass)

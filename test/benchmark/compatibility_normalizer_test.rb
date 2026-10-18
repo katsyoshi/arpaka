@@ -18,7 +18,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     ["{name: 1, count: 2}", "x && y", "x and y", "x || y", "x or y", "!flag", "1..3", "ready ? value : fallback",
       "if ready; value; else; fallback; end", "def value; 1; end", "object&.fetch(1)",
       "A::B", "::A", "A::B::C", "::A::B", "def self.value; 1; end",
-      "-1", "-0.0", "+1"].each do |source|
+      "-1", "-0.0", "+1", "block_given?", "value.empty?", "update!"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
   end

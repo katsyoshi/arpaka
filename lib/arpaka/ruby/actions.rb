@@ -355,7 +355,7 @@ module Arpaka::Ruby::Actions
     336 => ["ported", "($1 + [$3]).freeze"],
     337 => ["ported", "($1 + [$4]).freeze"],
     338 => ["ported", "[$2].freeze"],
-    349 => ["ported", "@builder.reserved_word(\"method\")"],
+    349 => ["ported", "@builder.call($1, [])"],
     16 => ["ported", "@builder.body_nodes($1)"],
     43 => ["ported", "@builder.assign($1, @builder.rescue_modifier($4, $7))"],
     281 => ["pass_through", "$1"],
