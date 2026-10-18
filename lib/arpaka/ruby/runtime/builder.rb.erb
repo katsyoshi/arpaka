@@ -398,6 +398,20 @@ class Builder
   def array_pattern(parts)
     pattern(:array, pattern_array_parts(*parts))
   end
+
+  def pattern_pair(key, value = :__arpaka_missing_pattern_value__)
+    key_node = key.is_a?(AST::Literal) ? key : AST::Literal.new(key)
+    value_node = if value == :__arpaka_missing_pattern_value__
+      pattern(:variable, [key])
+    else
+      pattern_value(value)
+    end
+    AST::Pair.new(key_node, value_node)
+  end
+
+  def hash_pattern_parts(pairs, rest = nil)
+    [Array(pairs).freeze, rest].freeze
+  end
 <% end -%>
 <% if runtime.fetch("builder_methods", []).include?("rescue") -%>
   def body_statement(body, clauses, else_body, ensure_body)

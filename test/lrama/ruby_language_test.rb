@@ -444,6 +444,16 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(guard_case, GeneratedRubyFrontend.parse("case value; in [a, b] if ready; matched; end").statements.first)
   end
 
+  test "case in hash patterns and multiple clauses are preserved" do
+    hash_pattern = AST::Pattern.new(:hash, [[AST::Pair.new(literal(:key), AST::Pattern.new(:variable, [:value]))], nil])
+    first_clause = AST::When.new([hash_pattern], [AST::BareCall.new(:matched)])
+    second_pattern = AST::Pattern.new(:value, [literal(2)])
+    second_clause = AST::When.new([second_pattern], [AST::BareCall.new(:other)])
+    expected = AST::Case.new(AST::BareCall.new(:value), [first_clause, second_clause], nil)
+    source = "case value; in {key: value}; matched; in 2; other; end"
+    assert_equal(expected, GeneratedRubyFrontend.parse(source).statements.first)
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))
