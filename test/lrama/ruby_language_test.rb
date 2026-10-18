@@ -87,8 +87,23 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse(*tokens))
   end
 
+  test "method parameters are local variables only inside their method" do
+    expected = AST::Program.new([
+      AST::Def.new(:serialize, :object, [AST::LocalRead.new(:object)])
+    ])
+    assert_equal(expected, GeneratedRubyFrontend.parse("def serialize(object); object; end"))
+    assert_kind_of(AST::BareCall, GeneratedRubyFrontend.parse("def serialize(object); object; end; object").statements.last)
+
+    parameters = GeneratedRubyFrontend.parse(
+      "def serialize(required, optional = required, *rest, key:, **keywords, &block); " \
+        "[required, optional, rest, key, keywords, block]; end"
+    ).statements.first.body.first.elements
+    assert_equal(%i[required optional rest key keywords block], parameters.map(&:name))
+    assert(parameters.all? { |parameter| parameter.is_a?(AST::LocalRead) })
+  end
+
   test "setter method definitions preserve the equals suffix" do
-    expected = AST::Program.new([AST::Def.new(:"value=", :value, [AST::BareCall.new(:value)])])
+    expected = AST::Program.new([AST::Def.new(:"value=", :value, [AST::LocalRead.new(:value)])])
     assert_equal(expected, GeneratedRubyFrontend.parse("def value=(value)\n  value\nend"))
     assert_nothing_raised { GeneratedRubyFrontend.parse("def self.value=; end") }
   end
@@ -1003,7 +1018,7 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "source lexer recognizes operator method names and top-level constants" do
-    assert_equal(AST::Def.new(:[], :x, [AST::BareCall.new(:x)]),
+    assert_equal(AST::Def.new(:[], :x, [AST::LocalRead.new(:x)]),
       GeneratedRubyFrontend.parse("def [](x); x; end").statements.first)
     assert_nothing_raised { GeneratedRubyFrontend.parse("def /(other); other; end") }
     assert_nothing_raised { GeneratedRubyFrontend.parse("def &(other); other; end") }

@@ -8,6 +8,7 @@ class Builder
   def initialize
     @locals = {}
     @block_local_scopes = []
+    @method_local_scopes = []
   end
 
   def program(statements)
@@ -197,12 +198,16 @@ class Builder
   end
 
   def def_node(name, arguments, body)
-    AST::Def.new(name.to_sym, (arguments || []).freeze, body || [].freeze)
+    node = AST::Def.new(name.to_sym, (arguments || []).freeze, body || [].freeze)
+    end_method_scope
+    node
   end
 <% if runtime.fetch("builder_methods", []).include?("singleton_method") -%>
   def singleton_method_node(receiver, name, arguments, body)
-    AST::SingletonMethodDef.new(receiver, name.to_sym, (arguments || []).freeze,
+    node = AST::SingletonMethodDef.new(receiver, name.to_sym, (arguments || []).freeze,
       body_nodes(body))
+    end_method_scope
+    node
   end
 <% end -%>
 
@@ -390,6 +395,29 @@ class Builder
   def declare_local(name)
     @locals[name] = true
     name
+  end
+
+  def begin_method_scope(value)
+    @method_local_scopes << @locals
+    @locals = {}
+    value
+  end
+
+  def declare_method_parameter(name)
+    declare_local(name)
+  end
+
+  def declare_method_parameter_list(name)
+    [declare_local(name)].freeze
+  end
+
+  def end_method_scope
+    @locals = @method_local_scopes.pop if @method_local_scopes.any?
+  end
+
+  def finish_method_scope(value)
+    end_method_scope
+    value
   end
 
   def read_local(name)
