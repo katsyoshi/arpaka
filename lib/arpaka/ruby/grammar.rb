@@ -140,7 +140,7 @@ module Arpaka::Ruby::Grammar
         ""
       end
       key = [rule.lhs.id.s_value, rule.rhs.map { |symbol| symbol.id.s_value }]
-      action = profile.fetch("actions")[rule.id] || profile.fetch("compatibility_actions", {})[key]
+      action = profile.fetch("compatibility_actions", {})[key] || profile.fetch("actions")[rule.id]
       expression = action&.last || "@builder.unsupported(#{rule.id})"
       lines << "/* upstream parse.y:#{metadata.fetch(rule.id).fetch('line')}: #{rule.as_comment} */"
       lines << "#{name.call(rule.lhs)}: #{rhs}#{precedence} { $$ = #{expression} };"
@@ -153,9 +153,8 @@ module Arpaka::Ruby::Grammar
     compact = rules.map do |rule|
       { id: rule.id, rule: rule.as_comment,
         line: metadata.fetch(rule.id).fetch("line"),
-        status: (profile.fetch("actions")[rule.id] ||
-          profile.fetch("compatibility_actions", {})[[rule.lhs.id.s_value,
-            rule.rhs.map { |symbol| symbol.id.s_value }]])&.first || "unsupported" }
+        status: (profile.fetch("compatibility_actions", {})[[rule.lhs.id.s_value,
+            rule.rhs.map { |symbol| symbol.id.s_value }]] || profile.fetch("actions")[rule.id])&.first || "unsupported" }
     end
     { "parse.y" => source, "rules.json" => JSON.pretty_generate(compact) + "\n",
       "runtime" => profile.fetch("runtime", {}),

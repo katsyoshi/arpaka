@@ -158,12 +158,9 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal([:local_target, [:symbol, [:bytes, "666f6f", "US-ASCII"]]], @normalizer.send(:rubyvm_target, :foo))
   end
 
-  test "postarg multiple assignment stays explicitly unverified until targets retain positions" do
+  test "postarg multiple assignment preserves rest and post targets" do
     source = "before, *middle, after = values"
-    body = RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2)
-    error = assert_raise(Compatibility::Unsupported) { @normalizer.rubyvm(body) }
-    assert_equal(:rubyvm, error.side)
-    assert_equal("assignment target POSTARG", error.detail)
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
   test "keyword arguments keep a distinct tag from hash literals" do

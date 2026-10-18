@@ -13,7 +13,12 @@ module AST
 <% if runtime.fetch("ast_nodes", []).include?("assignment") -%>
   Assignment = Data.define(:target, :value)
   OpAssign = Data.define(:target, :operator, :value)
-  MultipleAssign = Data.define(:targets, :value)
+  MultipleAssign = Data.define(:targets, :rest, :post, :value) do
+    constructor = method(:new)
+    define_singleton_method(:new) do |targets, value = nil, rest: nil, post: nil|
+      constructor.call(Array(targets).freeze, rest, Array(post).freeze, value)
+    end
+  end
   Field = Data.define(:receiver, :operator, :name)
   Alias = Data.define(:kind, :new_name, :old_name)
   Undef = Data.define(:names)

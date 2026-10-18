@@ -582,7 +582,14 @@ class Builder
 
   def multiple_assign(targets, value)
     value = array(value) if value.is_a?(Array)
+    if targets.is_a?(AST::MultipleAssign)
+      return AST::MultipleAssign.new(targets.targets, value, rest: targets.rest, post: targets.post)
+    end
     AST::MultipleAssign.new(Array(targets).freeze, value)
+  end
+
+  def multiple_assign_post(targets, rest, post)
+    AST::MultipleAssign.new(Array(targets).freeze, nil, rest: rest, post: Array(post))
   end
 
   def assign_mrhs(targets, value)

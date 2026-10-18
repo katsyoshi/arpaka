@@ -21,6 +21,14 @@ module Arpaka
             ["pass_through", "$2"],
           ["stmt", ["k_END", "block_open", "compstmt_stmts", "'}'"]] =>
             ["ported", "@builder.end_block($3)"],
+          ["mlhs_basic", ["mlhs_head", "tSTAR", "mlhs_node", "','", "mlhs_items_mlhs_item"]] =>
+            ["ported", "@builder.multiple_assign_post($1, $3, $5)"],
+          ["mlhs_basic", ["mlhs_head", "tSTAR", "','", "mlhs_items_mlhs_item"]] =>
+            ["ported", "@builder.multiple_assign_post($1, nil, $4)"],
+          ["mlhs_basic", ["tSTAR", "mlhs_node", "','", "mlhs_items_mlhs_item"]] =>
+            ["ported", "@builder.multiple_assign_post([], $2, $4)"],
+          ["mlhs_basic", ["tSTAR", "','", "mlhs_items_mlhs_item"]] =>
+            ["ported", "@builder.multiple_assign_post([], nil, $3)"],
         }.freeze,
         "additional_expected_conflicts" => 0,
         "runtime" => {
