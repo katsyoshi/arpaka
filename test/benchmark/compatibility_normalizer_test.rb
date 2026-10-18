@@ -38,6 +38,11 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "multiple assignment preserves its targets and array value" do
+    source = "@address, @mailbox_name = address, to"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
   test "keyword arguments keep a distinct tag from hash literals" do
     keyword_arguments = @normalizer.arpaka(GeneratedRubyFrontend.parse("foo(name: 1)"))
     hash_argument = @normalizer.arpaka(GeneratedRubyFrontend.parse("foo({name: 1})"))
@@ -83,13 +88,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
-  test "block pass keyword parameters ensure rescue and multiple assignment retain reference structure" do
-    ["a, b = values",
-      "begin; dangerous; rescue Error => error; fallback; ensure; cleanup; end"].each do |source|
-      rubyvm = normalized_rubyvm(source)
-      arpaka = @normalizer.arpaka(GeneratedRubyFrontend.parse(source))
-      refute_equal(rubyvm, arpaka, source)
-    end
+  test "multiple assignment matches while rescue ensure keeps its known mismatch" do
+    source = "a, b = values"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+
+    rescue_source = "begin; dangerous; rescue Error => error; fallback; ensure; cleanup; end"
+    refute_equal(normalized_rubyvm(rescue_source), @normalizer.arpaka(GeneratedRubyFrontend.parse(rescue_source)), rescue_source)
   end
 
   test "every supported primitive and empty container has a matching form" do
