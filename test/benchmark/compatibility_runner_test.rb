@@ -21,10 +21,9 @@ class CompatibilityRunnerTest < Test::Unit::TestCase
         [file.fetch("path"), file]
       end
       assert_equal("match", examples.fetch("basic_match.rb").fetch("status"))
-      %w[splat.rb optional_default_one.rb optional_default_two.rb
-        method_local_scope.rb].each do |file|
-        assert_equal("mismatch", examples.fetch(file).fetch("status"), file)
-        assert_not_nil(examples.fetch(file)["difference"])
+      examples.each_value do |file|
+        assert_equal("match", file.fetch("status"), file.fetch("path"))
+        assert_nil(file["difference"], file.fetch("path"))
       end
       assert_equal("match", examples.fetch("block_parameter.rb").fetch("status"))
       assert_equal("match", examples.fetch("ambiguous_self.rb").fetch("status"))
@@ -36,8 +35,7 @@ class CompatibilityRunnerTest < Test::Unit::TestCase
       interpolated_regexp = results.find do |entry|
         entry.fetch("corpus") == "invalid" && entry.fetch("path") == "interpolated_regexp.rb"
       end
-      assert_equal("unverified", interpolated_regexp.fetch("status"))
-      assert_match(/options are absent from RubyVM AST/, interpolated_regexp.fetch("reason"))
+      assert_equal("match", interpolated_regexp.fetch("status"))
       invalid = results.find { |file| file.fetch("corpus") == "invalid" && file.fetch("path") == "invalid.rb" }
       assert_equal("parse_failure", invalid.fetch("status"))
       invalid.fetch("outcomes").each_value do |outcome|
@@ -62,7 +60,7 @@ class CompatibilityRunnerTest < Test::Unit::TestCase
       assert_equal(results.length + 1, records.length)
       summary = records.last
       assert_equal(results.length, summary.fetch("counts").values.sum)
-      assert_equal(7, summary.fetch("counts").fetch("match"))
+      assert_equal(13, summary.fetch("counts").fetch("match"))
       assert_equal(1, summary.fetch("counts").fetch("parse_failure"))
       assert_equal(examples.length, summary.fetch("corpora").fetch("examples").fetch("total"))
     end
@@ -107,9 +105,10 @@ class CompatibilityRunnerTest < Test::Unit::TestCase
         corpora: [["arguments", directory]]).run
       result = results.find { |file| file["type"] == "file" }
 
-      assert_equal("mismatch", result.fetch("status"))
-      assert_not_match(/keyword_arguments/, result.dig("difference", "arpaka"))
-      assert_not_match(/\"hash\"/, result.dig("difference", "rubyvm"))
+      assert_equal("accepted_mismatch", result.fetch("status"))
+      assert_equal("$[1][0][4][0][0]", result.dig("difference", "path"))
+      assert_equal("\"keyword_arguments\"", result.dig("difference", "arpaka"))
+      assert_equal("\"hash\"", result.dig("difference", "rubyvm"))
     end
   end
 
