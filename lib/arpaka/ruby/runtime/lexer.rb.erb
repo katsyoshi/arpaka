@@ -1096,7 +1096,7 @@ class Lexer
         result << value.chr
         advance
       elsif value == 35 && byte(1) == 123 && !in_class
-        tokens << [:tSTRING_CONTENT, result] unless result.empty?
+        tokens << [:tSTRING_CONTENT, result.dup.force_encoding(@source_encoding)] unless result.empty?
         result = +""
         interpolated = true
         advance(2)
@@ -1109,6 +1109,7 @@ class Lexer
       elsif value == 47 && !in_class
         advance
         metadata = read_regexp_options
+        result.force_encoding(@source_encoding)
         tokens << [:tSTRING_CONTENT, result] unless result.empty?
         return [interpolated ? tokens : result, metadata]
       else

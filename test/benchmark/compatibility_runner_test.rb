@@ -14,6 +14,7 @@ class CompatibilityRunnerTest < Test::Unit::TestCase
       File.write(File.join(directory, "invalid.rb"), "def\n")
       File.write(File.join(directory, "empty_block.rb"), "items.each do\nend\n")
       File.write(File.join(directory, "plain_regexp.rb"), "/abc/\n")
+      File.write(File.join(directory, "interpolated_regexp.rb"), "%r{prefix\#{value}suffix}im\n")
       results, metadata = Compatibility::Runner.new(ruby_source: SOURCE,
         corpora: [["examples", FIXTURES], ["invalid", directory]]).run
       examples = results.select { |file| file.fetch("corpus") == "examples" }.to_h do |file|
@@ -32,6 +33,11 @@ class CompatibilityRunnerTest < Test::Unit::TestCase
       assert(file.fetch("outcomes").values.all? { |outcome| outcome.fetch("parsed") })
       regexp = results.find { |entry| entry.fetch("corpus") == "invalid" && entry.fetch("path") == "plain_regexp.rb" }
       assert_equal("match", regexp.fetch("status"))
+      interpolated_regexp = results.find do |entry|
+        entry.fetch("corpus") == "invalid" && entry.fetch("path") == "interpolated_regexp.rb"
+      end
+      assert_equal("unverified", interpolated_regexp.fetch("status"))
+      assert_match(/options are absent from RubyVM AST/, interpolated_regexp.fetch("reason"))
       invalid = results.find { |file| file.fetch("corpus") == "invalid" && file.fetch("path") == "invalid.rb" }
       assert_equal("parse_failure", invalid.fetch("status"))
       invalid.fetch("outcomes").each_value do |outcome|

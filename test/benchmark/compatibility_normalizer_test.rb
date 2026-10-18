@@ -157,8 +157,15 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(["prefix", GeneratedRubyFrontend::AST::BareCall.new(:value), "suffix"], regexp.value)
     assert_equal(5, regexp.options)
     assert_nil(regexp.encoding)
-    error = assert_raise(Compatibility::Unsupported) { normalized_rubyvm('%r{prefix#{value}suffix}im') }
-    assert_match(/options are absent from RubyVM AST/, error.detail)
+    rubyvm = normalized_rubyvm('%r{prefix#{value}suffix}im')[1][0]
+    arpaka = @normalizer.arpaka(GeneratedRubyFrontend.parse('%r{prefix#{value}suffix}im'))[1][0]
+    assert_equal(rubyvm[1], arpaka[1])
+    assert_equal(["unknown", "options"], rubyvm[2])
+    assert_equal(["known", 5], arpaka[2])
+    refute_equal(normalized_rubyvm('%r{left#{value}}'),
+      @normalizer.arpaka(GeneratedRubyFrontend.parse('%r{right#{value}}')))
+    unicode = GeneratedRubyFrontend.parse('%r{é#{value}}').statements.first
+    assert_equal(Encoding::UTF_8, unicode.value.first.encoding)
   end
 
   test "integer and float values retain distinct exact representations" do
