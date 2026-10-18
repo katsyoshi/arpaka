@@ -454,6 +454,15 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(expected, GeneratedRubyFrontend.parse(source).statements.first)
   end
 
+  test "nested case patterns preserve array and hash captures" do
+    nested_hash = AST::Pattern.new(:hash, [[AST::Pair.new(literal(:key), AST::Pattern.new(:variable, [:b]))], nil])
+    nested_array = AST::Pattern.new(:array, [[AST::Pattern.new(:variable, [:a]), nested_hash], nil, []])
+    clause = AST::When.new([nested_array], [literal(:nested)])
+    expected = AST::Case.new(AST::BareCall.new(:value), [clause], nil)
+    source = "case value; in [a, {key: b}]; :nested; end"
+    assert_equal(expected, GeneratedRubyFrontend.parse(source).statements.first)
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))

@@ -54,6 +54,13 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "nested array and hash case patterns compare across both AST shapes" do
+    ["case value; in [a, {key: b}]; :nested; end",
+      "case value; in [[a], {key: [b, *rest]}]; :nested; end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "single binary expression wrappers normalize without flattening sequences" do
     ["call((left + right))", "call((left + right), (other * value))"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
