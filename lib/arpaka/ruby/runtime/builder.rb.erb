@@ -145,7 +145,7 @@ class Builder
       names.each { |name| @locals[name] = true }
       parameters = AST::BlockParameters.new(:required, value.freeze)
     when AST::BlockParameters
-      value.value.each { |name| @locals[name] = true } if value.kind == :destructured
+      block_parameter_names(value.value).each { |name| @locals[name] = true } if value.kind == :destructured
       parameters = value
     else
       parameters = AST::BlockParameters.new(:unknown, value)
@@ -168,12 +168,14 @@ class Builder
   end
 
   def block_parameter_names(parameters)
+    parameters = [parameters] unless parameters.is_a?(Array)
     parameters.flat_map do |parameter|
       case parameter
       when Symbol then [parameter]
+      when Array then block_parameter_names(parameter)
       when AST::BlockParameters
         case parameter.kind
-        when :destructured then parameter.value
+        when :destructured then block_parameter_names(parameter.value)
         when :rest, :post then [parameter.value].compact
         else []
         end

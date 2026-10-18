@@ -305,6 +305,11 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "nested destructured block parameters preserve their target shape" do
+    source = "items.each { |(first, (second, third))| [first, second, third] }"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
   test "block local variables compare separately from block parameters" do
     tree = GeneratedRubyFrontend.parse("items.each { |item; local| local }")
     parameters = tree.statements.first.parameters
