@@ -382,6 +382,22 @@ class Builder
   def pattern(kind, values)
     AST::Pattern.new(kind.to_sym, Array(values).freeze)
   end
+
+  def pattern_value(value)
+    return value if value.is_a?(AST::Pattern)
+    return pattern(:variable, [value]) if value.is_a?(Symbol)
+    pattern(:value, [value])
+  end
+
+  def pattern_array_parts(pre, rest = nil, post = nil)
+    [Array(pre).map { |value| pattern_value(value) }.freeze,
+      rest.nil? ? nil : pattern_value(rest),
+      Array(post).map { |value| pattern_value(value) }.freeze].freeze
+  end
+
+  def array_pattern(parts)
+    pattern(:array, pattern_array_parts(*parts))
+  end
 <% end -%>
 <% if runtime.fetch("builder_methods", []).include?("rescue") -%>
   def body_statement(body, clauses, else_body, ensure_body)
