@@ -38,6 +38,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "forwarded call arguments normalize as a RubyVM block pass" do
+    ["def transmit(...); target(...); end", "def stream_for(args, ...); target(args, ...); end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "splat arguments, array elements, and assignment values compare across both AST shapes" do
     ["foo(*values)", "foo(1, *values, 2)", "[*values, 1]", "items = [*values, 1]"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
