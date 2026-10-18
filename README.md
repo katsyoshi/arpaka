@@ -352,24 +352,29 @@ RUBY_BOX=1 CORPORA='rails=/path/to/rails trick13=/path/to/trick13' \
 ```
 
 AST comparison currently covers a basic syntax subset. A file is a match only
-when both entire ASTs can be normalized and agree. Differences are mismatches;
-unknown or ambiguous nodes make the file unverified, including unknown nodes
-nested inside otherwise supported constructs. Parsing failures and per-parser
-10-second timeouts are reported separately. A successful parse by itself never
-counts as AST agreement. Missing semantic information is not reconstructed from
-the input or the reference parser. When absent metadata would describe an empty
-parameter list or a regexp without flags, the result is unverified rather than
-assuming agreement or a defect.
+when both entire ASTs can be normalized and agree. Differences are mismatches,
+except that a call's explicit keyword arguments are reported as
+`accepted_mismatch`: Arpaka retains them as `KeywordArguments`, while
+`RubyVM::AbstractSyntaxTree` represents them as `HASH`. This exception applies
+only at a call argument position; Hash literals and `Pair` nodes are compared
+normally. Unknown or ambiguous nodes make the file unverified, including
+unknown nodes nested inside otherwise supported constructs. Parsing failures
+and per-parser 10-second timeouts are reported separately. A successful parse
+by itself never counts as AST agreement. Missing semantic information is not
+reconstructed from the input or the reference parser. When absent metadata
+would describe an empty parameter list or a regexp without flags, the result is
+unverified rather than assuming agreement or a defect.
 
 The JSONL report records runtime and revision information, source and generated
 frontend hashes, file-level outcomes, comparison diagnostics, and totals. These
-identify the exact inputs and distinguish complete matches from comparisons
-that remain unsupported. Internal comparison errors are also distinct from
-parser failures. The timeout includes worker startup and AST normalization.
-Exit status is 0 only when every file matches, 1 for
-any mismatch, unverified file, parsing failure, timeout or internal error, and 2 for invalid
-configuration. The current frontend has known semantic losses, so a corpus run
-can legitimately exit with status 1. Reports are local artifacts; external
+identify the exact inputs and distinguish complete matches, accepted
+representation differences and comparisons that remain unsupported. Internal
+comparison errors are also distinct from parser failures. The timeout includes
+worker startup and AST normalization. Exit status is 0 when every file is a
+match or accepted mismatch, 1 for any other mismatch, unverified file, parsing
+failure, timeout or internal error, and 2 for invalid configuration. The
+current frontend has known semantic losses, so a corpus run can legitimately
+exit with status 1. Reports are local artifacts; external
 corpora are not downloaded or included in the gem.
 
 The normal test suite checks the comparison machinery and known semantic-loss

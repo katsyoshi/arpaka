@@ -23,11 +23,16 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
-  test "keyword argument AST nodes compare as RubyVM hash arguments" do
-    ["foo(name: 1)", "foo({name: 1})", "foo(0, first: 1, second: 2)",
-      "object.foo(name: 1)", "foo name: 1"].each do |source|
-      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
-    end
+  test "keyword arguments keep a distinct tag from hash literals" do
+    keyword_arguments = @normalizer.arpaka(GeneratedRubyFrontend.parse("foo(name: 1)"))
+    hash_argument = @normalizer.arpaka(GeneratedRubyFrontend.parse("foo({name: 1})"))
+    assert_equal(:keyword_arguments, keyword_arguments.dig(1, 0, 4, 0, 0))
+    assert_equal(:hash, hash_argument.dig(1, 0, 4, 0, 0))
+
+    rubyvm_keyword_arguments = normalized_rubyvm("foo(name: 1)")
+    rubyvm_hash_argument = normalized_rubyvm("foo({name: 1})")
+    assert_equal(:hash, rubyvm_keyword_arguments.dig(1, 0, 4, 0, 0))
+    assert_equal(:hash, rubyvm_hash_argument.dig(1, 0, 4, 0, 0))
   end
 
   test "variable writes indexes and unless compare across both AST shapes" do

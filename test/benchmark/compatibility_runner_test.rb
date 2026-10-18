@@ -79,6 +79,27 @@ class CompatibilityRunnerTest < Test::Unit::TestCase
     end
   end
 
+  test "only keyword argument representation differences are accepted" do
+    Dir.mktmpdir("compatibility-keyword-arguments-") do |directory|
+      File.write(File.join(directory, "keyword_argument.rb"), "foo(name: 1)\n")
+      File.write(File.join(directory, "hash_argument.rb"), "foo({name: 1})\n")
+      results, metadata = Compatibility::Runner.new(ruby_source: SOURCE,
+        corpora: [["arguments", directory]]).run
+      files = results.to_h { |file| [file.fetch("path"), file] }
+
+      accepted = files.fetch("keyword_argument.rb")
+      assert_equal("accepted_mismatch", accepted.fetch("status"))
+      assert_match(/keyword arguments/, accepted.fetch("reason"))
+      assert_equal("match", files.fetch("hash_argument.rb").fetch("status"))
+
+      output = StringIO.new
+      assert_equal(0, Compatibility::Runner.emit(results, metadata, output: output))
+      summary = JSON.parse(output.string.lines.last)
+      assert_equal(1, summary.fetch("counts").fetch("accepted_mismatch"))
+      assert_equal(1, summary.fetch("counts").fetch("match"))
+    end
+  end
+
   test "an internal normalization exception cannot turn two absent trees into agreement" do
     Dir.mktmpdir("compatibility-error-") do |directory|
       input = File.join(directory, "input.rb")
