@@ -463,6 +463,13 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(expected, GeneratedRubyFrontend.parse(source).statements.first)
   end
 
+  test "case in supports alternative literal patterns" do
+    alternative = AST::Pattern.new(:or, [AST::Pattern.new(:value, [literal(1)]), AST::Pattern.new(:value, [literal(2)])])
+    clause = AST::When.new([alternative], [AST::BareCall.new(:matched)])
+    expected = AST::Case.new(AST::BareCall.new(:value), [clause], nil)
+    assert_equal(expected, GeneratedRubyFrontend.parse("case value; in 1 | 2; matched; end").statements.first)
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))

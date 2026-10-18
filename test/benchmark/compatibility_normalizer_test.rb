@@ -61,6 +61,11 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "alternative case patterns compare across both AST shapes" do
+    source = "case value; in 1 | 2; :matched; end"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
   test "single binary expression wrappers normalize without flattening sequences" do
     ["call((left + right))", "call((left + right), (other * value))"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)

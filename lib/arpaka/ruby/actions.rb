@@ -194,7 +194,7 @@ module Arpaka::Ruby::Actions
     556 => ["pass_through", "$1"],
     555 => ["pass_through", "$1"],
     554 => ["pass_through", "$1"],
-    548 => ["pass_through", "$1"],
+    548 => ["ported", "@builder.pattern(:or, [@builder.pattern_value($1), @builder.pattern_value($4)])"],
     545 => ["pass_through", "$1"],
     540 => ["pass_through", "$1"],
     537 => ["ported", "@builder.pattern(:guard_unless, [@builder.pattern_value($1), $3])"],
