@@ -338,6 +338,11 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::EncodingLiteral.new("UTF-8")]), parse([:keyword__ENCODING__, nil]))
   end
 
+  test "__LINE__ preserves the source line" do
+    tree = GeneratedRubyFrontend.parse("first = __LINE__\nsecond = __LINE__")
+    assert_equal([1, 2], tree.statements.map { |statement| statement.value.value })
+  end
+
   test "numbered and named back references preserve their values" do
     assert_equal(AST::Program.new([AST::Variable.new(:backref, 1)]), parse([:tNTH_REF, 1]))
     assert_equal(AST::Program.new([AST::Variable.new(:backref, :$&)]), parse([:tBACK_REF, "$&"]))

@@ -30,6 +30,10 @@ class Builder
     AST::Literal.new(value)
   end
 
+  def line_literal(value)
+    AST::Literal.new(value.is_a?(Integer) ? value : :__LINE__)
+  end
+
   def encoding_literal
     AST::EncodingLiteral.new(@source_encoding || Encoding::UTF_8.name)
   end

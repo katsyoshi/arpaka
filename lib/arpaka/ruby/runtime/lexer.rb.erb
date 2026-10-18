@@ -616,7 +616,7 @@ class Lexer
       @context.push_condition
     end
     @context.alias_context = true if token == :keyword_alias
-    [token, word.to_sym]
+    [token, word == "__LINE__" ? @line : word.to_sym]
   rescue EncodingError
     fail!("invalid UTF-8 identifier", start)
   end
