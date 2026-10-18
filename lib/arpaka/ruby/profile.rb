@@ -13,6 +13,10 @@ module Arpaka
         # the shared action table cannot accidentally apply the old action to
         # a shifted rule number.
         "compatibility_actions" => {
+          ["top_stmt", ["keyword_BEGIN", "begin_block"]] =>
+            ["ported", "@builder.begin_block($2)"],
+          ["begin_block", ["block_open", "compstmt_top_stmts", "'}'"]] =>
+            ["pass_through", "$2"],
           ["stmt", ["k_END", "block_open", "compstmt_stmts", "'}'"]] =>
             ["ported", "@builder.end_block($3)"],
         }.freeze,
