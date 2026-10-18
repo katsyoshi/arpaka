@@ -493,6 +493,11 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)))
   end
 
+  test "static dynamic symbols compare with symbol literals" do
+    assert_equal(normalized_rubyvm("%I[static].first"),
+      @normalizer.arpaka(GeneratedRubyFrontend.parse("%I[static].first")))
+  end
+
   private
 
   def normalized_rubyvm(source)
