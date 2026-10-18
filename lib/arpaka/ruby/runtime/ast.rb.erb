@@ -28,6 +28,7 @@ module AST
   Ternary = Data.define(:condition, :then_value, :else_value)
   Call = Data.define(:name, :arguments)
   Super = Data.define(:arguments)
+  BlockPass = Data.define(:arguments, :value)
   ReceiverCall = Data.define(:receiver, :operator, :name, :arguments)
   BlockParameters = Data.define(:kind, :value)
   Parameter = Data.define(:kind, :name, :value)

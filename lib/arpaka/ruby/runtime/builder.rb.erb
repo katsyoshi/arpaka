@@ -68,6 +68,20 @@ class Builder
     AST::ReceiverCall.new(receiver, operator, name, normalize_call_arguments(arguments))
   end
 
+  def block_pass(arguments, value)
+    AST::BlockPass.new(normalize_call_arguments(arguments), value)
+  end
+
+  def call_arguments_with_block_pass(arguments, pass)
+    return normalize_call_arguments(arguments) if pass.nil?
+
+    [AST::BlockPass.new(normalize_call_arguments(arguments), pass.value)].freeze
+  end
+
+  def forwarded_block_pass
+    block_pass([], AST::LocalRead.new(:&))
+  end
+
 <% if runtime.fetch("builder_methods", []).include?("keyword_arguments") -%>
   def normalize_call_arguments(arguments)
     return [] if arguments.nil?

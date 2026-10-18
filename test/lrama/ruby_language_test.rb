@@ -81,6 +81,22 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Call.new(:f, [])]), parse([:tIDENTIFIER, :f], ["(", nil], [")", nil]))
   end
 
+  test "block pass arguments remain distinct from ordinary symbols" do
+    block_pass = GeneratedRubyFrontend.parse("map(&:to_s)").statements.first
+    assert_equal(AST::Call.new(:map, [AST::BlockPass.new([], literal(:to_s))]), block_pass)
+
+    symbol_argument = GeneratedRubyFrontend.parse("map(:to_s)").statements.first
+    assert_equal(AST::Call.new(:map, [literal(:to_s)]), symbol_argument)
+
+    with_arguments = GeneratedRubyFrontend.parse("map(value, &block)").statements.first
+    assert_equal(AST::Call.new(:map, [AST::BlockPass.new([AST::BareCall.new(:value)], AST::BareCall.new(:block))]),
+      with_arguments)
+
+    keyword_arguments = GeneratedRubyFrontend.parse("map(name: value, &block)").statements.first
+    assert_kind_of(AST::BlockPass, keyword_arguments.arguments.fetch(0))
+    assert_kind_of(AST::KeywordArguments, keyword_arguments.arguments.fetch(0).arguments.fetch(0))
+  end
+
   test "simple method definitions preserve name and body" do
     expected = AST::Def.new(:foo, [], [literal(1)])
     tokens = [[:keyword_def, nil], [:tIDENTIFIER, :foo], [";", nil], [:tINTEGER, 1], [";", nil], [:keyword_end, nil]]
@@ -832,7 +848,7 @@ class ArpakaTest < Test::Unit::TestCase
   test "source lexer distinguishes splat and block argument operators" do
     assert_equal(AST::Call.new(:f, [AST::BareCall.new(:args)]),
       GeneratedRubyFrontend.parse("f(*args)").statements.first)
-    assert_equal(AST::Call.new(:map, AST::Literal.new(:to_s)),
+    assert_equal(AST::Call.new(:map, [AST::BlockPass.new([], AST::Literal.new(:to_s))]),
       GeneratedRubyFrontend.parse("map(&:to_s)").statements.first)
     assert_nothing_raised { GeneratedRubyFrontend.parse("f(1, *args)") }
   end

@@ -23,6 +23,13 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "block pass is distinct from symbol arguments and keeps preceding arguments" do
+    ["foo(&:to_s)", "foo(:to_s)", "foo(value, &block)",
+      "def f(&); foo(&); end", "def f(&block); foo(&block); end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "keyword arguments keep a distinct tag from hash literals" do
     keyword_arguments = @normalizer.arpaka(GeneratedRubyFrontend.parse("foo(name: 1)"))
     hash_argument = @normalizer.arpaka(GeneratedRubyFrontend.parse("foo({name: 1})"))
@@ -69,7 +76,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "block pass keyword parameters ensure rescue and multiple assignment retain reference structure" do
-    ["foo(&block)", "def f(required:, optional: 1); end", "a, b = values",
+    ["def f(required:, optional: 1); end", "a, b = values",
       "begin; dangerous; rescue Error => error; fallback; ensure; cleanup; end"].each do |source|
       rubyvm = normalized_rubyvm(source)
       arpaka = @normalizer.arpaka(GeneratedRubyFrontend.parse(source))
