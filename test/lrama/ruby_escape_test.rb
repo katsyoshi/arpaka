@@ -66,9 +66,20 @@ class ArpakaRubyEscapeTest < Test::Unit::TestCase
     end
   end
 
-  test "interpolated percent words fail instead of being flattened" do
-    assert_raise(GeneratedRubyFrontend::LexerError) { parse('%W[a#{b} c]') }
-    assert_raise(GeneratedRubyFrontend::LexerError) { parse('%I[a#{b}]') }
+  test "interpolated percent words retain dynamic string and symbol nodes" do
+    words = parse('%W[pre#{name}post plain]').statements.fetch(0)
+    assert_equal(2, words.elements.length)
+    assert_kind_of(AST::InterpolatedString, words.elements.fetch(0))
+    assert_equal(["pre", AST::BareCall.new(:name), "post"],
+      words.elements.fetch(0).parts)
+    assert_equal("plain", words.elements.fetch(1).value)
+
+    symbols = parse('%I[pre#{name}post plain]').statements.fetch(0)
+    assert_equal(2, symbols.elements.length)
+    assert_kind_of(AST::DynamicSymbol, symbols.elements.fetch(0))
+    assert_equal(["pre", AST::BareCall.new(:name), "post"],
+      symbols.elements.fetch(0).parts)
+    assert_equal(:plain, symbols.elements.fetch(1))
   end
 
   test "percent regular expressions preserve regexp and delimiter escapes" do

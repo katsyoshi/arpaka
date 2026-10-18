@@ -430,7 +430,7 @@ module Arpaka::Ruby::Actions
     646 => ["pass_through", "nil"], 647 => ["pass_through", "nil"],
     648 => ["pass_through", "$3"], 649 => ["pass_through", "$1"],
     650 => ["empty", "[]"], 651 => ["ported", "($1 + [$2]).freeze"],
-    652 => ["pass_through", "$1"], 653 => ["ported", "$1.to_s + $2.to_s"],
+    652 => ["pass_through", "$1"], 653 => ["ported", "@builder.concat_strings($1, $2)"],
     654 => ["pass_through", "$3"], 655 => ["ported", "@builder.word_array($1, symbols: true)"],
     656 => ["empty", "[]"], 657 => ["ported", "($1 + [$2]).freeze"],
     658 => ["pass_through", "$3"], 659 => ["ported", "@builder.word_array($1)"],

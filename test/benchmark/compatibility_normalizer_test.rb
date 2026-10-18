@@ -146,6 +146,15 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_not_equal(normalized_rubyvm("0.0"), normalized_rubyvm("-0.0"))
   end
 
+  test "interpolated percent words compare as dynamic strings and symbols" do
+    [%q{%W[pre#{name}post plain]}, %q{%I[pre#{name}post plain]},
+      %q{%W[#{name}]}, %q{%I[#{name}]}].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+    assert_equal(normalized_rubyvm(%q{"#{name}"}),
+      @normalizer.arpaka(GeneratedRubyFrontend.parse(%q{"#{name}"})))
+  end
+
   test "parameter forms retain post, rest, keyword rest and block fields" do
     rest_only = normalized_rubyvm("def f(*args); end")
     rest_keyword_block = normalized_rubyvm("def f(*args, **kwargs, &block); end")

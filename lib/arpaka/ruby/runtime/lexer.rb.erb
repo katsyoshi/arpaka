@@ -1150,8 +1150,8 @@ class Lexer
       read_delimited(closing, start, mode: :percent_q, delimiters: [closing, delimiter])
     end
     advance while kind == 114 && byte && byte.between?(97, 122)
-    token = { 113 => :tSTRING_BEG, 81 => :tSTRING_BEG, 119 => :tWORDS_BEG, 87 => :tQWORDS_BEG,
-              105 => :tSYMBOLS_BEG, 73 => :tQSYMBOLS_BEG, 114 => :tREGEXP_BEG,
+    token = { 113 => :tSTRING_BEG, 81 => :tSTRING_BEG, 87 => :tWORDS_BEG, 119 => :tWORDS_BEG,
+              73 => :tSYMBOLS_BEG, 105 => :tSYMBOLS_BEG, 114 => :tREGEXP_BEG,
               115 => :tSYMBEG, 120 => :tXSTRING_BEG, 88 => :tXSTRING_BEG }.fetch(kind)
     terminator = kind == 114 ? :tREGEXP_END : :tSTRING_END
     @pending = if word_literal
@@ -1166,25 +1166,40 @@ class Lexer
 
   def read_word_delimited(closing, opening, start, interpolate:, symbols:)
     tokens = [[" ", nil]]
-    word = +""
+    content = +""
+    word_started = false
     depth = 0
     paired_opening = { 41 => 40, 93 => 91, 125 => 123, 62 => 60 }.fetch(closing, -1)
+    flush_content = lambda do
+      unless content.empty?
+        tokens << [:tSTRING_CONTENT, content]
+        content = +""
+      end
+    end
     flush_word = lambda do
-      unless word.empty?
-        value = symbols ? word.to_sym : word
-        tokens << [:tSTRING_CONTENT, value]
+      flush_content.call
+      if word_started
         tokens << [" ", nil]
-        word = +""
+        word_started = false
       end
     end
 
     until eof?
       value = byte
       if value == 92
-        word << escape_sequence(start, mode: interpolate ? :double : :word,
+        content << escape_sequence(start, mode: interpolate ? :double : :word,
           delimiters: [closing, opening])
+        word_started = true
       elsif value == 35 && interpolate && byte(1) == 123
-        fail!("interpolated percent words cannot be represented by the AST", start)
+        flush_content.call
+        word_started = true
+        advance(2)
+        expression = read_interpolation_source(start)
+        inner = self.class.new(expression, filename: @filename).each.to_a
+        inner.pop if inner.last == [0, nil]
+        tokens << [:tSTRING_DBEG, nil]
+        tokens.concat(inner)
+        tokens << [:tSTRING_DEND, nil]
       elsif value == closing && depth.zero?
         flush_word.call
         advance
@@ -1195,7 +1210,8 @@ class Lexer
       else
         depth += 1 if value == paired_opening
         depth -= 1 if value == closing && depth.positive?
-        append_source_character(word)
+        append_source_character(content)
+        word_started = true
       end
     end
     fail!("unterminated percent literal", start)

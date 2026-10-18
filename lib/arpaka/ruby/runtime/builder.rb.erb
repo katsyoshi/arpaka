@@ -128,8 +128,11 @@ class Builder
 
   def string(value)
     if value.is_a?(Array)
-      return AST::InterpolatedString.new(value.freeze) if value.any? { |part| !part.is_a?(String) }
-      value = value.join
+      parts = value.flat_map do |part|
+        part.is_a?(AST::InterpolatedString) ? part.parts : [part]
+      end
+      return AST::InterpolatedString.new(parts.freeze) if parts.any? { |part| !part.is_a?(String) }
+      value = parts.join
     end
     AST::StringLiteral.new(value.to_s)
   end
@@ -188,14 +191,24 @@ class Builder
   end
 
   def interpolation(value)
-    value.is_a?(Array) && value.length == 1 ? value.first : value
+    value = value.is_a?(Array) && value.length == 1 ? value.first : value
+    AST::InterpolatedString.new([value].freeze)
   end
 
   def concat_strings(left, right)
-    left_parts = left.is_a?(AST::InterpolatedString) ? left.parts : [left.value]
-    right_parts = right.is_a?(AST::InterpolatedString) ? right.parts : [right.value]
+    left_parts = string_parts(left)
+    right_parts = string_parts(right)
     parts = left_parts + right_parts
     parts.all? { |part| part.is_a?(String) } ? AST::StringLiteral.new(parts.join) : AST::InterpolatedString.new(parts.freeze)
+  end
+
+  def string_parts(value)
+    case value
+    when String then [value]
+    when AST::StringLiteral then [value.value]
+    when AST::InterpolatedString then value.parts
+    else [value]
+    end
   end
 
   def index(receiver, arguments)
@@ -378,8 +391,12 @@ class Builder
     elements ||= []
     elements = elements.elements if elements.is_a?(AST::ArrayLiteral)
     values = elements.map do |value|
-      value = value.value if value.is_a?(AST::StringLiteral)
-      symbols ? value.to_sym : AST::StringLiteral.new(value.to_s)
+      if value.is_a?(AST::InterpolatedString)
+        symbols ? AST::DynamicSymbol.new(value.parts) : value
+      else
+        value = value.value if value.is_a?(AST::StringLiteral)
+        symbols ? value.to_sym : AST::StringLiteral.new(value.to_s)
+      end
     end
     AST::ArrayLiteral.new(values.freeze)
   end

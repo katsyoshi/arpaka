@@ -29,6 +29,7 @@ module AST
   BlockCall = Data.define(:call, :parameters, :body)
   StringLiteral = Data.define(:value)
   InterpolatedString = Data.define(:parts)
+  DynamicSymbol = Data.define(:parts)
   Index = Data.define(:receiver, :arguments)
   Loop = Data.define(:kind, :condition, :body)
   Control = Data.define(:kind)
