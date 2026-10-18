@@ -504,6 +504,11 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
       @normalizer.arpaka(GeneratedRubyFrontend.parse(source)))
   end
 
+  test "string literal nodes compare with strings" do
+    node = GeneratedRubyFrontend::AST::Literal.new("static")
+    assert_equal([:string, [:bytes, "737461746963", "UTF-8"]], @normalizer.arpaka(node))
+  end
+
   private
 
   def normalized_rubyvm(source)
