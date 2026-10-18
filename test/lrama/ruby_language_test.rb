@@ -429,6 +429,21 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(rest_case, GeneratedRubyFrontend.parse("case value; in [a, *rest]; :rest; end").statements.first)
   end
 
+  test "case in supports pinned values and pattern guards" do
+    pinned = AST::Pattern.new(:pin, [AST::LocalRead.new(:expected)])
+    pinned_clause = AST::When.new([pinned], [AST::BareCall.new(:matched)])
+    pinned_source = "expected = 1; case value; in ^expected; matched; end"
+    pinned_tree = GeneratedRubyFrontend.parse(pinned_source)
+    assert_equal(AST::LocalWrite.new(:expected, literal(1)), pinned_tree.statements.first)
+    assert_equal(AST::Case.new(AST::BareCall.new(:value), [pinned_clause], nil), pinned_tree.statements.last)
+
+    array = AST::Pattern.new(:array, [[AST::Pattern.new(:variable, [:a]), AST::Pattern.new(:variable, [:b])], nil, []])
+    guarded = AST::Pattern.new(:guard, [array, AST::BareCall.new(:ready)])
+    guard_clause = AST::When.new([guarded], [AST::BareCall.new(:matched)])
+    guard_case = AST::Case.new(AST::BareCall.new(:value), [guard_clause], nil)
+    assert_equal(guard_case, GeneratedRubyFrontend.parse("case value; in [a, b] if ready; matched; end").statements.first)
+  end
+
   test "array and hash literals build structured AST nodes" do
     array = AST::ArrayLiteral.new([literal(1), literal(2)])
     assert_equal(AST::Program.new([array]), parse([:tLBRACK, nil], [:tINTEGER, 1], [",", nil], [:tINTEGER, 2], ["]", nil]))
