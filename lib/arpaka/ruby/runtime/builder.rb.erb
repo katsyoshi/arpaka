@@ -100,8 +100,7 @@ class Builder
   end
 
   def append_block_rest(parameters, rest, post = nil)
-    values = Array(parameters)
-    values = [parameters] unless parameters.is_a?(Array)
+    values = Array(parameters).dup
     values << AST::BlockParameters.new(:rest, Array(rest).first)
     values.concat(Array(post).map { |name| AST::BlockParameters.new(:post, name) }) unless post.nil?
     values.freeze
