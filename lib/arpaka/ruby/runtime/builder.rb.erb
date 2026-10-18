@@ -399,6 +399,12 @@ class Builder
     pattern(:array, pattern_array_parts(*parts))
   end
 
+  def pattern_find_parts(pre_rest, values, post_rest)
+    rest_pattern = ->(value) { value.nil? ? pattern(:rest, [nil]) : pattern_value(value) }
+    [rest_pattern.call(pre_rest), Array(values).map { |value| pattern_value(value) }.freeze,
+      rest_pattern.call(post_rest)].freeze
+  end
+
   def pattern_pair(key, value = :__arpaka_missing_pattern_value__)
     key_node = key.is_a?(AST::Literal) ? key : AST::Literal.new(key)
     value_node = if value == :__arpaka_missing_pattern_value__
