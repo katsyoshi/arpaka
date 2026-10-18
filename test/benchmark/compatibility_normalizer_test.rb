@@ -72,6 +72,22 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "required keyword parameters in blocks normalize from dynamic assignments" do
+    tree = RubyVM::AbstractSyntaxTree.parse("proc { |required:| required }")
+    find_node = lambda do |node, type|
+      return node if node.is_a?(RubyVM::AbstractSyntaxTree::Node) && node.type == type
+      return unless node.is_a?(RubyVM::AbstractSyntaxTree::Node)
+      node.children.each do |child|
+        found = find_node.call(child, type)
+        return found if found
+      end
+      nil
+    end
+    keyword_parameters = find_node.call(tree, :KW_ARG)
+    assert_equal([:keyword_parameters, [[:required_keyword, @normalizer.send(:symbol, :required)]]],
+      @normalizer.send(:rubyvm_keyword_arguments, keyword_parameters))
+  end
+
   test "single binary expression wrappers normalize without flattening sequences" do
     ["call((left + right))", "call((left + right), (other * value))"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
