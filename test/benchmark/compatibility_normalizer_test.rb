@@ -76,7 +76,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "block pass keyword parameters ensure rescue and multiple assignment retain reference structure" do
-    ["def f(required:, optional: 1); end", "a, b = values",
+    ["a, b = values",
       "begin; dangerous; rescue Error => error; fallback; ensure; cleanup; end"].each do |source|
       rubyvm = normalized_rubyvm(source)
       arpaka = @normalizer.arpaka(GeneratedRubyFrontend.parse(source))
@@ -228,6 +228,13 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     ["def f(*); end", "def f(*args); end", "def f(first = 1); end",
       "def f(first, second = 1, third = 2); end", "def f(first, *rest, last); end",
       "def f(&); end", "def f(&block); end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
+  test "keyword method parameters compare with RubyVM ARGS shapes" do
+    ["def f(required:); end", "def f(optional: 1); end", "def f(**kwargs); end",
+      "def f(**); end", "def f(required:, optional: 1, **kwargs, &block); end", "def f(**nil); end"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
   end

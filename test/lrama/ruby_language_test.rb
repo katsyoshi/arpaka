@@ -132,6 +132,17 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nil(anonymous_block.name)
   end
 
+  test "method keyword parameters retain required optional rest and disabled forms" do
+    parameters = GeneratedRubyFrontend.parse("def sample(required:, optional: 1, **keywords, &block); end")
+      .statements.first.arguments
+    assert_equal([:keyword_required, :keyword_optional, :keyword_rest, :block], parameters.map(&:kind))
+    assert_equal(%i[required optional keywords block], parameters.map(&:name))
+    anonymous = GeneratedRubyFrontend.parse("def sample(**); end").statements.first.arguments
+    assert_equal(AST::Parameter.new(:keyword_rest, nil, nil), anonymous)
+    disabled = GeneratedRubyFrontend.parse("def sample(**nil); end").statements.first.arguments
+    assert_equal(AST::Parameter.new(:keyword_rest_disabled, nil, nil), disabled)
+  end
+
   test "setter method definitions preserve the equals suffix" do
     expected = AST::Program.new([AST::Def.new(:"value=", :value, [AST::LocalRead.new(:value)])])
     assert_equal(expected, GeneratedRubyFrontend.parse("def value=(value)\n  value\nend"))
