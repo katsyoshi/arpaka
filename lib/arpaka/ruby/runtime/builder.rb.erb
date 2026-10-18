@@ -55,7 +55,7 @@ class Builder
   end
 
   def call(name, arguments)
-    AST::Call.new(name, arguments.freeze)
+    AST::Call.new(name, normalize_call_arguments(arguments))
   end
 
   def super_call(arguments)
@@ -63,8 +63,39 @@ class Builder
   end
 
   def receiver_call(receiver, operator, name, arguments)
-    AST::ReceiverCall.new(receiver, operator, name, (arguments || []).freeze)
+    AST::ReceiverCall.new(receiver, operator, name, normalize_call_arguments(arguments))
   end
+
+<% if runtime.fetch("builder_methods", []).include?("keyword_arguments") -%>
+  def normalize_call_arguments(arguments)
+    return [] if arguments.nil?
+    return arguments unless arguments.is_a?(Array)
+
+    result = []
+    pairs = []
+    flush_pairs = lambda do
+      unless pairs.empty?
+        result << AST::KeywordArguments.new(pairs.freeze)
+        pairs = []
+      end
+    end
+
+    arguments.each do |argument|
+      if argument.is_a?(AST::Pair)
+        pairs << argument
+      else
+        flush_pairs.call
+        result << argument
+      end
+    end
+    flush_pairs.call
+    result.freeze
+  end
+<% else -%>
+  def normalize_call_arguments(arguments)
+    arguments.nil? ? [] : (arguments.is_a?(Array) ? arguments.freeze : arguments)
+  end
+<% end -%>
 
   def block_call(call, body)
     if body.is_a?(BlockBody)

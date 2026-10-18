@@ -10,8 +10,8 @@ module Arpaka
         "actions" => ::Arpaka::Ruby::Actions::ACTIONS,
         "additional_expected_conflicts" => 0,
         "runtime" => {
-          "ast_nodes" => %w[self assignment singleton_method].freeze,
-          "builder_methods" => %w[self assignment singleton_method].freeze
+          "ast_nodes" => %w[self assignment singleton_method keyword_arguments].freeze,
+          "builder_methods" => %w[self assignment singleton_method keyword_arguments].freeze
         }.freeze
       }.freeze
 

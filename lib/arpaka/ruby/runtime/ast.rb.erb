@@ -20,6 +20,9 @@ module AST
   BareCall = Data.define(:name)
   ArrayLiteral = Data.define(:elements)
   HashLiteral = Data.define(:pairs)
+<% if runtime.fetch("ast_nodes", []).include?("keyword_arguments") -%>
+  KeywordArguments = Data.define(:pairs)
+<% end -%>
   Pair = Data.define(:key, :value)
   RangeLiteral = Data.define(:operator, :begin_value, :end_value)
   Ternary = Data.define(:condition, :then_value, :else_value)

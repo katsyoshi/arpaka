@@ -338,6 +338,23 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::HashLiteral.new([])]), parse([:tLBRACE, nil], ["}", nil]))
   end
 
+  test "call label arguments use a distinct node from hash literals and pairs" do
+    pair = AST::Pair.new(AST::Literal.new(:name), literal(1))
+    keyword_arguments = AST::KeywordArguments.new([pair])
+    assert_equal(AST::Call.new(:foo, [keyword_arguments]), GeneratedRubyFrontend.parse("foo(name: 1)").statements.first)
+    assert_equal(AST::Call.new(:foo, [AST::HashLiteral.new([pair])]),
+      GeneratedRubyFrontend.parse("foo({name: 1})").statements.first)
+
+    values = GeneratedRubyFrontend.parse("foo(0, first: 1, second: 2)").statements.first
+    assert_equal(AST::Call.new(:foo, [literal(0), AST::KeywordArguments.new([
+      AST::Pair.new(AST::Literal.new(:first), literal(1)),
+      AST::Pair.new(AST::Literal.new(:second), literal(2))
+    ])]), values)
+
+    receiver_call = GeneratedRubyFrontend.parse("object.foo(name: 1)").statements.first
+    assert_equal(AST::ReceiverCall.new(AST::BareCall.new(:object), :".", :foo, [keyword_arguments]), receiver_call)
+  end
+
   test "command blocks accept block parameters" do
     parameters = AST::BlockParameters.new(:required, [:value])
     body = [AST::LocalRead.new(:value)]
@@ -721,7 +738,7 @@ class ArpakaTest < Test::Unit::TestCase
   test "source lexer treats spaced bracket arguments as array literals" do
     tree = GeneratedRubyFrontend.parse("foo [1], name: 2").statements.first
     assert_equal(AST::ArrayLiteral.new([literal(1)]), tree.arguments.first)
-    assert_equal(AST::Pair.new(AST::Literal.new(:name), literal(2)), tree.arguments.last)
+    assert_equal(AST::KeywordArguments.new([AST::Pair.new(AST::Literal.new(:name), literal(2))]), tree.arguments.last)
   end
 
   test "source lexer treats predicate and bang methods as identifiers" do

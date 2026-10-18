@@ -7,8 +7,8 @@
  "source_revision" => "343ea050023cfc0374fdea6fdf625b2f57b716a4",
  "source_sha256" => "0347b145280f89b0052aaaa506aa2022c9abdfa2c37677203d53a1a2b3e35861",
  "runtime" => {
-   "ast_nodes" => %w[assignment singleton_method singleton_class pattern].freeze,
-   "builder_methods" => %w[assignment singleton_method singleton_class rescue].freeze,
+   "ast_nodes" => %w[assignment singleton_method singleton_class pattern keyword_arguments].freeze,
+   "builder_methods" => %w[assignment singleton_method singleton_class rescue keyword_arguments].freeze,
    "lexer" => {"source_text_tokens" => ["tOP_ASGN"].freeze}.freeze
  }.freeze,
  "actions" => {

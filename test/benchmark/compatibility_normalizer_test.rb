@@ -23,6 +23,13 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "keyword argument AST nodes compare as RubyVM hash arguments" do
+    ["foo(name: 1)", "foo({name: 1})", "foo(0, first: 1, second: 2)",
+      "object.foo(name: 1)", "foo name: 1"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "variable writes indexes and unless compare across both AST shapes" do
     ["@value = 1", "@@value = 1", "$value = 1", "VALUE = 1",
       "values[0]", "values[0] = 1", "unless ready; value; else; fallback; end",
@@ -32,7 +39,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "known assignment and callable body losses become mismatches" do
-    ["object.value = 1", "fetch(name: 1)", "-> { 1 }",
+    ["object.value = 1", "-> { 1 }",
       "while ready; value; end", "return 1"].each do |source|
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
