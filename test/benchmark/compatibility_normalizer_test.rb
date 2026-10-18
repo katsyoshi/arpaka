@@ -96,6 +96,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "local opassign compares through RubyVM's expanded write form" do
+    ["timeout -= 0.1", "pos += 1", "owners |= [owner]"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "known callable body losses become mismatches" do
     ["-> { 1 }", "while ready; value; end"].each do |source|
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)

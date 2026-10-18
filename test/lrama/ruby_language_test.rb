@@ -634,6 +634,11 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::BareCall.new(:values), assignment.value)
   end
 
+  test "local opassign retains its dedicated AST node" do
+    assignment = GeneratedRubyFrontend.parse("pos += 1").statements.first
+    assert_equal(AST::OpAssign.new(:pos, :+, AST::Literal.new(1)), assignment)
+  end
+
   test "bare names and parse state isolation" do
     expected = AST::Program.new([AST::BareCall.new(:a)])
     assert_equal(expected, parse([:tIDENTIFIER, "a"]))
