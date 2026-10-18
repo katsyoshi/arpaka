@@ -127,14 +127,13 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "known information losses remain visible as mismatches" do
-    %w[splat.rb optional_default_one.rb regexp_i.rb regexp_m.rb
-      method_local_scope.rb required_argument_scope.rb].each do |fixture|
+    %w[splat.rb optional_default_one.rb method_local_scope.rb required_argument_scope.rb].each do |fixture|
       source = File.read(File.expand_path("../../benchmark/fixtures/#{fixture}", __dir__))
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), fixture)
     end
   end
 
-  test "regexp modes and default values remain distinct in the oracle" do
+  test "regexp options and encodings compare from parser metadata" do
     regexp_i = File.read(File.expand_path("../../benchmark/fixtures/regexp_i.rb", __dir__))
     regexp_m = File.read(File.expand_path("../../benchmark/fixtures/regexp_m.rb", __dir__))
     default_one = File.read(File.expand_path("../../benchmark/fixtures/optional_default_one.rb", __dir__))
@@ -146,11 +145,20 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
 
     assert_equal(rubyvm_i[1], rubyvm_m[1])
     assert_not_equal(rubyvm_i[2], rubyvm_m[2])
-    assert_equal(rubyvm_i[1], arpaka_i[1])
-    assert_equal(Compatibility::Normalizer::MISSING, arpaka_i[2])
-    assert_equal(Compatibility::Normalizer::MISSING, arpaka_i[3])
-    assert_not_equal(rubyvm_i[3], arpaka_i[3])
+    assert_equal(rubyvm_i, arpaka_i)
+    ["/abc/", "/é/", "/abc/u", "/abc/n", "/abc/e", "/abc/s", "%r{abc}im"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
     refute_equal(normalized_rubyvm(default_one), normalized_rubyvm(default_two))
+  end
+
+  test "interpolated regexp parts and explicit options survive parser construction" do
+    regexp = GeneratedRubyFrontend.parse('%r{prefix#{value}suffix}im').statements.first
+    assert_equal(["prefix", GeneratedRubyFrontend::AST::BareCall.new(:value), "suffix"], regexp.value)
+    assert_equal(5, regexp.options)
+    assert_nil(regexp.encoding)
+    error = assert_raise(Compatibility::Unsupported) { normalized_rubyvm('%r{prefix#{value}suffix}im') }
+    assert_match(/options are absent from RubyVM AST/, error.detail)
   end
 
   test "integer and float values retain distinct exact representations" do

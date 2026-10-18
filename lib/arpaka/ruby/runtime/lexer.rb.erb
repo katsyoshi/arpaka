@@ -227,6 +227,7 @@ class Lexer
     unless [Encoding::UTF_8, Encoding::US_ASCII].include?(source.encoding) && source.valid_encoding?
       raise Error, "#{filename}:1:0: invalid UTF-8 source"
     end
+    @source_encoding = source.encoding.name
     @source = source.b
     @filename = filename
     @index = 0
@@ -1065,9 +1066,9 @@ class Lexer
     return operator_or_punctuation(start) if [".", :tCOLON2, :tANDDOT, :keyword_def, :tSYMBEG].include?(@previous)
     if @context.begin_expression
       advance
-      value = read_regexp(start)
+      value, metadata = read_regexp(start)
       content = value.is_a?(Array) ? value : [[:tSTRING_CONTENT, value]]
-      @pending = content + [[:tREGEXP_END, nil]]
+      @pending = content + [[:tREGEXP_END, metadata]]
       return [:tREGEXP_BEG, nil]
     end
     operator_or_punctuation(start)
@@ -1107,15 +1108,35 @@ class Lexer
         tokens << [:tSTRING_DEND, nil]
       elsif value == 47 && !in_class
         advance
-        advance while byte && byte.between?(97, 122)
+        metadata = read_regexp_options
         tokens << [:tSTRING_CONTENT, result] unless result.empty?
-        return interpolated ? tokens : result
+        return [interpolated ? tokens : result, metadata]
       else
         result << value.chr
         advance
       end
     end
     fail!("unterminated regexp", start)
+  end
+
+  def read_regexp_options
+    modifiers = +""
+    while byte && byte.between?(97, 122)
+      modifiers << byte.chr
+      advance
+    end
+    options = 0
+    options |= 1 if modifiers.include?("i")
+    options |= 2 if modifiers.include?("x")
+    options |= 4 if modifiers.include?("m")
+    encoding = case modifiers.chars.find { |modifier| ["n", "e", "s", "u"].include?(modifier) }
+    when "n" then "US-ASCII"
+    when "e" then "EUC-JP"
+    when "s" then "Windows-31J"
+    when "u" then "UTF-8"
+    end
+    options |= encoding == "US-ASCII" ? 32 : 16 if encoding
+    { options: options, encoding: encoding, source_encoding: @source_encoding }.freeze
   end
 
   def percent_token(start)
@@ -1149,7 +1170,7 @@ class Lexer
     else
       read_delimited(closing, start, mode: :percent_q, delimiters: [closing, delimiter])
     end
-    advance while kind == 114 && byte && byte.between?(97, 122)
+    regexp_metadata = read_regexp_options if kind == 114
     token = { 113 => :tSTRING_BEG, 81 => :tSTRING_BEG, 87 => :tWORDS_BEG, 119 => :tWORDS_BEG,
               73 => :tSYMBOLS_BEG, 105 => :tSYMBOLS_BEG, 114 => :tREGEXP_BEG,
               115 => :tSYMBEG, 120 => :tXSTRING_BEG, 88 => :tXSTRING_BEG }.fetch(kind)
@@ -1157,9 +1178,9 @@ class Lexer
     @pending = if word_literal
       content + [[terminator, nil]]
     elsif content.is_a?(Array)
-      content + [[terminator, nil]]
+      content + [[terminator, regexp_metadata]]
     else
-      [[:tSTRING_CONTENT, content], [terminator, nil]]
+      [[:tSTRING_CONTENT, content], [terminator, regexp_metadata]]
     end
     [token, nil]
   end

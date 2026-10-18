@@ -152,7 +152,7 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "simple regexp literals preserve their content" do
-    expected = AST::RegexpLiteral.new("text")
+    expected = AST::RegexpLiteral.new("text", 0, "US-ASCII")
     assert_equal(AST::Program.new([expected]), parse([:tREGEXP_BEG, nil], [:tSTRING_CONTENT, "text"], [:tREGEXP_END, nil]))
   end
 
@@ -563,13 +563,13 @@ class ArpakaTest < Test::Unit::TestCase
 
   test "source lexer preserves literal kinds" do
     assert_equal(AST::XStringLiteral.new("echo"), GeneratedRubyFrontend.parse("`echo`").statements.first)
-    assert_equal(AST::RegexpLiteral.new("a[b]"), GeneratedRubyFrontend.parse("/a[b]/").statements.first)
+    assert_equal(AST::RegexpLiteral.new("a[b]", 0, "US-ASCII"), GeneratedRubyFrontend.parse("/a[b]/").statements.first)
     assert_equal(AST::StringLiteral.new("quiet"), GeneratedRubyFrontend.parse("%q(quiet)").statements.first)
     assert_equal(AST::ArrayLiteral.new([AST::StringLiteral.new("one"), AST::StringLiteral.new("two")]),
       GeneratedRubyFrontend.parse("%w(one two)").statements.first)
     assert_equal(AST::ArrayLiteral.new([:one, :two]),
       GeneratedRubyFrontend.parse("%i(one two)").statements.first)
-    assert_equal(AST::RegexpLiteral.new("a"), GeneratedRubyFrontend.parse("%r(a)").statements.first)
+    assert_equal(AST::RegexpLiteral.new("a", 0, "US-ASCII"), GeneratedRubyFrontend.parse("%r(a)").statements.first)
   end
 
   test "source lexer preserves simple string interpolation" do
@@ -584,7 +584,10 @@ class ArpakaTest < Test::Unit::TestCase
     expected = AST::InterpolatedString.new(["hello ", AST::BareCall.new(:name)])
     assert_equal(expected, GeneratedRubyFrontend.parse('%Q(hello #{name})').statements.first)
     assert_equal(expected, GeneratedRubyFrontend.parse('%(hello #{name})').statements.first)
-    assert_kind_of(AST::RegexpLiteral, GeneratedRubyFrontend.parse('%r(#{x})').statements.first)
+    regexp = GeneratedRubyFrontend.parse('%r(#{x})i').statements.first
+    assert_equal([AST::BareCall.new(:x)], regexp.value)
+    assert_equal(1, regexp.options)
+    assert_nil(regexp.encoding)
   end
 
   test "source lexer handles heredoc indentation and line endings" do

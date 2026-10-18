@@ -172,8 +172,20 @@ class Builder
     AST::StringLiteral.new(value.to_s)
   end
 
-  def regexp(value)
-    AST::RegexpLiteral.new(value.is_a?(Array) ? value.join : value.to_s)
+  def regexp(value, metadata = nil)
+    metadata ||= {}
+    parts = value.is_a?(Array) ? value : [value]
+    parts = parts.flat_map { |part| part.is_a?(AST::InterpolatedString) ? part.parts : [part] }
+    pattern = parts.all? { |part| part.is_a?(String) } ? parts.join : parts.freeze
+    options = metadata.fetch(:options, 0)
+    encoding = metadata[:encoding]
+    if pattern.is_a?(String)
+      pattern = pattern.dup.force_encoding(encoding || metadata[:source_encoding] || Encoding::UTF_8.name)
+      regexp = Regexp.new(pattern, options)
+      options = regexp.options
+      encoding = regexp.encoding.name
+    end
+    AST::RegexpLiteral.new(pattern, options, encoding)
   end
 
   def xstring(value)

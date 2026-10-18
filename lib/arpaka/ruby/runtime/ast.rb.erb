@@ -41,7 +41,7 @@ module AST
   ConstantPath = Data.define(:receiver, :name)
   AbsoluteConstant = Data.define(:name)
   Rescue = Data.define(:expression, :fallback)
-  RegexpLiteral = Data.define(:value)
+  RegexpLiteral = Data.define(:value, :options, :encoding)
   XStringLiteral = Data.define(:value)
   For = Data.define(:variable, :enumerable, :body)
   Def = Data.define(:name, :arguments, :body)
