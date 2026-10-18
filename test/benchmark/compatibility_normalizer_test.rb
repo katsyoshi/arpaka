@@ -30,6 +30,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "splat arguments, array elements, and multiple assignment compare across both AST shapes" do
+    ["foo(*values)", "foo(1, *values, 2)", "[*values, 1]", "items = [*values, 1]"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "keyword arguments keep a distinct tag from hash literals" do
     keyword_arguments = @normalizer.arpaka(GeneratedRubyFrontend.parse("foo(name: 1)"))
     hash_argument = @normalizer.arpaka(GeneratedRubyFrontend.parse("foo({name: 1})"))
@@ -136,8 +142,9 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     ["f(value, *values)", "f(value, *values, tail)", "def f; yield(value, *values); end"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
-    source = "f(*values)"
-    refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    ["f(*values)", "[*values]", "[*values, 1]", "[*values, *other]"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
   end
 
   test "normalization makes RubyVM-only constructs verified mismatches when candidate loses structure" do
@@ -152,10 +159,8 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "known information losses remain visible as mismatches" do
-    %w[splat.rb].each do |fixture|
-      source = File.read(File.expand_path("../../benchmark/fixtures/#{fixture}", __dir__))
-      refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), fixture)
-    end
+    source = File.read(File.expand_path("../../benchmark/fixtures/splat.rb", __dir__))
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), "splat.rb")
   end
 
   test "regexp options and encodings compare from parser metadata" do

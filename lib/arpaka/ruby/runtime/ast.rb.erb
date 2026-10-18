@@ -19,6 +19,7 @@ module AST
 <% end -%>
   BareCall = Data.define(:name)
   ArrayLiteral = Data.define(:elements)
+  Splat = Data.define(:value)
   HashLiteral = Data.define(:pairs)
 <% if runtime.fetch("ast_nodes", []).include?("keyword_arguments") -%>
   KeywordArguments = Data.define(:pairs)

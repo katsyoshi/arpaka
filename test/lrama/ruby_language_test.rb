@@ -81,6 +81,11 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Call.new(:f, [])]), parse([:tIDENTIFIER, :f], ["(", nil], [")", nil]))
   end
 
+  test "splat call arguments retain their explicit AST node" do
+    expected = AST::Call.new(:g, [AST::Splat.new(AST::LocalRead.new(:values))])
+    assert_equal(expected, GeneratedRubyFrontend.parse("def f(values); g(*values); end").statements.first.body.first)
+  end
+
   test "predicate and bang method identifiers become no-argument calls" do
     assert_equal(AST::Call.new(:block_given?, []), GeneratedRubyFrontend.parse("block_given?").statements.first)
     assert_equal(AST::ReceiverCall.new(AST::BareCall.new(:value), :".", :empty?, []),
@@ -864,7 +869,7 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "source lexer distinguishes splat and block argument operators" do
-    assert_equal(AST::Call.new(:f, [AST::BareCall.new(:args)]),
+    assert_equal(AST::Call.new(:f, [AST::Splat.new(AST::BareCall.new(:args))]),
       GeneratedRubyFrontend.parse("f(*args)").statements.first)
     assert_equal(AST::Call.new(:map, [AST::BlockPass.new([], AST::Literal.new(:to_s))]),
       GeneratedRubyFrontend.parse("map(&:to_s)").statements.first)

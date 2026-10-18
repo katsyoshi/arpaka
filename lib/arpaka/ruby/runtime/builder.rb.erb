@@ -85,7 +85,7 @@ class Builder
 <% if runtime.fetch("builder_methods", []).include?("keyword_arguments") -%>
   def normalize_call_arguments(arguments)
     return [] if arguments.nil?
-    return arguments unless arguments.is_a?(Array)
+    arguments = [arguments] unless arguments.is_a?(Array)
 
     result = []
     pairs = []
@@ -109,7 +109,7 @@ class Builder
   end
 <% else -%>
   def normalize_call_arguments(arguments)
-    arguments.nil? ? [] : (arguments.is_a?(Array) ? arguments.freeze : arguments)
+    arguments.nil? ? [] : (arguments.is_a?(Array) ? arguments.freeze : [arguments].freeze)
   end
 <% end -%>
 
@@ -300,6 +300,10 @@ class Builder
 
   def index(receiver, arguments)
     AST::Index.new(receiver, arguments.freeze)
+  end
+
+  def splat(value)
+    AST::Splat.new(value)
   end
 
   def loop(kind, condition, body)
@@ -496,6 +500,7 @@ class Builder
 <% end -%>
 
   def array(elements)
+    elements = elements.is_a?(Array) ? elements : [elements]
     AST::ArrayLiteral.new(elements.freeze)
   end
 
