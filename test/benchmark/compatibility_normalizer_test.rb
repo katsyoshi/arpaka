@@ -401,6 +401,11 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
+  test "END blocks normalize like RubyVM POSTEXE nodes" do
+    source = "END { puts :done }"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
   test "absolute constant assignment metadata is left unverified safely" do
     error = assert_raise(Compatibility::Unsupported) { normalized_rubyvm("::Rails = rails_backup") }
     assert_match(/absolute constant assignment metadata/, error.detail)
