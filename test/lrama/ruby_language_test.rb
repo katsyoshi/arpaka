@@ -470,6 +470,19 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { GeneratedRubyFrontend.parse(source) }
   end
 
+  test "singleton class definitions retain receiver and body" do
+    empty = GeneratedRubyFrontend.parse("class << self; end")
+    assert_equal(AST::Program.new([AST::SingletonClassDef.new(AST::Self.new, [])]), empty)
+
+    with_method = GeneratedRubyFrontend.parse("class << object; def x; end; end")
+    singleton_class = with_method.statements.first
+    assert_kind_of(AST::SingletonClassDef, singleton_class)
+    assert_kind_of(AST::BareCall, singleton_class.receiver)
+    assert_equal(:object, singleton_class.receiver.name)
+    assert_kind_of(AST::Def, singleton_class.body.first)
+    assert_equal(:x, singleton_class.body.first.name)
+  end
+
   test "method chains may continue after a newline before a dot" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("value = result\n  .first\n  .last") }
     assert_nothing_raised do

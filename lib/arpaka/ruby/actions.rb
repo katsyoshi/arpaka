@@ -562,6 +562,7 @@ module Arpaka::Ruby::Actions
     153 => ["ported", "@builder.constant_path($1, $3)"],
     382 => ["empty", "nil"], 384 => ["empty", "nil"], 386 => ["empty", "nil"],
     383 => ["ported", "@builder.class_node($2, $3, $5)"],
+    385 => ["ported", "@builder.singleton_class_node($3, $6)"],
     387 => ["ported", "@builder.module_node($2, $4)"],
     405 => ["empty", "nil"], 406 => ["empty", "nil"],
     408 => ["empty", "nil"], 410 => ["empty", "nil"], 411 => ["empty", "nil"],

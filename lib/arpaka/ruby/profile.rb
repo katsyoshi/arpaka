@@ -10,8 +10,8 @@ module Arpaka
         "actions" => ::Arpaka::Ruby::Actions::ACTIONS,
         "additional_expected_conflicts" => 0,
         "runtime" => {
-          "ast_nodes" => %w[self assignment singleton_method keyword_arguments].freeze,
-          "builder_methods" => %w[self assignment singleton_method keyword_arguments].freeze,
+          "ast_nodes" => %w[self assignment singleton_method singleton_class keyword_arguments].freeze,
+          "builder_methods" => %w[self assignment singleton_method singleton_class keyword_arguments].freeze,
           "lexer" => { "source_text_tokens" => ["tOP_ASGN"].freeze }.freeze
         }.freeze
       }.freeze

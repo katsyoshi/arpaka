@@ -116,6 +116,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "singleton class receivers and bodies compare" do
+    ["class << self; end", "class << object; def x; end; end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "single required block parameters and their local reads compare" do
     ["items.each { |item| item }", "items.each do |item| item end",
       "outer = 1; items.each { |item| outer + item }; outer",
