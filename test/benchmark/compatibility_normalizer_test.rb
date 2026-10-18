@@ -55,6 +55,14 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "argumentless control statements normalize their absent value as nil" do
+    source = "def f; return; end"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+
+    explicit_nil = "def f; return nil; end"
+    refute_equal(normalized_rubyvm(explicit_nil), @normalizer.arpaka(GeneratedRubyFrontend.parse(explicit_nil)), explicit_nil)
+  end
+
   test "implicit and explicit super arguments compare distinctly" do
     source = "class Parent; def implicit; super; end; def explicit; super(); end; def argument; super(1); end; end"
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
