@@ -23,6 +23,15 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "single binary expression wrappers normalize without flattening sequences" do
+    ["call((left + right))", "call((left + right), (other * value))"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+
+    multiple_statements = normalized_rubyvm("call(begin; left + right; fallback; end)")
+    assert_equal(:sequence, multiple_statements.dig(1, 0, 4, 0, 0))
+  end
+
   test "block pass is distinct from symbol arguments and keeps preceding arguments" do
     ["foo(&:to_s)", "foo(:to_s)", "foo(value, &block)",
       "def f(&); foo(&); end", "def f(&block); foo(&block); end"].each do |source|
