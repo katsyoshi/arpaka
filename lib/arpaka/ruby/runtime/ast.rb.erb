@@ -24,6 +24,7 @@ module AST
   RangeLiteral = Data.define(:operator, :begin_value, :end_value)
   Ternary = Data.define(:condition, :then_value, :else_value)
   Call = Data.define(:name, :arguments)
+  Super = Data.define(:arguments)
   ReceiverCall = Data.define(:receiver, :operator, :name, :arguments)
   BlockParameters = Data.define(:kind, :value)
   BlockCall = Data.define(:call, :parameters, :body)

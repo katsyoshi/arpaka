@@ -33,9 +33,14 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
 
   test "known assignment and callable body losses become mismatches" do
     ["object.value = 1", "fetch(name: 1)", "-> { 1 }",
-      "while ready; value; end", "return 1", "super"].each do |source|
+      "while ready; value; end", "return 1"].each do |source|
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
+  end
+
+  test "implicit and explicit super arguments compare distinctly" do
+    source = "class Parent; def implicit; super; end; def explicit; super(); end; def argument; super(1); end; end"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
   test "block pass keyword parameters ensure rescue and multiple assignment retain reference structure" do

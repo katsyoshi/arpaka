@@ -58,6 +58,10 @@ class Builder
     AST::Call.new(name, arguments.freeze)
   end
 
+  def super_call(arguments)
+    AST::Super.new(arguments&.freeze)
+  end
+
   def receiver_call(receiver, operator, name, arguments)
     AST::ReceiverCall.new(receiver, operator, name, (arguments || []).freeze)
   end

@@ -249,9 +249,10 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse([:keyword_yield, nil]))
   end
 
-  test "super without arguments becomes a call node" do
-    assert_equal(AST::Program.new([AST::Call.new(:super, [])]), parse([:keyword_super, nil]))
-    assert_equal(AST::Program.new([AST::Call.new(:super, [])]), GeneratedRubyFrontend.parse("super()"))
+  test "super preserves implicit and explicit arguments" do
+    assert_equal(AST::Program.new([AST::Super.new(nil)]), parse([:keyword_super, nil]))
+    assert_equal(AST::Program.new([AST::Super.new(nil)]), GeneratedRubyFrontend.parse("super"))
+    assert_equal(AST::Program.new([AST::Super.new([])]), GeneratedRubyFrontend.parse("super()"))
   end
 
   test "parenthesized not becomes a logical negation" do
@@ -282,7 +283,8 @@ class ArpakaTest < Test::Unit::TestCase
   end
 
   test "super with an argument preserves the argument" do
-    assert_equal(AST::Program.new([AST::Call.new(:super, [literal(1)])]), parse([:keyword_super, nil], [:tINTEGER, 1]))
+    assert_equal(AST::Program.new([AST::Super.new([literal(1)])]), parse([:keyword_super, nil], [:tINTEGER, 1]))
+    assert_equal(AST::Program.new([AST::Super.new([literal(1)])]), GeneratedRubyFrontend.parse("super(1)"))
   end
 
   test "command style method calls preserve their arguments" do
