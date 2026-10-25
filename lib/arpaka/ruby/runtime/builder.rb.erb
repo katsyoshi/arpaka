@@ -13,7 +13,7 @@ class Builder
   end
 
   def program(statements)
-    AST::Program.new(statements.freeze)
+    AST::Program.new(resolve_local_reads(body_nodes(statements), @locals.keys))
   end
 
   def integer(value)
@@ -123,9 +123,11 @@ class Builder
 
   def block_call(call, body)
     if body.is_a?(BlockBody)
-      AST::BlockCall.new(call, body.parameters, body.body)
+      local_names = @locals.keys + block_parameter_names(body.parameters)
+      resolved_body = resolve_local_reads(body.body, local_names)
+      AST::BlockCall.new(call, body.parameters, resolved_body)
     else
-      AST::BlockCall.new(call, nil, body_nodes(body))
+      AST::BlockCall.new(call, nil, resolve_local_reads(body_nodes(body), @locals.keys))
     end
   end
 
@@ -263,14 +265,16 @@ class Builder
   end
 
   def def_node(name, arguments, body)
-    node = AST::Def.new(name.to_sym, (arguments || []).freeze, body || [].freeze)
+    body = resolve_local_reads(body_nodes(body), @locals.keys)
+    node = AST::Def.new(name.to_sym, (arguments || []).freeze, body)
     end_method_scope
     node
   end
 <% if runtime.fetch("builder_methods", []).include?("singleton_method") -%>
   def singleton_method_node(receiver, name, arguments, body)
+    body = resolve_local_reads(body_nodes(body), @locals.keys)
     node = AST::SingletonMethodDef.new(receiver, name.to_sym, (arguments || []).freeze,
-      body_nodes(body))
+      body)
     end_method_scope
     node
   end
@@ -400,7 +404,7 @@ class Builder
   end
 
   def lambda_node(arguments, body)
-    AST::Lambda.new((arguments || []).freeze, body_nodes(body))
+    AST::Lambda.new((arguments || []).freeze, resolve_local_reads(body_nodes(body), @locals.keys))
   end
 <% if runtime.fetch("builder_methods", []).include?("pattern") -%>
   def pattern(kind, values)
@@ -577,6 +581,79 @@ class Builder
   def read_local(name)
     return name if name.is_a?(AST::Variable)
     (@locals.key?(name) ? AST::LocalRead : AST::BareCall).new(name)
+  end
+
+  # Ruby decides whether an identifier is a local variable for the whole
+  # lexical scope. The parser reduces a reference before it necessarily sees
+  # a later assignment, so read_local cannot make that decision on its own.
+  # Resolve the remaining BareCall nodes once a scope's AST is complete.
+  def resolve_local_reads(value, inherited_names)
+    local_names = (Array(inherited_names) + local_names_in_scope(value)).uniq
+    rewrite_local_reads(value, local_names)
+  end
+
+  def local_names_in_scope(value)
+    case value
+    when Array
+      return value.flat_map { |item| local_names_in_scope(item) }
+    end
+    return [] unless data_node?(value)
+
+    case value.class.name.split("::").last
+    when "LocalWrite"
+      [value.name] + local_names_in_scope(value.value)
+    when "OpAssign"
+      target_names(value.target) + local_names_in_scope(value.value)
+    when "MultipleAssign"
+      Array(value.targets).flat_map { |target| target_names(target) } +
+        local_names_in_scope(value.value)
+    when "Def", "SingletonMethodDef", "Lambda", "BlockCall",
+         "ClassDef", "ModuleDef", "SingletonClassDef"
+      []
+    else
+      value.members.flat_map { |member| local_names_in_scope(value.public_send(member)) }
+    end
+  end
+
+  def target_names(target)
+    case target
+    when Symbol then [target]
+    when Array then target.flat_map { |item| target_names(item) }
+    else []
+    end
+  end
+
+  def rewrite_local_reads(value, local_names)
+    case value
+    when Array
+      result = value.map { |item| rewrite_local_reads(item, local_names) }
+      result.freeze if value.frozen?
+      return result
+    end
+    return value unless data_node?(value)
+
+    type = value.class.name.split("::").last
+    if type == "BareCall" && local_names.include?(value.name)
+      return AST::LocalRead.new(value.name)
+    end
+
+    case type
+    when "BlockCall"
+      return value.with(call: rewrite_local_reads(value.call, local_names))
+    when "SingletonMethodDef"
+      return value.with(receiver: rewrite_local_reads(value.receiver, local_names))
+    when "Def", "Lambda", "ClassDef", "ModuleDef", "SingletonClassDef"
+      return value
+    end
+
+    fields = value.members.to_h do |member|
+      [member, rewrite_local_reads(value.public_send(member), local_names)]
+    end
+    value.with(**fields)
+  end
+
+  def data_node?(value)
+    value.respond_to?(:members) && value.respond_to?(:with)
   end
 
   def assign(name, value)

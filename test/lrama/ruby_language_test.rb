@@ -727,6 +727,17 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::LocalWrite.new(:a, AST::LocalRead.new(:a))]), parse([:tIDENTIFIER, :a], ["=", nil], [:tIDENTIFIER, :a]))
   end
 
+  test "a local reference before its assignment is not a bare call" do
+    expected = AST::Program.new([
+      AST::Call.new(:p, [AST::LocalRead.new(:value)]),
+      AST::LocalWrite.new(:value, literal(1))
+    ])
+    assert_equal(expected, GeneratedRubyFrontend.parse("p value\nvalue = 1"))
+
+    method = GeneratedRubyFrontend.parse("def read\n  p value\n  value = 1\nend").statements.first
+    assert_equal(AST::LocalRead.new(:value), method.body.first.arguments.first)
+  end
+
   test "attribute assignments preserve their receiver and setter name" do
     ["self.value = 1", "object.value = 1", "object::value = 1"].each do |source|
       assignment = GeneratedRubyFrontend.parse(source).statements.first
