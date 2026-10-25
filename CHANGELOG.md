@@ -5,6 +5,10 @@
   now fail explicitly instead of silently losing their interpolation.
 - Added an AST comparison benchmark that separates parse success from AST
   agreement and records unsupported comparisons explicitly.
+- Temporarily represent keyword arguments with Hash-shaped AST nodes while
+  RubyVM::AST is used as the comparison oracle. This representation may later
+  be split into dedicated keyword-argument nodes as Arpaka's semantic AST
+  becomes the canonical model.
 
 ## [1.0.0] - 2026-09-19
 

@@ -99,7 +99,7 @@ class Builder
     pairs = []
     flush_pairs = lambda do
       unless pairs.empty?
-        result << AST::KeywordArguments.new(pairs.freeze)
+        result << AST::HashLiteral.new(pairs.freeze)
         pairs = []
       end
     end

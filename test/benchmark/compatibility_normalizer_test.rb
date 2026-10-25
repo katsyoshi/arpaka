@@ -163,10 +163,10 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
-  test "keyword arguments keep a distinct tag from hash literals" do
+  test "keyword arguments use the same hash representation as RubyVM" do
     keyword_arguments = @normalizer.arpaka(GeneratedRubyFrontend.parse("foo(name: 1)"))
     hash_argument = @normalizer.arpaka(GeneratedRubyFrontend.parse("foo({name: 1})"))
-    assert_equal(:keyword_arguments, keyword_arguments.dig(1, 0, 4, 0, 0))
+    assert_equal(:hash, keyword_arguments.dig(1, 0, 4, 0, 0))
     assert_equal(:hash, hash_argument.dig(1, 0, 4, 0, 0))
 
     rubyvm_keyword_arguments = normalized_rubyvm("foo(name: 1)")
@@ -178,7 +178,14 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(explicit_hash), @normalizer.arpaka(GeneratedRubyFrontend.parse(explicit_hash)))
 
     keyword_only = "foo(1, name: 2)"
-    refute_equal(normalized_rubyvm(keyword_only), @normalizer.arpaka(GeneratedRubyFrontend.parse(keyword_only)))
+    assert_equal(normalized_rubyvm(keyword_only), @normalizer.arpaka(GeneratedRubyFrontend.parse(keyword_only)))
+  end
+
+  test "keyword splats and implicit keyword values use hash pairs" do
+    ["foo(**kw)", "foo(**{name: 1})", "foo(name: 1, **kw)",
+      "foo({name: 1}, **kw)", "{**kw}", "foo(name:)", "foo(**nil)"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
   end
 
   test "variable writes indexes and unless compare across both AST shapes" do
