@@ -267,12 +267,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
-  test "multiple assignment matches while rescue ensure keeps its known mismatch" do
+  test "multiple assignment and rescue ensure compare equally" do
     source = "a, b = values"
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
 
     rescue_source = "begin; dangerous; rescue Error => error; fallback; ensure; cleanup; end"
-    refute_equal(normalized_rubyvm(rescue_source), @normalizer.arpaka(GeneratedRubyFrontend.parse(rescue_source)), rescue_source)
+    assert_equal(normalized_rubyvm(rescue_source), @normalizer.arpaka(GeneratedRubyFrontend.parse(rescue_source)), rescue_source)
   end
 
   test "rescue modifiers normalize without changing begin rescue forms" do
@@ -287,6 +287,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
 
     ensure_source = "begin; value; rescue; fallback; ensure; cleanup; end"
     assert_equal(:ensure, normalized_rubyvm(ensure_source).dig(1, 0, 0), ensure_source)
+    assert_equal(normalized_rubyvm(ensure_source), @normalizer.arpaka(GeneratedRubyFrontend.parse(ensure_source)), ensure_source)
   end
 
   test "every supported primitive and empty container has a matching form" do
