@@ -391,6 +391,19 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Super.new([literal(1)])]), GeneratedRubyFrontend.parse("super(1)"))
   end
 
+  test "super distinguishes binary operators from command arguments" do
+    [:+, :-, :*, :/].each do |operator|
+      source = "def f; super #{operator} 2; end"
+      expected = AST::Def.new(:f, [], [AST::Binary.new(operator, AST::Super.new(nil), literal(2))])
+      assert_equal(expected, GeneratedRubyFrontend.parse(source).statements.first, source)
+    end
+
+    assert_equal(AST::Def.new(:f, [], [AST::Super.new([AST::Unary.new(:+, literal(2))])]),
+      GeneratedRubyFrontend.parse("def f; super +2; end").statements.first)
+    assert_equal(AST::Def.new(:f, [], [AST::Super.new([AST::Splat.new(literal(2))])]),
+      GeneratedRubyFrontend.parse("def f; super *2; end").statements.first)
+  end
+
   test "command style method calls preserve their arguments" do
     assert_equal(AST::Program.new([AST::Call.new(:f, [literal(1)])]), parse([:tIDENTIFIER, :f], [:tINTEGER, 1]))
   end

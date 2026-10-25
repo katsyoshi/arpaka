@@ -1063,7 +1063,8 @@ class Lexer
   end
 
   def regexp_or_operator(start)
-    return operator_or_punctuation(start) if [".", :tCOLON2, :tANDDOT, :keyword_def, :tSYMBEG].include?(@previous)
+    return operator_or_punctuation(start) if [".", :tCOLON2, :tANDDOT, :keyword_def, :tSYMBEG].include?(@previous) ||
+      super_binary_operator?(start, 1)
     if @context.begin_expression
       advance
       value, metadata = read_regexp(start)
@@ -1484,7 +1485,7 @@ class Lexer
       @previous_previous == :keyword_alias
     if text && !(begin_expression? && !operator_method && ["[]", "[]="].include?(text))
       advance(text.bytesize)
-      token = if text == "**" && @context.begin_expression
+      token = if text == "**" && @context.begin_expression && !super_binary_operator?(start, text.bytesize)
         :tDSTAR
       elsif text == ".." && @context.begin_expression
         :tBDOT2
@@ -1557,11 +1558,11 @@ class Lexer
         @context.method_body_start = true
         @context.method_header = false
       end
-    elsif value == "-" && @context.begin_expression
+    elsif value == "-" && @context.begin_expression && !super_binary_operator?(start, 1)
       return [:tUMINUS, nil]
-    elsif value == "+" && @context.begin_expression
+    elsif value == "+" && @context.begin_expression && !super_binary_operator?(start, 1)
       return [:tUPLUS, nil]
-    elsif value == "*" && @context.begin_expression
+    elsif value == "*" && @context.begin_expression && !super_binary_operator?(start, 1)
       return [:tSTAR, nil]
     elsif value == "&" && @previous == :tSYMBEG
       return [value, nil]
@@ -1577,6 +1578,14 @@ class Lexer
     [value, nil]
   rescue EncodingError
     fail!("invalid byte", start)
+  end
+
+  def super_binary_operator?(start, length)
+    return false unless @previous == :keyword_super
+
+    before = start.positive? ? @source.getbyte(start - 1) : nil
+    after = @source.getbyte(start + length)
+    !whitespace_byte?(before) || whitespace_byte?(after)
   end
 
   def begin_expression?

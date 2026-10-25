@@ -256,6 +256,17 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
+  test "super binary operators preserve Ruby's whitespace-sensitive parsing" do
+    ["+", "-", "*", "/"].each do |operator|
+      source = "def value; super #{operator} 2; end"
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+
+    ["def value; super +2; end", "def value; super *2; end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "multiple assignment matches while rescue ensure keeps its known mismatch" do
     source = "a, b = values"
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
