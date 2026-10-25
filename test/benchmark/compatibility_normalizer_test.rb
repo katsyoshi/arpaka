@@ -341,6 +341,13 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
+  test "command blocks stay attached after compound command arguments" do
+    ["foo bar, baz do |value| value end",
+      "foo bar, baz do |value| value; value end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "aliases, undef and expressionless case preserve their AST distinctions" do
     ["alias old_method new_method", "alias $old $new", "undef old_method, new_method",
       "case; when ready then value; else fallback; end", "case nil; when ready then value; end"].each do |source|
