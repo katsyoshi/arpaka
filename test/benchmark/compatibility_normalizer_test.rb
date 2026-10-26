@@ -388,7 +388,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "normalization makes RubyVM-only constructs verified mismatches when candidate loses structure" do
-    [%q{__FILE__}, %q{:"prefix#{value}"}, %q{`prefix#{value}`}].each do |source|
+    [%q{__FILE__}].each do |source|
       refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
   end
@@ -534,6 +534,16 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     source = "%x[printf static]"
     assert_equal(normalized_rubyvm(source),
       @normalizer.arpaka(GeneratedRubyFrontend.parse(source)))
+  end
+
+  test "interpolated symbols and xstrings compare with dynamic RubyVM nodes" do
+    [
+      %q{:"pre#{name}post"},
+      %q{`printf #{name}`},
+      %q{%x[printf #{name}]}
+    ].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
   end
 
   test "string literal nodes compare with strings" do

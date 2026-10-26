@@ -858,6 +858,13 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::RegexpLiteral.new("a", 0, "US-ASCII"), GeneratedRubyFrontend.parse("%r(a)").statements.first)
   end
 
+  test "source lexer preserves interpolated symbols and xstrings" do
+    assert_equal(AST::DynamicSymbol.new(["pre", AST::BareCall.new(:name), "post"]),
+      GeneratedRubyFrontend.parse(%q{:"pre#{name}post"}).statements.first)
+    assert_equal(AST::XStringLiteral.new(["printf ", AST::BareCall.new(:name)]),
+      GeneratedRubyFrontend.parse(%q{`printf #{name}`}).statements.first)
+  end
+
   test "source lexer preserves simple string interpolation" do
     assert_equal(AST::InterpolatedString.new([
       "hello ", AST::Binary.new(:+, literal(1), literal(2)), " world"

@@ -257,7 +257,13 @@ class Builder
   end
 
   def xstring(value)
-    AST::XStringLiteral.new(value.is_a?(Array) ? value.join : value.to_s)
+    if value.is_a?(Array)
+      parts = value.flat_map { |part| part.is_a?(AST::InterpolatedString) ? part.parts : [part] }
+      return AST::XStringLiteral.new(parts.freeze) if parts.any? { |part| !part.is_a?(String) }
+
+      value = parts.join
+    end
+    AST::XStringLiteral.new(value.to_s)
   end
 
   def for_node(variable, enumerable, body)
@@ -302,7 +308,12 @@ class Builder
   end
 
   def symbol(value)
-    value = value.map { |part| part.is_a?(String) ? part : part.to_s }.join if value.is_a?(Array)
+    if value.is_a?(Array)
+      parts = value.flat_map { |part| part.is_a?(AST::InterpolatedString) ? part.parts : [part] }
+      return AST::DynamicSymbol.new(parts.freeze) if parts.any? { |part| !part.is_a?(String) }
+
+      value = parts.join
+    end
     value = value.name if value.is_a?(AST::Variable)
     AST::Literal.new(value.to_sym)
   end
