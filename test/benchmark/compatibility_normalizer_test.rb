@@ -339,6 +339,10 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     ensure_source = "begin; value; rescue; fallback; ensure; cleanup; end"
     assert_equal(:ensure, normalized_rubyvm(ensure_source).dig(1, 0, 0), ensure_source)
     assert_equal(normalized_rubyvm(ensure_source), @normalizer.arpaka(GeneratedRubyFrontend.parse(ensure_source)), ensure_source)
+
+    ensure_only_source = "begin; value; ensure; cleanup; end"
+    assert_equal(normalized_rubyvm(ensure_only_source),
+      @normalizer.arpaka(GeneratedRubyFrontend.parse(ensure_only_source)), ensure_only_source)
   end
 
   test "every supported primitive and empty container has a matching form" do
