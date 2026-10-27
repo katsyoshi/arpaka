@@ -29,6 +29,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "regexp delimiter escapes normalize to the RubyVM pattern" do
+    ["/\\.\\/consumer/", "/\\//"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "regexp matches normalize named captures and dynamic match3" do
     ["/(?<name>a)/ =~ text", %q{text =~ /#{pattern}/}].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
