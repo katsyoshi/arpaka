@@ -406,10 +406,9 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
-  test "normalization makes RubyVM-only constructs verified mismatches when candidate loses structure" do
-    [%q{__FILE__}].each do |source|
-      refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
-    end
+  test "__FILE__ preserves the RubyVM file literal representation" do
+    source = "__FILE__"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
   test "class and module local scopes remain distinct from outer locals" do
