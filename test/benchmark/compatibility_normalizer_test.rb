@@ -234,7 +234,20 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "local opassign compares through RubyVM's expanded write form" do
-    ["timeout -= 0.1", "pos += 1", "owners |= [owner]"].each do |source|
+    ["timeout -= 0.1", "pos += 1", "owners |= [owner]",
+      "owners ||= []", "owners &&= fallback"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
+  test "assignment targets and scoped local reads keep their distinct shapes" do
+    [
+      "value = 1",
+      "first, second = values",
+      "first, *middle, last = values",
+      "def read(value); value = 1; value; end",
+      "items.each { |item| item = value; item }"
+    ].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
   end
