@@ -146,6 +146,14 @@ class ArpakaTest < Test::Unit::TestCase
     assert(parameters.all? { |parameter| parameter.is_a?(AST::LocalRead) })
   end
 
+  test "multiple assignment locals are visible inside following blocks" do
+    tree = GeneratedRubyFrontend.parse("def parse; list, index = [], 0; [1].each { list << index }; end")
+    block = tree.statements.first.body.fetch(1)
+
+    assert_equal(AST::LocalRead.new(:list), block.body.first.left)
+    assert_equal(AST::LocalRead.new(:index), block.body.first.right)
+  end
+
   test "method optional rest and block parameters retain their kinds" do
     parameters = GeneratedRubyFrontend.parse("def sample(first, optional = 1, *rest, last, &block); end").statements.first.arguments
     assert_equal(:first, parameters[0])

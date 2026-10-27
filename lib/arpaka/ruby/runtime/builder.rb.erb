@@ -642,6 +642,10 @@ class Builder
     end
   end
 
+  def declare_local_targets(targets)
+    target_names(targets).each { |name| declare_local(name) }
+  end
+
   def rewrite_local_reads(value, local_names)
     case value
     when Array
@@ -694,12 +698,17 @@ class Builder
   def multiple_assign(targets, value)
     value = array(value) if value.is_a?(Array)
     if targets.is_a?(AST::MultipleAssign)
+      declare_local_targets(targets.targets)
       return AST::MultipleAssign.new(targets.targets, value, rest: targets.rest, post: targets.post)
     end
+    declare_local_targets(targets)
     AST::MultipleAssign.new(Array(targets).freeze, value)
   end
 
   def multiple_assign_post(targets, rest, post)
+    declare_local_targets(targets)
+    declare_local_targets(rest)
+    declare_local_targets(post)
     AST::MultipleAssign.new(Array(targets).freeze, nil, rest: rest, post: Array(post))
   end
 
