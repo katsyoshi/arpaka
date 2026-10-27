@@ -36,7 +36,7 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   end
 
   test "regexp matches normalize named captures and dynamic match3" do
-    ["/(?<name>a)/ =~ text", %q{text =~ /#{pattern}/}].each do |source|
+    ["/(?<name>a)/ =~ text", "text =~ /pattern/", "text =~ other", %q{text =~ /#{pattern}/}].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
   end
