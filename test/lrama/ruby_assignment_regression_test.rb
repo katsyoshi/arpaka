@@ -36,5 +36,14 @@ class ArpakaAssignmentRegressionTest < Test::Unit::TestCase
     single_target = GeneratedRubyFrontend.parse("values = 1, 2").statements.first
     assert_equal(AST::LocalWrite.new(:values,
       AST::ArrayLiteral.new([AST::Literal.new(1), AST::Literal.new(2)])), single_target)
+    actual = GeneratedRubyFrontend.parse("object.value, options[:key] = values").statements.first
+    expected = AST::MultipleAssign.new(
+      [
+        AST::Field.new(AST::BareCall.new(:object), :".", :value),
+        AST::Index.new(AST::BareCall.new(:options), [AST::Literal.new(:key)])
+      ],
+      AST::BareCall.new(:values)
+    )
+    assert_equal(expected, actual)
   end
 end

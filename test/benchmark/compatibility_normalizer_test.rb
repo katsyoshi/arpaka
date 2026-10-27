@@ -148,6 +148,15 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
+  test "multiple assignment preserves field and index setter targets" do
+    [
+      "object.value, options[:key] = values",
+      "options[:key], object.value = values"
+    ].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "constant and nested multiple assignment targets compare across both AST shapes" do
     ["A, B = values", "a, (b, c) = values"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
@@ -192,6 +201,16 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     ["@value = 1", "@@value = 1", "$value = 1", "VALUE = 1",
       "values[0]", "values[0] = 1", "unless ready; value; else; fallback; end",
       "case value; when 1, 2; first; else; other; end", "`command`"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
+  test "receiver fields, safe navigation, and nested indexes compare across both AST shapes" do
+    ["object.value", "object&.value", "object[0]", "object&.[](0)",
+      "object.value[0]", "object[0].value", "object[0][1]",
+      "object.value = value", "object[0] = value", "object.value += value",
+      "object[0] += value", "object.value[0] = value", "object[0].value = value",
+      "object[0][1] = value"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
   end
