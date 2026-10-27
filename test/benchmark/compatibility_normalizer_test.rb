@@ -113,8 +113,8 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
       @normalizer.send(:rubyvm_keyword_arguments, keyword_parameters))
   end
 
-  test "single binary expression wrappers normalize without flattening sequences" do
-    ["call((left + right))", "call((left + right), (other * value))"].each do |source|
+  test "single expression wrappers normalize without flattening sequences" do
+    ["call((left + right))", "call((ready ? value : fallback))", "call((1..3))", "call((!ready))"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
 
