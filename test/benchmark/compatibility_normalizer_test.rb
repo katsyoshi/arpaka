@@ -263,10 +263,16 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
-  test "known callable body losses become mismatches" do
-    ["-> { 1 }", "while ready; value; end"].each do |source|
-      refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  test "loop execution mode is normalized without changing the loop AST" do
+    ["while ready; value; end", "value while ready", "until ready; value; end", "value until ready",
+      "begin; value; end while ready", "begin; value; end until ready"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
+  end
+
+  test "known callable body losses remain mismatches" do
+    source = "-> { 1 }"
+    refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
   test "argumentless control statements normalize their absent value as nil" do
