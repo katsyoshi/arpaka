@@ -543,6 +543,14 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)))
   end
 
+  test "line and encoding literals compare with magic comments" do
+    ["# encoding: ISO-8859-1\n__LINE__\n__ENCODING__",
+      "#!/usr/bin/env ruby\n# coding: US-ASCII\n__LINE__\n__ENCODING__",
+      "# -*- coding: UTF-8 -*-\n__LINE__\n__ENCODING__"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "static dynamic symbols compare with symbol literals" do
     assert_equal(normalized_rubyvm("%I[static].first"),
       @normalizer.arpaka(GeneratedRubyFrontend.parse("%I[static].first")))

@@ -185,7 +185,7 @@ end
 class Lexer
   Error = LexerError
 
-  attr_reader :context
+  attr_reader :context, :source_encoding
 
   KEYWORDS = {
     "class" => :keyword_class, "module" => :keyword_module,
@@ -227,7 +227,7 @@ class Lexer
     unless [Encoding::UTF_8, Encoding::US_ASCII].include?(source.encoding) && source.valid_encoding?
       raise Error, "#{filename}:1:0: invalid UTF-8 source"
     end
-    @source_encoding = source.encoding.name
+    @source_encoding = source_encoding_for(source)
     @source = source.b
     @filename = filename
     @index = 0
@@ -243,6 +243,21 @@ class Lexer
     @heredoc_newline_pending = false
     @class_superclass = false
     @local_variables = {}
+  end
+
+  def source_encoding_for(source)
+    lines = source.lines.first(2)
+    lines.each_with_index do |line, index|
+      next if index == 1 && !lines.first.start_with?("#!")
+
+      match = line.match(/\A[ \t]*#.*?(?:coding|encoding)\s*[:=]\s*([A-Za-z0-9._-]+)/i)
+      next unless match
+
+      return Encoding.find(match[1]).name
+    end
+    source.encoding.name
+  rescue ArgumentError => error
+    raise Error, "invalid source encoding: #{error.message}"
   end
 
   def each

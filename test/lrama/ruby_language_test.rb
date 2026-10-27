@@ -343,6 +343,14 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal([1, 2], tree.statements.map { |statement| statement.value.value })
   end
 
+  test "__LINE__ and __ENCODING__ honor source comments" do
+    source = "#!/usr/bin/env ruby\n# encoding: ISO-8859-1\n__LINE__\n__ENCODING__"
+    tree = GeneratedRubyFrontend.parse(source)
+
+    assert_equal(3, tree.statements.fetch(0).value)
+    assert_equal(AST::EncodingLiteral.new("ISO-8859-1"), tree.statements.fetch(1))
+  end
+
   test "numbered and named back references preserve their values" do
     assert_equal(AST::Program.new([AST::Variable.new(:backref, 1)]), parse([:tNTH_REF, 1]))
     assert_equal(AST::Program.new([AST::Variable.new(:backref, :$&)]), parse([:tBACK_REF, "$&"]))

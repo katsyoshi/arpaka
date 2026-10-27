@@ -22,7 +22,7 @@ class LexerError < Error; end
 
 def self.parse(source, filename: "(ruby)")
   lexer = Lexer.new(source, filename: filename)
-  parse_tokens(lexer.each, lexical_context: lexer.context, source_encoding: source.encoding.name)
+  parse_tokens(lexer.each, lexical_context: lexer.context, source_encoding: lexer.source_encoding)
 end
 
 def self.parse_tokens(tokens, lexical_context: nil, source_encoding: Encoding::UTF_8.name)
