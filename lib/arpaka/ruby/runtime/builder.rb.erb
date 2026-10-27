@@ -271,14 +271,14 @@ class Builder
   end
 
   def def_node(name, arguments, body)
-    body = resolve_local_reads(body_nodes(body), @locals.keys)
+    body = resolve_local_reads(method_body_nodes(body), @locals.keys)
     node = AST::Def.new(name.to_sym, (arguments || []).freeze, body)
     end_method_scope
     node
   end
 <% if runtime.fetch("builder_methods", []).include?("singleton_method") -%>
   def singleton_method_node(receiver, name, arguments, body)
-    body = resolve_local_reads(body_nodes(body), @locals.keys)
+    body = resolve_local_reads(method_body_nodes(body), @locals.keys)
     node = AST::SingletonMethodDef.new(receiver, name.to_sym, (arguments || []).freeze,
       body)
     end_method_scope
@@ -305,6 +305,14 @@ class Builder
       value = value.first
     end
     value || [].freeze
+  end
+
+  def method_body_nodes(body)
+    nodes = body_nodes(body)
+    return [].freeze if nodes.is_a?(Array) && nodes.length == 1 &&
+      nodes.first.is_a?(AST::Literal) && nodes.first.value.nil?
+
+    nodes
   end
 
   def symbol(value)

@@ -46,6 +46,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
+  test "a method body containing only nil normalizes as empty" do
+    ["def value; nil; end", "def self.value; nil; end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "array case patterns and rest captures compare across both AST shapes" do
     ["case value; in [a, b]; :pair; end", "case value; in [a, *rest]; :rest; end"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
