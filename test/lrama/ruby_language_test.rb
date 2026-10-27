@@ -657,6 +657,13 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { GeneratedRubyFrontend.parse("def %(other); end\ndef /(other); end") }
   end
 
+  test "operator method definitions preserve binary and unary names" do
+    assert_equal(:+, GeneratedRubyFrontend.parse("def +(other); end").statements.first.name)
+    assert_equal(:-, GeneratedRubyFrontend.parse("def -(other); end").statements.first.name)
+    assert_equal(:+@, GeneratedRubyFrontend.parse("def +@(other); end").statements.first.name)
+    assert_equal(:-@, GeneratedRubyFrontend.parse("def -@(other); end").statements.first.name)
+  end
+
   test "slash and percent symbols do not start literals" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("calculate(:/, value)\ncalculate(:%, value)") }
   end

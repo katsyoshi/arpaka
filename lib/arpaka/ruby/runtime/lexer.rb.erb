@@ -1481,12 +1481,12 @@ class Lexer
     if @previous == :keyword_def && ["-@", "+@"].include?(@source.byteslice(@index, 2))
       value = @source.byteslice(@index, 2)
       advance(2)
-      return [value == "-@" ? :tUMINUS : :tUPLUS, nil]
+      return [value == "-@" ? :tUMINUS : :tUPLUS, value]
     end
     if (@previous == :tSYMBEG || @context.alias_context) && ["-@", "+@"].include?(@source.byteslice(@index, 2))
       value = @source.byteslice(@index, 2)
       advance(2)
-      return [value == "-@" ? :tUMINUS : :tUPLUS, nil]
+      return [value == "-@" ? :tUMINUS : :tUPLUS, value]
     end
     text = OPERATORS.sort_by { |operator| -operator.bytesize }.find do |operator|
       next false if ["[]", "[]="].include?(operator) && start.positive? &&
@@ -1577,9 +1577,9 @@ class Lexer
         @context.method_header = false
       end
     elsif value == "-" && @context.begin_expression && !super_binary_operator?(start, 1)
-      return [:tUMINUS, nil]
+      return [:tUMINUS, @previous == :keyword_def || @context.alias_context ? value : nil]
     elsif value == "+" && @context.begin_expression && !super_binary_operator?(start, 1)
-      return [:tUPLUS, nil]
+      return [:tUPLUS, @previous == :keyword_def || @context.alias_context ? value : nil]
     elsif value == "*" && @context.begin_expression && !super_binary_operator?(start, 1)
       return [:tSTAR, nil]
     elsif value == "&" && @previous == :tSYMBEG

@@ -41,6 +41,14 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "operator method names preserve binary and unary forms" do
+    ["def +(other); other; end", "def -(other); other; end",
+      "def +@(other); other; end", "def -@(other); other; end",
+      "alias + -", "alias +@ -@"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "complex, imaginary, and symbol array literals compare across both AST shapes" do
     ["1i", "1 + 2i", "1.5 + 2i", "[:a, :b]", "%i[a b]"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)

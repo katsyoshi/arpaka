@@ -4,7 +4,7 @@
  "runtime" => {
    "ast_nodes" => %w[assignment singleton_method singleton_class pattern keyword_arguments].freeze,
    "builder_methods" => %w[assignment singleton_method singleton_class rescue keyword_arguments].freeze,
-   "lexer" => {"source_text_tokens" => ["tOP_ASGN"].freeze}.freeze
+   "lexer" => {"source_text_tokens" => %w[tOP_ASGN tUMINUS tUPLUS].freeze}.freeze
  }.freeze,
  "actions" =>
   {1 => ["empty", "nil"],
@@ -186,8 +186,8 @@
    177 => ["ported", "@builder.operator(\"**\")"],
    178 => ["ported", "@builder.operator(\"!\")"],
    179 => ["ported", "@builder.operator(\"~\")"],
-   180 => ["ported", "@builder.operator(\"+@\")"],
-   181 => ["ported", "@builder.operator(\"-@\")"],
+   180 => ["ported", "@builder.operator($1 || \"+@\")"],
+   181 => ["ported", "@builder.operator($1 || \"-@\")"],
    182 => ["ported", "@builder.operator(\"[]\")"],
    183 => ["ported", "@builder.operator(\"[]=\")"],
    184 => ["ported", "@builder.operator(\"`\")"],

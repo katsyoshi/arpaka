@@ -40,7 +40,7 @@ module Arpaka::Ruby::Actions
     183 => ["ported", "@builder.operator(\"/\")"], 184 => ["ported", "@builder.operator(\"%\")"],
     185 => ["ported", "@builder.operator(\"**\")"], 186 => ["ported", "@builder.operator(\"**\")"],
     187 => ["ported", "@builder.operator(\"!\")"], 188 => ["ported", "@builder.operator(\"~\")"],
-    189 => ["ported", "@builder.operator(\"+@\")"], 190 => ["ported", "@builder.operator(\"-@\")"],
+    189 => ["ported", "@builder.operator($1 || \"+@\")"], 190 => ["ported", "@builder.operator($1 || \"-@\")"],
     191 => ["ported", "@builder.operator(\"[]\")"], 192 => ["ported", "@builder.operator(\"[]=\")"],
     193 => ["ported", "@builder.operator(\"`\")"],
     194 => ["ported", "@builder.reserved_word(\"__LINE__\")"],

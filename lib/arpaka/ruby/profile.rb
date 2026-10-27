@@ -34,7 +34,7 @@ module Arpaka
         "runtime" => {
           "ast_nodes" => %w[self assignment singleton_method singleton_class pattern keyword_arguments].freeze,
           "builder_methods" => %w[self assignment singleton_method singleton_class pattern keyword_arguments rescue].freeze,
-          "lexer" => { "source_text_tokens" => ["tOP_ASGN"].freeze }.freeze
+          "lexer" => { "source_text_tokens" => %w[tOP_ASGN tUMINUS tUPLUS].freeze }.freeze
         }.freeze
       }.freeze
 
