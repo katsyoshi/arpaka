@@ -465,6 +465,15 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([expected]), parse([:keyword_case, nil], [:keyword_true, nil], [:keyword_when, nil], [:tINTEGER, 1], [:keyword_then, nil], [:tINTEGER, 2], [:keyword_else, nil], [:tINTEGER, 3], [:keyword_end, nil]))
   end
 
+  test "case keeps multiple when clauses and else body at the same level" do
+    first = AST::When.new([literal(1)], [literal(:first)])
+    second = AST::When.new([literal(2)], [literal(:second)])
+    expected = AST::Case.new(AST::BareCall.new(:value), [first, second], [literal(:other)])
+
+    assert_equal(expected,
+      GeneratedRubyFrontend.parse("case value; when 1; :first; when 2; :second; else; :other; end").statements.first)
+  end
+
   test "case without an expression preserves when clauses" do
     clause = AST::When.new([literal(true)], [literal(1)])
     expected = AST::Case.new(nil, [clause], nil)

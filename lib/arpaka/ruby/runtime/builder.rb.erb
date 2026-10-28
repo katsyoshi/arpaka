@@ -434,7 +434,11 @@ class Builder
   end
 
   def case_chain(when_node, rest)
-    [when_node] + (rest.nil? ? [] : case_clauses(rest))
+    [when_node] + (rest.nil? ? [] : flatten_case_clauses(rest))
+  end
+
+  def flatten_case_clauses(value)
+    value.is_a?(Array) ? value.flat_map { |item| flatten_case_clauses(item) } : [value]
   end
 
   def lambda_node(arguments, body)

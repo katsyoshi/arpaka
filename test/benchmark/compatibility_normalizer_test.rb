@@ -248,6 +248,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "multiple ordinary case clauses compare across both AST shapes" do
+    source = "case value; when 1; first; when 2; second; else; other; end"
+
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)))
+  end
+
   test "receiver fields, safe navigation, and nested indexes compare across both AST shapes" do
     ["object.value", "object&.value", "object[0]", "object&.[](0)",
       "object.value[0]", "object[0].value", "object[0][1]",
