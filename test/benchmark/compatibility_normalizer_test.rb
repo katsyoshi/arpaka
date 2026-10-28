@@ -23,6 +23,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "range endpoints preserve implicit nil literals" do
+    ["1..", "..1", "1...", "...1", "nil..", "..nil"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "unverified VM nodes normalize for unary operators, rational values, and regexp match" do
     ["~value", "1.25r", "/value/ =~ input"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
