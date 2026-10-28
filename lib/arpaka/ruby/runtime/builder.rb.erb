@@ -123,13 +123,21 @@ class Builder
 
   def block_call(call, body)
     if body.is_a?(BlockBody)
+      parameters = body.parameters
+      implicit_names = []
+      if parameters.is_a?(AST::BlockParameters) && parameters.kind == :none
+        implicit_names = implicit_block_parameter_names(body.body)
+        unless implicit_names.empty?
+          parameters = AST::BlockParameters.new(:required, implicit_names.freeze)
+        end
+      end
       outer_local_names = body.outer_local_names
-      block_local_names = block_parameter_names(body.parameters) - outer_local_names
+      block_local_names = (block_parameter_names(parameters) + implicit_names).uniq - outer_local_names
       local_names = outer_local_names + block_local_names
       resolved_call = rewrite_shadowed_local_reads(call, block_local_names)
       resolved_call = resolve_local_reads(resolved_call, outer_local_names)
       resolved_body = resolve_local_reads(body.body, local_names)
-      AST::BlockCall.new(resolved_call, body.parameters, resolved_body)
+      AST::BlockCall.new(resolved_call, parameters, resolved_body)
     else
       AST::BlockCall.new(call, nil, resolve_local_reads(body_nodes(body), @locals.keys))
     end
@@ -208,6 +216,30 @@ class Builder
       else []
       end
     end
+  end
+
+  def implicit_block_parameter_names(value)
+    numbered = []
+    visit = lambda do |current|
+      case current
+      when Array
+        current.each { |item| visit.call(item) }
+      else
+        return unless data_node?(current)
+
+        type = current.class.name.split("::").last
+        if type == "BareCall" && current.name.to_s.match?(/\A_[1-9][0-9]*\z/)
+          numbered << current.name.to_s.delete_prefix("_").to_i
+        elsif type == "BlockCall"
+          visit.call(current.call)
+        elsif !["Def", "SingletonMethodDef", "Lambda", "ClassDef", "ModuleDef", "SingletonClassDef"].include?(type)
+          current.members.each { |member| visit.call(current.public_send(member)) }
+        end
+      end
+    end
+    visit.call(value)
+    maximum = numbered.max
+    maximum ? (1..maximum).map { |index| "_#{index}".to_sym } : []
   end
 
   def append_arguments(arguments, argument)

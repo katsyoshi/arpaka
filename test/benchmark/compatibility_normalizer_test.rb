@@ -158,6 +158,13 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
       GeneratedRubyFrontend.parse("foo(*values, name: 1, &block)").statements.first)
   end
 
+  test "implicit numbered block parameters become local reads" do
+    ["events.find { _1.payload[:sql] == \"SELECT * FROM posts\" }",
+      "items.map { _2.to_s }"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "method argument forwarding matches RubyVM retained arguments" do
     ["def transmit(...); end", "def stream_for(args, ...); end"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
