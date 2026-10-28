@@ -154,6 +154,16 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::LocalRead.new(:index), block.body.first.right)
   end
 
+  test "block parameters do not change the block call receiver scope" do
+    block = GeneratedRubyFrontend.parse("Array(header[:x]).collect { |header| header.to_s }").statements.first
+
+    assert_equal(AST::LocalRead.new(:header), block.body.first.receiver)
+    assert_equal(AST::BareCall.new(:header), block.call.receiver.arguments.first.receiver)
+
+    block = GeneratedRubyFrontend.parse("header = 1; Array(header[:x]).collect { |header| header.to_s }").statements.fetch(1)
+    assert_equal(AST::LocalRead.new(:header), block.call.receiver.arguments.first.receiver)
+  end
+
   test "method optional rest and block parameters retain their kinds" do
     parameters = GeneratedRubyFrontend.parse("def sample(first, optional = 1, *rest, last, &block); end").statements.first.arguments
     assert_equal(:first, parameters[0])

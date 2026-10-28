@@ -1,5 +1,5 @@
 class Builder
-  BlockBody = Data.define(:parameters, :body)
+  BlockBody = Data.define(:parameters, :body, :outer_local_names)
   private_constant :BlockBody
 
   RULES = <%= rules.inspect %>.to_h { |rule| [rule.fetch("id"), rule.freeze] }.freeze
@@ -123,42 +123,53 @@ class Builder
 
   def block_call(call, body)
     if body.is_a?(BlockBody)
-      local_names = @locals.keys + block_parameter_names(body.parameters)
+      outer_local_names = body.outer_local_names
+      block_local_names = block_parameter_names(body.parameters) - outer_local_names
+      local_names = outer_local_names + block_local_names
+      resolved_call = rewrite_shadowed_local_reads(call, block_local_names)
+      resolved_call = resolve_local_reads(resolved_call, outer_local_names)
       resolved_body = resolve_local_reads(body.body, local_names)
-      AST::BlockCall.new(call, body.parameters, resolved_body)
+      AST::BlockCall.new(resolved_call, body.parameters, resolved_body)
     else
       AST::BlockCall.new(call, nil, resolve_local_reads(body_nodes(body), @locals.keys))
     end
   end
 
   def block_body(parameters, body)
-    @locals = @block_local_scopes.pop if @block_local_scopes.any?
-    BlockBody.new(parameters, body_nodes(body))
+    outer_locals = @block_local_scopes.pop || @locals.dup
+    @locals = outer_locals
+    BlockBody.new(parameters, body_nodes(body), outer_locals.keys.freeze)
   end
 
   def begin_block_parameters(value, locals = nil)
-    @block_local_scopes << @locals.dup
     local_names = Array(locals).compact
-    local_names.each { |name| @locals[name] = true }
+    parameter_names = (block_parameter_names(value) + block_parameter_names(local_names)).uniq
+    outer_locals = @locals.dup
+    parameter_names.each do |name|
+      count = outer_locals[name]
+      if count && count > 1
+        outer_locals[name] = count - 1
+      else
+        outer_locals.delete(name)
+      end
+    end
+    @block_local_scopes << outer_locals
+    @locals = outer_locals.dup
+    parameter_names.each { |name| declare_local(name) }
     case value
     when nil
       parameters = AST::BlockParameters.new(:none, nil)
     when Symbol
-      @locals[value] = true
       parameters = AST::BlockParameters.new(:required, [value].freeze)
     when Array
-      names = block_parameter_names(value)
-      names.each { |name| @locals[name] = true }
       parameters = AST::BlockParameters.new(:required, value.freeze)
     when AST::BlockParameters
-      block_parameter_names(value.value).each { |name| @locals[name] = true } if value.kind == :destructured
       parameters = value
     when AST::Parameter
       # A block-only parameter (`|&block|`) is delivered by the grammar as a
       # Parameter rather than an array of parameters. Keep it in the same
       # representation as other block parameter forms instead of losing it as
       # an unknown shape.
-      @locals[value.name] = true if value.name
       parameters = AST::BlockParameters.new(:required, [value].freeze)
     else
       parameters = AST::BlockParameters.new(:unknown, value)
@@ -572,7 +583,7 @@ class Builder
   end
 
   def declare_local(name)
-    @locals[name] = true
+    @locals[name] = @locals.fetch(name, 0) + 1
     name
   end
 
@@ -675,6 +686,31 @@ class Builder
 
     fields = value.members.to_h do |member|
       [member, rewrite_local_reads(value.public_send(member), local_names)]
+    end
+    value.with(**fields)
+  end
+
+  def rewrite_shadowed_local_reads(value, local_names)
+    case value
+    when Array
+      result = value.map { |item| rewrite_shadowed_local_reads(item, local_names) }
+      result.freeze if value.frozen?
+      return result
+    end
+    return value unless data_node?(value)
+
+    type = value.class.name.split("::").last
+    if type == "LocalRead" && local_names.include?(value.name)
+      return AST::BareCall.new(value.name)
+    end
+
+    case type
+    when "BlockCall", "Def", "Lambda", "ClassDef", "ModuleDef", "SingletonClassDef"
+      return value
+    end
+
+    fields = value.members.to_h do |member|
+      [member, rewrite_shadowed_local_reads(value.public_send(member), local_names)]
     end
     value.with(**fields)
   end
