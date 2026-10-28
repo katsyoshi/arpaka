@@ -157,6 +157,16 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "anonymous keyword rest parameters are local reads when forwarded" do
+    source = "def render(**); target(**); end"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
+  test "named regexp captures are local reads in their scope" do
+    source = "/(?<size>tiny)/ =~ value; size"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
   test "splat arguments, array elements, and assignment values compare across both AST shapes" do
     ["foo(*values)", "foo(1, *values, 2)", "[*values, 1]", "items = [*values, 1]"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)

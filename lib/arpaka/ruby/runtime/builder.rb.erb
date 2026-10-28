@@ -211,7 +211,10 @@ class Builder
   end
 
   def parameter(kind, name, value = nil)
-    declare_local(name) if @declaring_method_parameters && name.is_a?(Symbol)
+    if @declaring_method_parameters
+      declare_local(name) if name.is_a?(Symbol)
+      declare_local(:**) if kind == :keyword_rest && name.nil?
+    end
     AST::Parameter.new(kind, name, value)
   end
 
@@ -250,6 +253,7 @@ class Builder
     if pattern.is_a?(String)
       pattern = pattern.dup.force_encoding(encoding || metadata[:source_encoding] || Encoding::UTF_8.name)
       regexp = Regexp.new(pattern, options)
+      regexp.names.each { |name| declare_local(name.to_sym) }
       options = regexp.options
       encoding = regexp.encoding.name
     end
