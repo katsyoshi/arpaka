@@ -23,6 +23,15 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "defined predicates remain the condition of following ternaries" do
+    ["defined?(Rails.root) ? Rails.root : \"/tmp/mails\"",
+      "defined?(Nokogiri::HTML5) ? Nokogiri::HTML5::Document : Nokogiri::HTML4::Document"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+    source = "defined?(A ? B : C)"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
   test "break and next command arguments are control nodes" do
     ["items.each { |item| next item }", "items.each { |item| break item }"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
