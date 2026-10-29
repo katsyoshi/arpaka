@@ -32,6 +32,20 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
+  test "single constant paths are accepted as case patterns" do
+    source = "case value; when A::B; value; end"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
+  test "rescue variables and backreference assignments normalize from variables" do
+    ["begin; work; rescue => error; error; end", "begin; work; rescue => @error; @error; end"].each do |rescue_source|
+      assert_equal(normalized_rubyvm(rescue_source), @normalizer.arpaka(GeneratedRubyFrontend.parse(rescue_source)), rescue_source)
+    end
+
+    backref_source = "$0 = value"
+    assert_equal(normalized_rubyvm(backref_source), @normalizer.arpaka(GeneratedRubyFrontend.parse(backref_source)), backref_source)
+  end
+
   test "break and next command arguments are control nodes" do
     ["items.each { |item| next item }", "items.each { |item| break item }"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
