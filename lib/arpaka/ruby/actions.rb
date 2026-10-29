@@ -664,7 +664,7 @@ module Arpaka::Ruby::Actions
     73 => ["ported", "@builder.unary(:\"!\", $2)"],
     716 => ["pass_through", "$3"], 717 => ["empty", "nil"],
     493 => ["empty", "nil"], 494 => ["empty", "nil"],
-    495 => ["ported", "@builder.lambda_node($7, $8)"],
+    495 => ["ported", "@builder.lambda_node($7, $9)"],
     498 => ["pass_through", "$2"], 499 => ["empty", "nil"], 500 => ["pass_through", "$3"],
     369 => ["pass_through", "$1"], 620 => ["pass_through", "$1"]
   }.merge({

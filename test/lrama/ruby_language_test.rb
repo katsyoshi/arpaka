@@ -751,6 +751,13 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { GeneratedRubyFrontend.parse("value = lambda do\n  work\nend\n") }
   end
 
+  test "lambda bodies preserve their expressions" do
+    expected = AST::Program.new([
+      AST::LocalWrite.new(:value, AST::Lambda.new([], [AST::BareCall.new(:work)]))
+    ])
+    assert_equal(expected, GeneratedRubyFrontend.parse("value = -> { work }"))
+  end
+
   test "method bodies may start with an array literal after arguments" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("def multi(a, b, c) [a, b, c] end") }
   end
