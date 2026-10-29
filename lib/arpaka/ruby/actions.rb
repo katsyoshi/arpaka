@@ -279,7 +279,7 @@ module Arpaka::Ruby::Actions
     604 => ["ported", "@builder.range(:\"...\", $1, nil)"],
     810 => ["ported", "@builder.declare_method_parameter($2)"],
     820 => ["pass_through", "$3"],
-    828 => ["pass_through", "$4"],
+    828 => ["ported", "@builder.pair(@builder.symbol(@builder.join_strings($2)), $4)"],
     806 => ["ported", "@builder.declare_method_parameter_list($2)"],
     802 => ["ported", "@builder.declare_method_parameter($2)"],
     835 => ["pass_through", "$1"],

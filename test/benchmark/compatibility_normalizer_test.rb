@@ -342,9 +342,9 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
-  test "known callable body losses remain mismatches" do
+  test "callable bodies compare with RubyVM" do
     source = "-> { 1 }"
-    refute_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
   test "argumentless control statements normalize their absent value as nil" do

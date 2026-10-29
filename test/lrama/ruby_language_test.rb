@@ -125,6 +125,16 @@ class ArpakaTest < Test::Unit::TestCase
     assert_kind_of(AST::HashLiteral, keyword_arguments.arguments.fetch(0).arguments.fetch(0))
   end
 
+  test "quoted labels retain their hash pair in call arguments" do
+    call = GeneratedRubyFrontend.parse(
+      'assert_selector :element, "trix-editor", "aria-label": "Message content aria-label"'
+    ).statements.first
+
+    assert_equal(AST::HashLiteral.new([
+      AST::Pair.new(AST::Literal.new(:"aria-label"), AST::StringLiteral.new("Message content aria-label"))
+    ].freeze), call.arguments.last)
+  end
+
   test "simple method definitions preserve name and body" do
     expected = AST::Def.new(:foo, [], [literal(1)])
     tokens = [[:keyword_def, nil], [:tIDENTIFIER, :foo], [";", nil], [:tINTEGER, 1], [";", nil], [:keyword_end, nil]]
