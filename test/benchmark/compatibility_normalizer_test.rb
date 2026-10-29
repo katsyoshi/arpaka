@@ -47,6 +47,15 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "escaped interpolation in heredocs remains a string" do
+    source = <<~'RUBY'
+      value = <<-CODE
+      \#{value}
+      CODE
+    RUBY
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
   test "operator method names preserve binary and unary forms" do
     ["def +(other); other; end", "def -(other); other; end",
       "def +@(other); other; end", "def -@(other); other; end",

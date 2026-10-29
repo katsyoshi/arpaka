@@ -1319,6 +1319,15 @@ class Lexer
     index = 0
     while index < source.bytesize
       if source.getbyte(index) == 35 && source.getbyte(index + 1) == 123
+        escaped = 0
+        cursor = literal.bytesize - 1
+        escaped += 1 while cursor - escaped >= 0 && literal.getbyte(cursor - escaped) == 92
+        if escaped.odd?
+          literal.setbyte(literal.bytesize - 1, 35)
+          literal << "{"
+          index += 2
+          next
+        end
         tokens << [:tSTRING_CONTENT, literal] unless literal.empty?
         depth = 1
         expr_start = index + 2
