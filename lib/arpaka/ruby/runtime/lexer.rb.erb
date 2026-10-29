@@ -1313,32 +1313,22 @@ class Lexer
   end
 
   def interpolated_content_tokens(source, start)
-    return [[:tSTRING_CONTENT, source]] unless source.include?("#" + "{")
+    lexer = self.class.new(source, filename: @filename)
+    lexer.instance_variable_set(:@source_encoding, @source_encoding)
+    lexer.send(:read_interpolated_body, start)
+  end
+
+  def read_interpolated_body(start)
     tokens = []
     literal = +""
-    index = 0
-    while index < source.bytesize
-      if source.getbyte(index) == 35 && source.getbyte(index + 1) == 123
-        escaped = 0
-        cursor = literal.bytesize - 1
-        escaped += 1 while cursor - escaped >= 0 && literal.getbyte(cursor - escaped) == 92
-        if escaped.odd?
-          literal.setbyte(literal.bytesize - 1, 35)
-          literal << "{"
-          index += 2
-          next
-        end
+    until eof?
+      value = byte
+      if value == 92
+        literal << escape_sequence(start, mode: :double)
+      elsif value == 35 && byte(1) == 123
         tokens << [:tSTRING_CONTENT, literal] unless literal.empty?
-        depth = 1
-        expr_start = index + 2
-        index = expr_start
-        while index < source.bytesize && depth.positive?
-          depth += 1 if source.getbyte(index) == 123
-          depth -= 1 if source.getbyte(index) == 125
-          index += 1
-        end
-        fail!("unterminated string interpolation", start) unless depth.zero?
-        expression = source.byteslice(expr_start, index - expr_start - 1)
+        advance(2)
+        expression = read_interpolation_source(start)
         inner = self.class.new(expression, filename: @filename).each.to_a
         inner.pop if inner.last == [0, nil]
         tokens << [:tSTRING_DBEG, nil]
@@ -1346,8 +1336,7 @@ class Lexer
         tokens << [:tSTRING_DEND, nil]
         literal = +""
       else
-        literal << source.getbyte(index).chr
-        index += 1
+        append_source_character(literal)
       end
     end
     tokens << [:tSTRING_CONTENT, literal] unless literal.empty?

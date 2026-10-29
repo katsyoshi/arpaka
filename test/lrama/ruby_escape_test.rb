@@ -96,6 +96,15 @@ class ArpakaRubyEscapeTest < Test::Unit::TestCase
     end
   end
 
+  test "heredocs decode double-quoted escapes" do
+    source = "<<~TEXT\n  Content-Type: text/plain;\\r\nTEXT\n"
+    expected = RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2).children.fetch(0)
+    actual = parse(source).statements.fetch(0).value
+
+    assert_equal(expected.b, actual.b)
+    assert_equal(expected.encoding, actual.encoding)
+  end
+
   private
 
   def parse(source)
