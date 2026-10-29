@@ -23,6 +23,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "break and next command arguments are control nodes" do
+    ["items.each { |item| next item }", "items.each { |item| break item }"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "range endpoints preserve implicit nil literals" do
     ["1..", "..1", "1...", "...1", "nil..", "..nil"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)

@@ -448,9 +448,9 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([AST::Control.new(:return, literal(1))]), parse([:keyword_return, nil], [:tINTEGER, 1]))
   end
 
-  test "break and next with values become call nodes" do
-    assert_equal(AST::Program.new([AST::Call.new(:break, [literal(1)])]), parse([:keyword_break, nil], [:tINTEGER, 1]))
-    assert_equal(AST::Program.new([AST::Call.new(:next, [literal(2)])]), parse([:keyword_next, nil], [:tINTEGER, 2]))
+  test "break and next with values become control nodes" do
+    assert_equal(AST::Program.new([AST::Control.new(:break, literal(1))]), parse([:keyword_break, nil], [:tINTEGER, 1]))
+    assert_equal(AST::Program.new([AST::Control.new(:next, literal(2))]), parse([:keyword_next, nil], [:tINTEGER, 2]))
   end
 
   test "postfix condition and loop modifiers preserve statement order" do
