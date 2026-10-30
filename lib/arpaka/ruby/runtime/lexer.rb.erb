@@ -931,6 +931,14 @@ class Lexer
   end
 
   def string_token(quote, start)
+    # A receiver call can be the final expression of a command-call argument:
+    # `test "description".squish do ... end`. Mark the string as an
+    # argument before consuming the receiver call so `do` binds to `test`,
+    # rather than to `squish`.
+    if @context.command_call_active && !@context.command_call_argument &&
+        @context.delimiter_stack.empty? && @context.block_stack.empty?
+      @context.command_call_argument = true
+    end
     advance
     content_tokens = read_interpolated_quoted(quote, start)
     label = byte == 58 && @context.ternary_depth.zero?

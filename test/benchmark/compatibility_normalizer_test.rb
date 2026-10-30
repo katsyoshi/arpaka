@@ -561,6 +561,15 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "command blocks stay attached after receiver-call arguments" do
+    [
+      'test "description".squish do; value; end',
+      'f "value".strip do; value; end'
+    ].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "aliases, undef and expressionless case preserve their AST distinctions" do
     ["alias old_method new_method", "alias $old $new", "undef old_method, new_method",
       "case; when ready then value; else fallback; end", "case nil; when ready then value; end"].each do |source|

@@ -1522,6 +1522,16 @@ class ArpakaTest < Test::Unit::TestCase
     end
   end
 
+  test "source lexer binds blocks outside string receiver command arguments" do
+    source = 'test "description".squish do; value; end'
+    tokens = GeneratedRubyFrontend.const_get(:Lexer, false).new(source).each.to_a
+    assert_includes(tokens.map(&:first), :keyword_do_block)
+    tree = GeneratedRubyFrontend.parse(source).statements.first
+    assert_kind_of(AST::BlockCall, tree)
+    assert_equal(:test, tree.call.name)
+    assert_equal(:squish, tree.call.arguments.first.name)
+  end
+
   test "source lexer accepts blocks after parenthesized receiver calls" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("(1..n).each do; 1; end") }
   end
