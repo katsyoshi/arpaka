@@ -485,6 +485,16 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
+  test "block optional, rest, and block parameters retain their argument shape" do
+    [
+      "items.each { |item = nil| item }",
+      "items.each { |item, *rest| [item, rest] }",
+      "items.each { |item = nil, &block| block || item }"
+    ].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "command blocks stay attached after compound command arguments" do
     ["foo bar, baz do |value| value end",
       "foo bar, baz do |value| value; value end"].each do |source|
