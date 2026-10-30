@@ -713,6 +713,13 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "command blocks bind outside receiver and binary arguments" do
+    ["travel_to Time.now + 3.seconds do; 1; end", "f foo.bar do; 1; end",
+      "f foo + bar do; 1; end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "string literal nodes compare with strings" do
     node = GeneratedRubyFrontend::AST::Literal.new("static")
     assert_equal([:string, [:bytes, "737461746963", "UTF-8"]], @normalizer.arpaka(node))

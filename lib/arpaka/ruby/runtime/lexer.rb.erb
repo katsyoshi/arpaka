@@ -6,7 +6,7 @@ class LexicalContext
     :ternary_depth, :lambda_pending, :alias_context, :argument_label,
     :lex_state, :command_start, :label_pending, :singleton_class_depth, :control_depth,
     :method_header, :method_body_start, :command_argument_candidate,
-    :command_argument_pending
+    :command_argument_pending, :command_call_active, :command_call_argument
   attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack,
     :token_history, :state_history, :block_stack, :scope_stack, :parser_events,
     :parser_delimiter_stack, :parser_cmdarg_stack, :parser_block_stack,
@@ -27,6 +27,8 @@ class LexicalContext
     @method_body_start = false
     @command_argument_candidate = false
     @command_argument_pending = false
+    @command_call_active = false
+    @command_call_argument = false
     @lex_state = :expr_beg
     @command_start = true
     @delimiter_stack = []
@@ -517,6 +519,10 @@ class Lexer
   end
 
   def update_block_context(token)
+    if ["=", :tASSOC, :tOP_ASGN].include?(token)
+      @context.command_call_active = false
+      @context.command_call_argument = false
+    end
     if token == ")" && @context.command_argument_candidate
       @context.command_argument_candidate = false
       @context.command_argument_pending = true
@@ -533,16 +539,22 @@ class Lexer
     when "\n", ";"
       @context.command_argument_candidate = false
       @context.command_argument_pending = false
+      @context.command_call_active = false
+      @context.command_call_argument = false
+    when :keyword_do, :keyword_do_block
+      @context.command_call_active = false
+      @context.command_call_argument = false
+      @context.push_block(:do_block)
+    when :keyword_do_LAMBDA
+      @context.command_call_active = false
+      @context.command_call_argument = false
+      @context.push_block(:lambda)
     when :keyword_if, :keyword_unless, :keyword_case, :keyword_begin,
       :keyword_while, :keyword_until, :keyword_for
       @context.control_depth += 1
     when :keyword_def
       @context.method_header = true
       @context.push_scope(:method)
-    when :keyword_do, :keyword_do_block
-      @context.push_block(:do_block)
-    when :keyword_do_LAMBDA
-      @context.push_block(:lambda)
     when :tLAMBDA
       @context.push_scope(:lambda)
     when :tLSHFT
@@ -583,6 +595,16 @@ class Lexer
       advance
     end
     word = @source.byteslice(start, @index - start).force_encoding(Encoding::UTF_8)
+    command_start = @context.command_start ||
+      ["=", :tASSOC, :tOP_ASGN].include?(@previous)
+    if command_start
+      @context.command_call_active = true
+      @context.command_call_argument = false
+    elsif word != "do" && @context.command_call_active && !@context.command_call_argument &&
+      start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
+      [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
+      @context.command_call_argument = true
+    end
     if !@context.command_start && [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) &&
         start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
         nested_parenthesized_command_argument?
@@ -693,12 +715,15 @@ class Lexer
       :keyword_do
     elsif @previous == :tLAMBDA
       :keyword_do_LAMBDA
+    elsif @context.command_call_active && @context.command_call_argument
+      :keyword_do_block
     else
       :keyword_do_block
     end
   end
 
   def no_argument_block?
+    return false if @context.command_call_active && @context.command_call_argument
     return false unless [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
     return false if @context.argument_label == :at && [".", :tCOLON2, :tANDDOT].include?(@previous_previous)
     return false if @context.token_history == ["+", :tINTEGER, ".", :tIDENTIFIER]

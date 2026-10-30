@@ -1499,6 +1499,17 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { GeneratedRubyFrontend.parse("travel_to Time.new(1) do; 1; end") }
   end
 
+  test "source lexer binds command blocks outside receiver and binary arguments" do
+    ["travel_to Time.now + 3.seconds do; 1; end", "f foo.bar do; 1; end",
+      "f foo + bar do; 1; end"].each do |source|
+      tokens = GeneratedRubyFrontend.const_get(:Lexer, false).new(source).each.to_a
+      assert_includes(tokens.map(&:first), :keyword_do_block, source)
+      tree = GeneratedRubyFrontend.parse(source).statements.first
+      assert_kind_of(AST::BlockCall, tree, source)
+      assert_equal(:f, tree.call.name) if source.start_with?("f ")
+    end
+  end
+
   test "source lexer accepts lambda argument defaults" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("def [](x, y = nil); end") }
     assert_nothing_raised { GeneratedRubyFrontend.parse("->(x = nil) { x }") }
