@@ -692,6 +692,13 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "line literals in heredoc suffixes keep the source line" do
+    source = "class_eval <<-RUBY, __FILE__, __LINE__ + 1\n  def generated; end\nRUBY\n"
+
+    assert_equal(normalized_rubyvm(source),
+      @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
   test "static dynamic symbols compare with symbol literals" do
     assert_equal(normalized_rubyvm("%I[static].first"),
       @normalizer.arpaka(GeneratedRubyFrontend.parse("%I[static].first")))

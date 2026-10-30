@@ -245,6 +245,7 @@ class Lexer
     @pending = []
     @heredoc_queue = []
     @deferred_suffix = nil
+    @deferred_suffix_line = nil
     @heredoc_newline_pending = false
     @class_superclass = false
     @local_variables = {}
@@ -307,7 +308,8 @@ class Lexer
     elsif @pending.empty? && @deferred_suffix
       suffix = @deferred_suffix
       @deferred_suffix = nil
-      @pending.concat(heredoc_suffix_tokens(suffix))
+      @pending.concat(heredoc_suffix_tokens(suffix, @deferred_suffix_line))
+      @deferred_suffix_line = nil
       @pending.pop if @pending.last == [0, nil]
       @pending << ["\n", nil]
       @heredoc_newline_pending = false
@@ -1429,6 +1431,7 @@ class Lexer
   end
 
   def heredoc_token(start)
+    suffix_line = @line
     advance(2)
     indent = byte == 45 || byte == 126
     squiggly = byte == 126
@@ -1457,11 +1460,14 @@ class Lexer
     @pending = content_tokens + [[:tSTRING_END, nil]]
     prefix, headers, suffix = extract_heredoc_headers(suffix)
     unless prefix.empty?
-      prefix_tokens = heredoc_suffix_tokens(prefix)
+      prefix_tokens = heredoc_suffix_tokens(prefix, suffix_line)
       @pending.concat(prefix_tokens)
     end
     @heredoc_queue.concat(headers)
-    @deferred_suffix = suffix unless suffix.empty?
+    unless suffix.empty?
+      @deferred_suffix = suffix
+      @deferred_suffix_line = suffix_line
+    end
     @heredoc_newline_pending = true
     [quote == 96 ? :tXSTRING_BEG : :tSTRING_BEG, nil]
   end
@@ -1499,8 +1505,9 @@ class Lexer
     [suffix[0...match.begin(0)], headers, trailing]
   end
 
-  def heredoc_suffix_tokens(source)
+  def heredoc_suffix_tokens(source, line = @line)
     suffix_lexer = self.class.new(source, filename: @filename)
+    suffix_lexer.instance_variable_set(:@line, line)
     suffix_lexer.context.begin_expression = false
     suffix_lexer.context.lex_state = :expr_end
     suffix_lexer.instance_variable_set(:@previous, :tSTRING_END)
