@@ -23,6 +23,11 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "method case branches with trailing nil use an empty body" do
+    source = "def value; case input; when expected; nil; end; end"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
   test "trailing comma keyword arguments compare across both AST shapes" do
     source = <<~RUBY
       emit_event("event",

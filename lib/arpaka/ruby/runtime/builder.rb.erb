@@ -446,6 +446,10 @@ class Builder
   end
 
   def when_node(patterns, body)
+    if @method_local_scopes.any? && body.is_a?(Array) && body.length == 1 &&
+        body.first.is_a?(AST::Literal) && body.first.value.nil?
+      body = [].freeze
+    end
     AST::When.new(patterns.freeze, body)
   end
 
