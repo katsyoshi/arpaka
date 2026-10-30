@@ -458,6 +458,16 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(modifier), @normalizer.arpaka(GeneratedRubyFrontend.parse(modifier)), modifier)
     assert_equal(:rescue_modifier, normalized_rubyvm(modifier).dig(1, 0, 0))
 
+    source = "def f; value; rescue; fallback; end"
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+
+    multi_statement_method = "def f; first; second; rescue; fallback; end"
+    assert_equal(normalized_rubyvm(multi_statement_method),
+      @normalizer.arpaka(GeneratedRubyFrontend.parse(multi_statement_method)), multi_statement_method)
+
+    block_rescue = "items.each do; value; rescue; fallback; end"
+    assert_equal(normalized_rubyvm(block_rescue), @normalizer.arpaka(GeneratedRubyFrontend.parse(block_rescue)), block_rescue)
+
     ["begin; value; rescue; fallback; end",
       "begin; value; rescue Error; fallback; else; other; end"].each do |source|
       assert_equal(:rescue, normalized_rubyvm(source).dig(1, 0, 0), source)
