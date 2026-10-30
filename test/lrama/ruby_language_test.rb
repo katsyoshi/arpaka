@@ -1471,6 +1471,12 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { GeneratedRubyFrontend.parse("value = left || proc { 1 }") }
   end
 
+  test "source lexer uses block do after nested command arguments" do
+    tokens = GeneratedRubyFrontend.const_get(:Lexer, false).new("travel_to Time.new(1) do; 1; end").each.to_a
+    assert_includes(tokens.map(&:first), :keyword_do_block)
+    assert_nothing_raised { GeneratedRubyFrontend.parse("travel_to Time.new(1) do; 1; end") }
+  end
+
   test "source lexer accepts lambda argument defaults" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("def [](x, y = nil); end") }
     assert_nothing_raised { GeneratedRubyFrontend.parse("->(x = nil) { x }") }

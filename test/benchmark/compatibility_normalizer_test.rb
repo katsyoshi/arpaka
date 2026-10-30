@@ -492,6 +492,13 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "command blocks stay attached after nested parenthesized arguments" do
+    ["travel_to Time.new(2004, 11, 24, 1, 4, 44) do; work; end",
+      "foo bar() do; work; end"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "aliases, undef and expressionless case preserve their AST distinctions" do
     ["alias old_method new_method", "alias $old $new", "undef old_method, new_method",
       "case; when ready then value; else fallback; end", "case nil; when ready then value; end"].each do |source|

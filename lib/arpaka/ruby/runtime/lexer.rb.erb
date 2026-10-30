@@ -5,7 +5,8 @@ class LexicalContext
   attr_accessor :begin_expression, :condition_do, :condition_line,
     :ternary_depth, :lambda_pending, :alias_context, :argument_label,
     :lex_state, :command_start, :label_pending, :singleton_class_depth, :control_depth,
-    :method_header, :method_body_start
+    :method_header, :method_body_start, :command_argument_candidate,
+    :command_argument_pending
   attr_reader :delimiter_stack, :cmdarg_stack, :condition_stack,
     :token_history, :state_history, :block_stack, :scope_stack, :parser_events,
     :parser_delimiter_stack, :parser_cmdarg_stack, :parser_block_stack,
@@ -24,6 +25,8 @@ class LexicalContext
     @control_depth = 0
     @method_header = false
     @method_body_start = false
+    @command_argument_candidate = false
+    @command_argument_pending = false
     @lex_state = :expr_beg
     @command_start = true
     @delimiter_stack = []
@@ -514,7 +517,22 @@ class Lexer
   end
 
   def update_block_context(token)
+    if token == ")" && @context.command_argument_candidate
+      @context.command_argument_candidate = false
+      @context.command_argument_pending = true
+    elsif @context.command_argument_pending &&
+        ![:keyword_do, :keyword_do_block, :keyword_do_LAMBDA].include?(token)
+      @context.command_argument_pending = false
+    elsif @context.command_argument_candidate &&
+        ![".", :tCOLON2, :tANDDOT, "(", :tLPAREN, :tLPAREN_ARG,
+          :tIDENTIFIER, :tCONSTANT, :tFID].include?(token) &&
+        !@context.delimiter_stack.include?("(")
+      @context.command_argument_candidate = false
+    end
     case token
+    when "\n", ";"
+      @context.command_argument_candidate = false
+      @context.command_argument_pending = false
     when :keyword_if, :keyword_unless, :keyword_case, :keyword_begin,
       :keyword_while, :keyword_until, :keyword_for
       @context.control_depth += 1
@@ -565,6 +583,11 @@ class Lexer
       advance
     end
     word = @source.byteslice(start, @index - start).force_encoding(Encoding::UTF_8)
+    if !@context.command_start && [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous) &&
+        start.positive? && [9, 32].include?(@source.getbyte(start - 1)) &&
+        nested_parenthesized_command_argument?
+      @context.command_argument_candidate = true
+    end
     if byte == 63 && word == "defined"
       advance
       word = "defined?"
@@ -640,6 +663,17 @@ class Lexer
     value && (value == 95 || value.between?(65, 90) || value.between?(97, 122) || value >= 128 || value.between?(48, 57))
   end
 
+  def nested_parenthesized_command_argument?
+    position = @index
+    position += 1 while [9, 32].include?(@source.getbyte(position))
+    if @source.getbyte(position) == 46
+      position += 1
+      position += 1 while identifier_byte?(@source.getbyte(position))
+      position += 1 while [9, 32].include?(@source.getbyte(position))
+    end
+    @source.getbyte(position) == 40
+  end
+
   def do_token
     if @context.condition_do && @context.condition?
       @context.pop_condition
@@ -651,6 +685,9 @@ class Lexer
     elsif @previous == :tIDENTIFIER && @previous_previous == :tLABEL && @previous_value == :lambda
       :keyword_do
     elsif @previous == ")" && @context.token_history.each_cons(2).any? { |left, right| left == :tUMINUS && right == :tLPAREN }
+      :keyword_do_block
+    elsif @previous == ")" && @context.command_argument_pending
+      @context.command_argument_pending = false
       :keyword_do_block
     elsif [")", :keyword_super, :keyword_yield].include?(@previous)
       :keyword_do
