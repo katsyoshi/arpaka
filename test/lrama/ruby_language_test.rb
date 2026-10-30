@@ -135,6 +135,18 @@ class ArpakaTest < Test::Unit::TestCase
     ].freeze), call.arguments.last)
   end
 
+  test "trailing commas retain keyword call arguments" do
+    call = GeneratedRubyFrontend.parse(<<~RUBY).statements.first
+      emit_event("event",
+        controller: event.payload[:controller],
+        action: event.payload[:action],
+      )
+    RUBY
+
+    assert_kind_of(AST::HashLiteral, call.arguments.last)
+    assert_equal([:controller, :action], call.arguments.last.pairs.map { |pair| pair.key.value })
+  end
+
   test "simple method definitions preserve name and body" do
     expected = AST::Def.new(:foo, [], [literal(1)])
     tokens = [[:keyword_def, nil], [:tIDENTIFIER, :foo], [";", nil], [:tINTEGER, 1], [";", nil], [:keyword_end, nil]]

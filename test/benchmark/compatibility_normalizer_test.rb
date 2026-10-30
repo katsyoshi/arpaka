@@ -23,6 +23,16 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "trailing comma keyword arguments compare across both AST shapes" do
+    source = <<~RUBY
+      emit_event("event",
+        controller: event.payload[:controller],
+        action: event.payload[:action],
+      )
+    RUBY
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
   test "defined predicates remain the condition of following ternaries" do
     ["defined?(Rails.root) ? Rails.root : \"/tmp/mails\"",
       "defined?(Nokogiri::HTML5) ? Nokogiri::HTML5::Document : Nokogiri::HTML4::Document"].each do |source|
