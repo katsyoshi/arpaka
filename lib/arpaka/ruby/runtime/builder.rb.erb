@@ -9,6 +9,7 @@ class Builder
     @locals = {}
     @block_local_scopes = []
     @method_local_scopes = []
+    @lambda_parameter_states = []
     @declaring_method_parameters = false
   end
 
@@ -254,7 +255,7 @@ class Builder
   end
 
   def parameter(kind, name, value = nil)
-    if @declaring_method_parameters
+    if method_parameter_scope?
       declare_local(name) if name.is_a?(Symbol)
       declare_local(:**) if kind == :keyword_rest && name.nil?
     end
@@ -474,7 +475,26 @@ class Builder
   end
 
   def lambda_node(arguments, body)
-    AST::Lambda.new((arguments || []).freeze, resolve_local_reads(body_nodes(body), @locals.keys))
+    parameter_names = lambda_parameter_names(arguments)
+    inherited_names = (@locals.keys + parameter_names).uniq
+    previous_state = @lambda_parameter_states.pop
+    node = AST::Lambda.new((arguments || []).freeze, resolve_local_reads(body_nodes(body), inherited_names))
+    @declaring_method_parameters = previous_state unless previous_state.nil?
+    node
+  end
+
+  def lambda_parameter_names(arguments)
+    values = arguments.nil? ? [] : arguments.is_a?(Array) ? arguments : [arguments]
+    values.flat_map do |value|
+      case value
+      when AST::Parameter
+        value.name.is_a?(Symbol) ? [value.name] : []
+      when Array
+        lambda_parameter_names(value)
+      else
+        []
+      end
+    end
   end
 <% if runtime.fetch("builder_methods", []).include?("pattern") -%>
   def pattern(kind, values)
@@ -638,6 +658,12 @@ class Builder
     value
   end
 
+  def begin_lambda_parameters
+    @lambda_parameter_states << @declaring_method_parameters
+    @declaring_method_parameters = false
+    nil
+  end
+
   def declare_method_parameter(name)
     declare_local(name)
   end
@@ -659,6 +685,10 @@ class Builder
   def read_local(name)
     return name if name.is_a?(AST::Variable)
     (@locals.key?(name) ? AST::LocalRead : AST::BareCall).new(name)
+  end
+
+  def method_parameter_scope?
+    @method_local_scopes.any? && @lambda_parameter_states.empty?
   end
 
   # Ruby decides whether an identifier is a local variable for the whole

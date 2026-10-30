@@ -768,6 +768,28 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(expected, GeneratedRubyFrontend.parse("value = -> { work }"))
   end
 
+  test "lambda defaults preserve the enclosing method locals" do
+    method = GeneratedRubyFrontend.parse(<<~RUBY).statements.first
+      def register(block: -> { render }, **options)
+        before_action -> { register(block: block) }, **options
+      end
+    RUBY
+
+    options = method.body.first.arguments.last.pairs.last.value
+    assert_equal(AST::LocalRead.new(:options), options)
+  end
+
+  test "lambda parameters do not leak into the enclosing method" do
+    method = GeneratedRubyFrontend.parse(<<~RUBY).statements.first
+      def register
+        ->(value) { value }
+        value
+      end
+    RUBY
+
+    assert_equal(AST::LocalRead.new(:value), method.body.last)
+  end
+
   test "method bodies may start with an array literal after arguments" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("def multi(a, b, c) [a, b, c] end") }
   end

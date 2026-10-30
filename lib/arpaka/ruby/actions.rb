@@ -663,7 +663,7 @@ module Arpaka::Ruby::Actions
     65 => ["pass_through", "$3"], 67 => ["pass_through", "$1"],
     73 => ["ported", "@builder.unary(:\"!\", $2)"],
     716 => ["pass_through", "$3"], 717 => ["empty", "nil"],
-    493 => ["empty", "nil"], 494 => ["empty", "nil"],
+    493 => ["empty", "nil"], 494 => ["ported", "@builder.begin_lambda_parameters"],
     495 => ["ported", "@builder.lambda_node($7, $9)"],
     498 => ["pass_through", "$2"], 499 => ["empty", "nil"], 500 => ["pass_through", "$3"],
     369 => ["pass_through", "$1"], 620 => ["pass_through", "$1"]
