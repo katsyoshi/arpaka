@@ -716,6 +716,8 @@ class Lexer
     elsif @previous == ")" && @context.command_argument_pending
       @context.command_argument_pending = false
       :keyword_do_block
+    elsif command_argument_receiver_call?
+      :keyword_do_block
     elsif @context.command_call_active && @context.command_call_argument &&
         @previous == :tIDENTIFIER && [:lambda, :proc].include?(@previous_value)
       :keyword_do
@@ -734,6 +736,7 @@ class Lexer
 
   def no_argument_block?
     return false if @context.command_call_active && @context.command_call_argument
+    return false if command_argument_receiver_call?
     return false unless [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
     return false if @context.argument_label == :at && [".", :tCOLON2, :tANDDOT].include?(@previous_previous)
     return false if @context.token_history == ["+", :tINTEGER, ".", :tIDENTIFIER]
@@ -745,6 +748,11 @@ class Lexer
     return true if @previous_value == :lambda && @previous_previous == :tLSHFT
     return false if [:tLSHFT, :tLAMBDA].include?(@previous_previous)
     true
+  end
+
+  def command_argument_receiver_call?
+    @context.command_call_active && @previous == :tIDENTIFIER && @previous_previous == "." &&
+      [:tINTEGER, :tFLOAT, :tRATIONAL, :tIMAGINARY].include?(@context.token_history[-3])
   end
 
   def no_argument_brace_block?

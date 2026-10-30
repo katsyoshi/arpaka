@@ -768,7 +768,8 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
 
   test "command blocks bind outside receiver and binary arguments" do
     ["travel_to Time.now + 3.seconds do; 1; end", "f foo.bar do; 1; end",
-      "f foo + bar do; 1; end", "(1..n).each do; 1; end"].each do |source|
+      "travel 1001.years do; 1; end", "f foo + bar do; 1; end",
+      "(1..n).each do; 1; end"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
   end
