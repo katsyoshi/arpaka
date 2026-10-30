@@ -56,6 +56,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(backref_source), @normalizer.arpaka(GeneratedRubyFrontend.parse(backref_source)), backref_source)
   end
 
+  test "single-expression begin rescue is distinct from rescue modifier" do
+    ["begin\n  work\nrescue\n  cleanup\nend", "work rescue cleanup"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "break and next command arguments are control nodes" do
     ["items.each { |item| next item }", "items.each { |item| break item }"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
