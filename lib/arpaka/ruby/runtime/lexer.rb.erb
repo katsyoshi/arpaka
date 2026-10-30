@@ -1611,6 +1611,10 @@ class Lexer
         @context.method_body_start = true
         @context.method_header = false
       end
+    elsif value == "-" && @previous == :tSYMBEG
+      return [:tUMINUS, :-]
+    elsif value == "+" && @previous == :tSYMBEG
+      return [:tUPLUS, :+]
     elsif value == "-" && @context.begin_expression && !super_binary_operator?(start, 1)
       return [:tUMINUS, @previous == :keyword_def || @context.alias_context ? value : nil]
     elsif value == "+" && @context.begin_expression && !super_binary_operator?(start, 1)
