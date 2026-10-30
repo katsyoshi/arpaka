@@ -1510,6 +1510,19 @@ class ArpakaTest < Test::Unit::TestCase
     end
   end
 
+  test "source lexer accepts blocks after parenthesized receiver calls" do
+    assert_nothing_raised { GeneratedRubyFrontend.parse("(1..n).each do; 1; end") }
+  end
+
+  test "source lexer binds blocks after comma-separated command arguments" do
+    source = "ActiveSupport::Notifications.instrument \"event\", payload do; work; end"
+    tree = GeneratedRubyFrontend.parse(source).statements.first
+    assert_kind_of(AST::BlockCall, tree)
+    assert_equal(:instrument, tree.call.name)
+    assert_equal(2, tree.call.arguments.length)
+    assert_equal(:payload, tree.call.arguments.last.name)
+  end
+
   test "source lexer accepts lambda argument defaults" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("def [](x, y = nil); end") }
     assert_nothing_raised { GeneratedRubyFrontend.parse("->(x = nil) { x }") }
