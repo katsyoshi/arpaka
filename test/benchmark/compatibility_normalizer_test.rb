@@ -643,7 +643,8 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
 
   test "optional and rest method parameters compare with RubyVM shapes" do
     ["def f(*); end", "def f(*args); end", "def f(first = 1); end",
-      "def f(first, second = 1, third = 2); end", "def f(first, *rest, last); end",
+      "def f(first, second = 1, third = 2); end", "def f(first, second = 1, third); end",
+      "def f(first, *rest, last); end",
       "def f(&); end", "def f(&block); end"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
