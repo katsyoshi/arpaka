@@ -495,7 +495,10 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     [
       "items.each { |item = nil| item }",
       "items.each { |item, *rest| [item, rest] }",
-      "items.each { |item = nil, &block| block || item }"
+      "items.each { |item = nil, &block| block || item }",
+      "items.each { |item, count: nil, timeout: 2| [item, count, timeout] }",
+      "items.each { |*args, **options, &block| [args, options, block] }",
+      "items.each { |item, count:| [item, count] }"
     ].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
     end
