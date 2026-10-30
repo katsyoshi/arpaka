@@ -95,6 +95,29 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
   end
 
+  test "continued interpolated strings merge adjacent text parts" do
+    sources = [
+      <<~'RUBY',
+        name = "mailer"
+        "Unable to determine the mailer to test from #{name}. " \
+          "You'll need to specify it using tests YourMailer in your " \
+          "test case definition"
+      RUBY
+      <<~'RUBY',
+        status = 200
+        message = +"Completed #{status} #{status} in #{status}ms" \
+                  " (extra details)"
+      RUBY
+      <<~'RUBY'
+        name = "mailer"
+        "prefix #{name}. " "suffix"
+      RUBY
+    ]
+    sources.each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "operator method names preserve binary and unary forms" do
     ["def +(other); other; end", "def -(other); other; end",
       "def +@(other); other; end", "def -@(other); other; end",
