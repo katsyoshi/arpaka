@@ -17,6 +17,14 @@ module Arpaka
             ["ported", "@builder.begin_block($2)"],
           ["stmt_or_begin", ["keyword_BEGIN", "$@5", "begin_block"]] =>
             ["ported", "@builder.begin_block($3)"],
+          ["def_endless_method_endless_command", ["defn_head", "f_opt_paren_args", "'='", "endless_command"]] =>
+            ["ported", "@builder.def_node($1, $2, @builder.body_nodes($4))"],
+          ["def_endless_method_endless_command", ["defs_head", "f_opt_paren_args", "'='", "endless_command"]] =>
+            ["ported", "@builder.singleton_method_node($1[0], $1[2], $2, @builder.body_nodes($4))"],
+          ["def_endless_method_endless_arg", ["defn_head", "f_opt_paren_args", "'='", "endless_arg"]] =>
+            ["ported", "@builder.def_node($1, $2, @builder.body_nodes($4))"],
+          ["def_endless_method_endless_arg", ["defs_head", "f_opt_paren_args", "'='", "endless_arg"]] =>
+            ["ported", "@builder.singleton_method_node($1[0], $1[2], $2, @builder.body_nodes($4))"],
           ["begin_block", ["block_open", "compstmt_top_stmts", "'}'"]] =>
             ["pass_through", "$2"],
           ["stmt", ["k_END", "block_open", "compstmt_stmts", "'}'"]] =>
