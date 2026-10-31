@@ -293,6 +293,11 @@ module Compatibility
         next unless record["type"] == "reference"
         value = record.transform_keys(&:to_sym)
         value[:elapsed] = value.delete(:elapsed_seconds)
+        # Reference caches produced by the Oracle contain the normalized tree
+        # and status, but do not need to repeat the worker's parsed flag.
+        # Reconstruct it here so cached RubyVM results retain the same outcome
+        # semantics as subprocess worker results.
+        value[:parsed] = !%w[parse_failure error].include?(value[:status])
         cache[[record["corpus"], record["path"], record["sha256"]]] = value
       rescue JSON::ParserError
         next
@@ -409,6 +414,7 @@ module Compatibility
 
     def compare_trees(left, right, path = "$", keyword_argument: false)
       return [:match, nil] if left == right
+      return [:match, nil] if equivalent_constant_path?(left, right)
 
       if keyword_argument && keyword_arguments_as_hash?(left, right)
         status, = compare_trees(left[1], right[1], "#{path}[1]")
@@ -433,6 +439,38 @@ module Compatibility
       return [:mismatch, nil] if statuses.include?(:mismatch)
       return [:accepted_mismatch, path] if statuses.include?(:accepted_mismatch)
       [:match, nil]
+    end
+
+    def equivalent_constant_path?(left, right)
+      return equivalent_constant_name?(left[1], right[2]) if constant_node?(left) && direct_constant_path_node?(right)
+      return equivalent_constant_name?(right[1], left[2]) if direct_constant_path_node?(left) && constant_node?(right)
+
+      false
+    end
+
+    def equivalent_constant_name?(left, right)
+      return true if left == right
+      return false unless left.is_a?(Array) && right.is_a?(Array) && left.length == 2 && right.length == 2
+      return false unless tag?(left.first, :symbol) && tag?(right.first, :symbol)
+
+      left[1] == right[1] || equivalent_bytes?(left[1], right[1])
+    end
+
+    def equivalent_bytes?(left, right)
+      left.is_a?(Array) && right.is_a?(Array) && left.length == 3 && right.length == 3 &&
+        tag?(left.first, :bytes) && tag?(right.first, :bytes) && left[1..] == right[1..]
+    end
+
+    def constant_node?(value)
+      value.is_a?(Array) && value.length == 2 && tag?(value.first, :constant)
+    end
+
+    def constant_path_node?(value)
+      value.is_a?(Array) && value.length == 3 && tag?(value.first, :constant_path)
+    end
+
+    def direct_constant_path_node?(value)
+      constant_path_node?(value) && constant_node?(value[1])
     end
 
     def compare_argument_lists(left, right, path)

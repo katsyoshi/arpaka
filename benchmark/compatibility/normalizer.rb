@@ -52,8 +52,31 @@ module Compatibility
         "Splat" => [:value]
       }[name]
       unsupported!(:arpaka, "node #{name}") unless expected
+      # Older generated frontends expose BlockCall as (call, body) and did
+      # not retain explicit block parameters. Treat that shape as nil
+      # parameters so it keeps the legacy comparison semantics.
+      expected = [:call, :body] if name == "BlockCall" && fields == [:call, :body]
+      # Older generated frontends expose only the regexp pattern. Fill in the
+      # metadata defaults used by the current AST so static literals retain
+      # their legacy comparison semantics.
+      values = if name == "RegexpLiteral" && fields == [:value]
+        expected = [:value]
+        pattern = node.value
+        {
+          value: pattern,
+          options: 0,
+          encoding: pattern.is_a?(String) ? Encoding::UTF_8.name : nil,
+          once: false
+        }
+      end
+      # Current frontends omit the nil value field for controls without an
+      # argument. Treat that abbreviated shape as the legacy equivalent.
+      values ||= if name == "Control" && fields == [:kind]
+        expected = [:kind]
+        { kind: node.kind, value: nil }
+      end
       unsupported!(:arpaka, "#{name} fields #{fields.inspect}, expected #{expected.inspect}") unless fields == expected
-      values = fields.to_h { |field| [field, node.public_send(field)] }
+      values ||= fields.to_h { |field| [field, node.public_send(field)] }
       case name
       when "Program", "Sequence" then [:sequence, values[:statements].map { |item| arpaka(item) }]
       when "Literal"
@@ -348,7 +371,7 @@ module Compatibility
       when :FILE then [:file, text(c[0])]
       when :NTH_REF then [:backref, backref_number(c[0])]
       when :BACK_REF then variable_read(:global, c[0], :rubyvm)
-      when :COLON2 then [:constant_path, rubyvm(c[0]), symbol(c[1])]
+      when :COLON2 then rubyvm_expression_constant_path(c)
       when :COLON3 then [:absolute_constant, symbol(c[0])]
       when :LVAR then [:local_read, symbol(c[0])]
       when :DVAR then c[0].nil? ? [:implicit_keyword_rest] : [:local_read, symbol(c[0])]
@@ -476,15 +499,35 @@ module Compatibility
         [:block, rubyvm(call), scoped_arguments(scope.children[0], scope.children[1], block: true), vm_body(scope.children[2])]
       when :CLASS
         path, superclass, scope = c
-        [:class, rubyvm(path), rubyvm(superclass), scoped_body(scope)]
+        [:class, rubyvm_declaration_name(path), rubyvm(superclass), scoped_body(scope)]
       when :MODULE
         path, scope = c
-        [:module, rubyvm(path), scoped_body(scope)]
+        [:module, rubyvm_declaration_name(path), scoped_body(scope)]
       else unsupported!(:rubyvm, "node #{node.type}")
       end
     end
 
     private
+
+    # The frontend keeps only the declared constant's final component for
+    # qualified class/module declarations. RubyVM represents the same name as
+    # a constant_path whose receiver is a constant. Keep the legacy comparison
+    # shape by applying that projection only in declaration-name position.
+    def rubyvm_declaration_name(node)
+      normalized = rubyvm(node)
+      if normalized.is_a?(Array) && normalized.first == :constant_path &&
+          normalized[1].is_a?(Array) && normalized[1].first == :constant
+        [:constant, normalized[2]]
+      else
+        normalized
+      end
+    end
+
+    def rubyvm_expression_constant_path(children)
+      receiver = rubyvm(children.fetch(0))
+      name = symbol(children.fetch(1))
+      receiver.is_a?(Array) && receiver.first == :constant ? [:constant, name] : [:constant_path, receiver, name]
+    end
 
     def arpaka_arguments(value)
       arguments = value.is_a?(Array) ? value : value.nil? ? [] : [value]
