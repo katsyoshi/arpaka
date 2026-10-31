@@ -20,7 +20,7 @@ module Compatibility
     STATUSES = %w[match accepted_mismatch mismatch unverified parse_failure timeout error].freeze
     VERSION = 2
 
-    def initialize(ruby_source:, corpora:, timeout: 10, ruby: RbConfig.ruby, progress: nil, reference_cache: nil, threads: 1, parallel: :thread)
+    def initialize(ruby_source:, corpora:, timeout: 10, ruby: RbConfig.ruby, progress: nil, reference_cache: nil, threads: 1, parallel: :thread, disable_gc: false)
       @ruby_source = File.expand_path(ruby_source)
       @corpora = corpora.map { |name, path| [name, File.expand_path(path)] }
       @timeout = timeout
@@ -30,6 +30,7 @@ module Compatibility
       @reference_cache = load_reference_cache
       @threads = Integer(threads)
       @parallel = parallel.to_sym
+      @disable_gc = disable_gc
     end
 
     def run
@@ -41,6 +42,7 @@ module Compatibility
       Dir.mktmpdir("arpaka-compatibility-") do |directory|
         frontend = File.join(directory, "frontend.rb")
         File.write(frontend, generated)
+        @frontend_class = load(frontend).then { Object.const_get(:CompatibilityFrontend) }
         results = @corpora.flat_map do |name, path|
           files = corpus_files(name, path)
           @progress&.call("#{name}: comparing #{files.length} Ruby files")
@@ -131,24 +133,65 @@ module Compatibility
 
     def compare_files_with_ractors(name, root, files, frontend)
       batches = files.each_slice((files.length.fdiv(@threads)).ceil).to_a
+      frontend_class = @frontend_class
       port = Ractor::Port.new
-      settings = { ruby_source: @ruby_source, timeout: @timeout, ruby: @ruby,
-        reference_cache: @reference_cache_path, threads: 1, parallel: :thread }
       workers = batches.each_with_index.map do |batch, index|
-        Ractor.new(settings, port, index, name, root, batch, frontend) do |config, result_port, job_index, job_name, job_root, job_files, job_frontend|
-          runner = Compatibility::Runner.new(**config, corpora: [])
-          result_port.send([job_index, runner.__send__(:compare_batch, job_name, job_root, job_files, job_frontend)])
+        Ractor.new(port, index, name, root, batch, frontend_class, @disable_gc) do |result_port, job_index, job_name, job_root, job_files, job_frontend_class, disable_gc|
+          begin
+            GC.disable if disable_gc
+            normalizer = Compatibility::Normalizer.new
+            batch_results = job_files.to_h do |file|
+              started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+              begin
+                source = File.binread(file).force_encoding(Encoding::UTF_8)
+                tree = job_frontend_class.parse(source, filename: file)
+                # Match the JSON boundary used by the subprocess worker. In
+                # particular, symbols in the canonical tree become strings.
+                canonical = JSON.parse(JSON.generate(normalizer.arpaka(tree), max_nesting: false))
+                arpaka = { status: "ok", parsed: true, tree: canonical,
+                  elapsed: Process.clock_gettime(Process::CLOCK_MONOTONIC) - started,
+                  runtime: RUBY_DESCRIPTION, ruby_box: false }
+              rescue Compatibility::Unsupported => error
+                arpaka = { status: "unverified", parsed: true,
+                  elapsed: Process.clock_gettime(Process::CLOCK_MONOTONIC) - started,
+                  side: error.side, reason: error.detail }
+              rescue SyntaxError, StandardError => error
+                arpaka = { status: "parse_failure", parsed: false,
+                  elapsed: Process.clock_gettime(Process::CLOCK_MONOTONIC) - started,
+                  reason: "#{error.class}: #{error.message}" }
+              end
+              [file, arpaka]
+            end
+          rescue Exception => error
+            batch_results = job_files.to_h do |file|
+              [file, { status: "error", parsed: false, elapsed: 0.0,
+                reason: "Ractor worker: #{error.class}: #{error.message} (#{error.backtrace&.first(3)&.join(" | ")})" }]
+            end
+          end
+          result_port.send([job_index, batch_results])
         end
       end
       results = Array.new(batches.length)
       completed = 0
-      batches.length.times do
-        index, batch_results = port.receive
-        results[index] = batch_results
-        completed += batch_results.length
-        report_progress(name, completed, files.length)
+      watchdog = Thread.new do
+        sleep(@timeout * files.length + 5)
+        port.send([:timeout, []])
       end
-      workers.each { |worker| worker.close rescue nil }
+      begin
+        batches.length.times do
+          index, batch_results = port.receive
+          raise ConfigurationError, "Ractor batch exceeded timeout" if index == :timeout
+        results[index] = batch_results.map do |file, arpaka|
+          runner = self
+          runner.__send__(:compare_direct, name, root, file, arpaka)
+        end
+          completed += batch_results.length
+          report_progress(name, completed, files.length)
+        end
+      ensure
+        watchdog.kill
+        workers.each { |worker| worker.close rescue nil }
+      end
       results.flatten
     end
 
@@ -215,6 +258,14 @@ module Compatibility
         end }
     end
 
+    def compare_direct(name, root, file, arpaka)
+      rel = File.file?(root) ? File.basename(file) : file.delete_prefix(File.expand_path(root) + File::SEPARATOR)
+      input_hash = Digest::SHA256.hexdigest(File.binread(file))
+      reference = @reference_cache[[name, rel, input_hash]] ||
+        { status: "error", elapsed: 0.0, reason: "reference cache miss" }
+      compare(name, root, file, nil, worker_results: [reference, arpaka])
+    end
+
     def load_reference_cache
       return {} unless @reference_cache_path && File.file?(@reference_cache_path)
 
@@ -233,6 +284,7 @@ module Compatibility
       out = Tempfile.new("compatibility-batch-out")
       err = Tempfile.new("compatibility-batch-err")
       env = { "RUBY_BOX" => nil, "RUBYOPT" => nil }
+      env["ARPAKA_DISABLE_GC"] = "1" if @disable_gc
       command = [@ruby, "--disable-gems", File.expand_path("compatibility/worker.rb", __dir__), mode, frontend, manifest, "--manifest"]
       pid = Process.spawn(env, *command, out: out, err: err)
       deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + (@timeout * files.length)
@@ -438,6 +490,7 @@ module Compatibility
           [name, { "path" => path, "git_commit" => git("rev-parse", "HEAD", directory: directory) }]
         end,
         "timeout_seconds" => @timeout, "timeout_scope" => "worker startup, parsing and normalization",
+        "disable_gc" => @disable_gc,
         "corpus_manifest_sha256" => manifests, "file_count" => results.length }
     end
 
@@ -459,7 +512,7 @@ module Compatibility
   class CLI
     def self.run(argv)
       corpora = []
-      options = { ruby_source: File.expand_path("../vendor/ruby", __dir__), timeout: 10, threads: 1, parallel: :thread }
+      options = { ruby_source: File.expand_path("../vendor/ruby", __dir__), timeout: 10, threads: 1, parallel: :thread, disable_gc: false }
       parser = OptionParser.new do |opts|
         opts.banner = "Usage: RUBY_BOX=1 bundle exec ruby benchmark/compatibility.rb --corpus NAME=PATH [options]"
         opts.on("--corpus NAME=PATH", "Corpus directory or Ruby file; repeatable") do |value|
@@ -471,6 +524,7 @@ module Compatibility
         opts.on("--reference-cache PATH", "Read/write RubyVM normalized AST JSONL cache") { |value| options[:reference_cache] = value }
         opts.on("--threads N", Integer, "Number of concurrent comparisons (default: 1)") { |value| options[:threads] = value }
         opts.on("--parallel MODE", %w[thread ractor], "Parallel mode (default: thread)") { |value| options[:parallel] = value.to_sym }
+        opts.on("--disable-gc", "Disable GC in Ractor workers (default: enabled)") { options[:disable_gc] = true }
         opts.on("--ruby-source PATH", "Ruby source tree (default: vendor/ruby)") { |value| options[:ruby_source] = value }
         opts.on("--timeout SECONDS", Float, "Timeout per parser and file (default: 10)") { |value| options[:timeout] = value }
         opts.on("-h", "--help", "Show help") { puts opts; return 0 }
@@ -481,6 +535,7 @@ module Compatibility
         timeout: options[:timeout], reference_cache: options[:reference_cache],
         threads: options[:threads],
         parallel: options[:parallel],
+        disable_gc: options[:disable_gc],
         progress: ->(message) { warn message }).run
       Runner.emit(results, metadata, report_path: options[:report])
     rescue ConfigurationError, OptionParser::ParseError => error

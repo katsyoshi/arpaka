@@ -7,6 +7,11 @@ on:
 
   pull_request:
 
+  schedule:
+    - cron: "17 3 * * 1"
+
+  workflow_dispatch:
+
 permissions:
   contents: read
 
@@ -35,3 +40,81 @@ jobs:
         env:
           RUBY_BOX: '1'
         run: bundle exec rake
+
+  ractor-compatibility:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    name: Ractor compatibility (Ruby ${{ matrix.ruby }})
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby:
+          - '4.0'
+          - 'head'
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          rubygems: latest
+          bundler: latest
+          bundler-cache: true
+      - name: Build RubyVM reference cache
+        env:
+          RUBY_BOX: ''
+        run: |
+          ruby -rjson -rdigest -Ibenchmark -e '
+            require "compatibility/normalizer"
+            normalizer = Compatibility::Normalizer.new
+            Dir["benchmark/fixtures/**/*.rb"].sort.each do |file|
+              source = File.binread(file).force_encoding(Encoding::UTF_8)
+              reason = nil
+              begin
+                tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+                unless tree.type == :SCOPE && tree.children.length == 3 && tree.children[1].nil?
+                  raise Compatibility::Unsupported.new(:rubyvm, "unsupported root scope shape")
+                end
+                value = normalizer.rubyvm(tree.children.fetch(2))
+                canonical = value.is_a?(Array) && value.first == :sequence ? value : [:sequence, value.nil? ? [] : [value]]
+                status = "ok"
+              rescue Compatibility::Unsupported => error
+                canonical = nil
+                status = "unverified"
+                reason = error.detail
+              rescue SyntaxError, StandardError => error
+                canonical = nil
+                status = "parse_failure"
+                reason = "#{error.class}: #{error.message}"
+              end
+              record = { "type" => "reference", "corpus" => "fixtures",
+                "path" => File.basename(file), "sha256" => Digest::SHA256.hexdigest(source),
+                "status" => status, "elapsed_seconds" => 0.0, "tree" => canonical }
+              record["reason"] = reason if reason
+              puts JSON.generate(record, max_nesting: false)
+            end
+          ' > ractor-reference-cache.jsonl
+      - name: Run Ractor compatibility check
+        env:
+          RUBY_BOX: '1'
+        run: |
+          bundle exec ruby benchmark/compatibility.rb \
+            --ruby-source vendor/ruby \
+            --corpus fixtures=benchmark/fixtures \
+            --reference-cache ractor-reference-cache.jsonl \
+            --threads 2 \
+            --parallel ractor \
+            --report ractor-report.jsonl
+      - name: Upload Ractor report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: ractor-report-ruby-${{ matrix.ruby }}
+          path: |
+            ractor-report.jsonl
+            ractor-reference-cache.jsonl
+          if-no-files-found: ignore

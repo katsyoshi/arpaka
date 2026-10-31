@@ -3,6 +3,8 @@
 require "json"
 require_relative "normalizer"
 
+GC.disable if ENV["ARPAKA_DISABLE_GC"] == "1"
+
 mode, frontend_path, input_path, filename = ARGV
 abort "usage: worker.rb MODE FRONTEND INPUT [FILENAME]" unless %w[arpaka rubyvm].include?(mode) && input_path
 inputs = if filename == "--manifest"
