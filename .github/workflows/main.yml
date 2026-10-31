@@ -57,6 +57,42 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+      - name: Checkout Rails
+        uses: actions/checkout@v6
+        with:
+          repository: rails/rails
+          path: external/rails
+          fetch-depth: 1
+      - name: Checkout TRICK 2013
+        uses: actions/checkout@v6
+        with:
+          repository: tric/trick2013
+          path: external/trick2013
+          fetch-depth: 1
+      - name: Checkout TRICK 2015
+        uses: actions/checkout@v6
+        with:
+          repository: tric/trick2015
+          path: external/trick2015
+          fetch-depth: 1
+      - name: Checkout TRICK 2018
+        uses: actions/checkout@v6
+        with:
+          repository: tric/trick2018
+          path: external/trick2018
+          fetch-depth: 1
+      - name: Checkout TRICK 2022
+        uses: actions/checkout@v6
+        with:
+          repository: tric/trick2022
+          path: external/trick2022
+          fetch-depth: 1
+      - name: Checkout TRICK 2025
+        uses: actions/checkout@v6
+        with:
+          repository: tric/trick2025
+          path: external/trick2025
+          fetch-depth: 1
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -71,7 +107,16 @@ jobs:
           ruby -rjson -rdigest -Ibenchmark -e '
             require "compatibility/normalizer"
             normalizer = Compatibility::Normalizer.new
-            Dir["benchmark/fixtures/**/*.rb"].sort.each do |file|
+            corpora = {
+              "rails" => "external/rails",
+              "trick2013" => "external/trick2013",
+              "trick2015" => "external/trick2015",
+              "trick2018" => "external/trick2018",
+              "trick2022" => "external/trick2022",
+              "trick2025" => "external/trick2025"
+            }
+            corpora.each do |name, root|
+              Dir[File.join(root, "**", "*.rb")].sort.each do |file|
               source = File.binread(file).force_encoding(Encoding::UTF_8)
               reason = nil
               begin
@@ -91,11 +136,12 @@ jobs:
                 status = "parse_failure"
                 reason = "#{error.class}: #{error.message}"
               end
-              record = { "type" => "reference", "corpus" => "fixtures",
-                "path" => File.basename(file), "sha256" => Digest::SHA256.hexdigest(source),
+              record = { "type" => "reference", "corpus" => name,
+                "path" => file.delete_prefix(File.expand_path(root) + File::SEPARATOR), "sha256" => Digest::SHA256.hexdigest(source),
                 "status" => status, "elapsed_seconds" => 0.0, "tree" => canonical }
               record["reason"] = reason if reason
               puts JSON.generate(record, max_nesting: false)
+              end
             end
           ' > ractor-reference-cache.jsonl
       - name: Generate frontend
@@ -103,24 +149,46 @@ jobs:
           RUBY_BOX: '1'
           OUTPUT: ractor-frontend.rb
         run: bundle exec rake ruby:generate
+      - name: Run Thread compatibility check
+        env:
+          RUBY_BOX: ''
+        run: |
+          bundle exec ruby benchmark/compatibility.rb \
+            --ruby-source vendor/ruby \
+            --corpus rails=external/rails \
+            --corpus trick2013=external/trick2013 \
+            --corpus trick2015=external/trick2015 \
+            --corpus trick2018=external/trick2018 \
+            --corpus trick2022=external/trick2022 \
+            --corpus trick2025=external/trick2025 \
+            --frontend ractor-frontend.rb \
+            --reference-cache ractor-reference-cache.jsonl \
+            --threads 32 \
+            --parallel thread \
+            --report thread-report.jsonl
       - name: Run Ractor compatibility check
         env:
           RUBY_BOX: ''
         run: |
           bundle exec ruby benchmark/compatibility.rb \
             --ruby-source vendor/ruby \
-            --corpus fixtures=benchmark/fixtures \
+            --corpus rails=external/rails \
+            --corpus trick2013=external/trick2013 \
+            --corpus trick2015=external/trick2015 \
+            --corpus trick2018=external/trick2018 \
+            --corpus trick2022=external/trick2022 \
+            --corpus trick2025=external/trick2025 \
             --frontend ractor-frontend.rb \
             --reference-cache ractor-reference-cache.jsonl \
-            --threads 2 \
+            --threads 32 \
             --parallel ractor \
             --report ractor-report.jsonl
-      - name: Upload Ractor report
+      - name: Upload compatibility reports
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: ractor-report-ruby-${{ matrix.ruby }}
+          name: compatibility-reports-ruby-${{ matrix.ruby }}
           path: |
+            thread-report.jsonl
             ractor-report.jsonl
-            ractor-reference-cache.jsonl
           if-no-files-found: ignore
