@@ -639,7 +639,7 @@ class Builder
     end
     value = defined_group_value(value)
     operand = defined_logical_operand(value)
-    return operand if operand
+    return defined_logical_groups(operand) if operand
     AST::Call.new(:defined, [value].freeze)
   end
 
@@ -656,13 +656,28 @@ class Builder
     left = value.left
     if left.is_a?(AST::Sequence)
       operand = defined_group_value(left)
-      return AST::Binary.new(value.operator, AST::Call.new(:defined, [operand].freeze), value.right)
+      return defined_logical_chain(value.operator, AST::Call.new(:defined, [operand].freeze), value.right)
     end
 
     nested = defined_logical_operand(left)
     return unless nested
 
-    AST::Binary.new(value.operator, nested, value.right)
+    defined_logical_chain(value.operator, nested, value.right)
+  end
+
+  def defined_logical_chain(operator, left, right)
+    if right.is_a?(AST::Binary) && right.operator == operator && [:"&&", :"||"].include?(operator)
+      left = defined_logical_chain(operator, left, right.left)
+      return AST::Binary.new(operator, left, right.right)
+    end
+    AST::Binary.new(operator, left, right)
+  end
+
+  def defined_logical_groups(value)
+    value = defined_group_value(value)
+    return value unless value.is_a?(AST::Binary)
+
+    AST::Binary.new(value.operator, defined_logical_groups(value.left), defined_logical_groups(value.right))
   end
 
   def identifier(value)

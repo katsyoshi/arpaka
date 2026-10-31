@@ -9,6 +9,20 @@ require_relative "generated_frontend_helper"
 require_relative "../benchmark/compatibility"
 
 class BenchmarkCompatibilityTest < Test::Unit::TestCase
+  def test_repeated_defined_queries_preserve_logical_associativity
+    normalizer = Compatibility::Normalizer.new
+    [
+      "defined?(@a) && @a && defined?(@b) && @b && check",
+      "defined?(@a) || @a || defined?(@b) || @b || check",
+      "defined?(@a) && (@a && defined?(@b))",
+      "defined?(@a && @b) && check"
+    ].each do |source|
+      expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
+      actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+      assert_equal expected, actual, source
+    end
+  end
+
   def test_line_numbers_inside_interpolation
     normalizer = Compatibility::Normalizer.new
     ['"#{__LINE__}"', '/#{__LINE__}/', '%W[#{__LINE__}]', '"#{"#{__LINE__}"}"', "\"text\n\#{\n__LINE__}\""].each do |expression|
