@@ -32,11 +32,11 @@ module Arpaka
           ["mlhs_basic", ["mlhs_head", "tSTAR", "mlhs_node", "','", "mlhs_items_mlhs_item"]] =>
             ["ported", "@builder.multiple_assign_post($1, $3, $5)"],
           ["mlhs_basic", ["mlhs_head", "tSTAR", "','", "mlhs_items_mlhs_item"]] =>
-            ["ported", "@builder.multiple_assign_post($1, nil, $4)"],
+            ["ported", "@builder.multiple_assign_post($1, :NODE_SPECIAL_NO_NAME_REST, $4)"],
           ["mlhs_basic", ["tSTAR", "mlhs_node", "','", "mlhs_items_mlhs_item"]] =>
             ["ported", "@builder.multiple_assign_post([], $2, $4)"],
           ["mlhs_basic", ["tSTAR", "','", "mlhs_items_mlhs_item"]] =>
-            ["ported", "@builder.multiple_assign_post([], nil, $3)"],
+            ["ported", "@builder.multiple_assign_post([], :NODE_SPECIAL_NO_NAME_REST, $3)"],
           ["f_opt_primary_value", ["f_arg_asgn", "f_eq", "primary_value"]] =>
             ["ported", "@builder.parameter(:optional, $1, $3)"],
           ["args-list_primary_value_opt_args_tail_block_args_tail_none",

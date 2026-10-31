@@ -9,6 +9,15 @@ require_relative "generated_frontend_helper"
 require_relative "../benchmark/compatibility"
 
 class BenchmarkCompatibilityTest < Test::Unit::TestCase
+  def test_multiple_assignment_preserves_anonymous_rest
+    normalizer = Compatibility::Normalizer.new
+    ["first, * = values", "first, *, last = values", "* = values", "*, last = values"].each do |source|
+      expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
+      actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+      assert_equal expected, actual, source
+    end
+  end
+
   def test_legacy_octal_integer_literals
     normalizer = Compatibility::Normalizer.new
     ["0132", "0_132", "-077", "[0, 00, 0123, 123, 0.125, 0e2]"].each do |source|
