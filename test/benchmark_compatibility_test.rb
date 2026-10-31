@@ -159,6 +159,18 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_preserves_operator_assignment_variable_kinds
+    normalizer = Compatibility::Normalizer.new
+    ["@value += 1", "@@value += 1", "$value += 1", "Value += 1",
+      "@value ||= 1", "@@value ||= 1", "$value ||= 1", "Value ||= 1"].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+      rubyvm = normalizer.rubyvm(tree.children.fetch(2))
+      arpaka = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+
+      assert_equal rubyvm, arpaka, source
+    end
+  end
+
   def test_does_not_flatten_nested_qualified_path_to_constant
     runner = compatibility_runner
     base = [:constant, [:symbol, [:bytes, "416374696f6e4361626c65", "US-ASCII"]]]

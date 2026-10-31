@@ -261,8 +261,8 @@ module Compatibility
             [:op_assign, read, symbol(values[:operator]),
               variable_write(target.kind, target.name, value, :arpaka)]
           else
-            [:variable_write, symbol(target.kind), name,
-              [:call, read, false, symbol(values[:operator]), [value]]]
+            variable_write(target.kind, target.name,
+              [:call, read, false, symbol(values[:operator]), [value]], :arpaka)
           end
         else
           [:op_assign, arpaka_target(target), symbol(values[:operator]), arpaka(values[:value])]
