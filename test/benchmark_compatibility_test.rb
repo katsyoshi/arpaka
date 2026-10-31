@@ -9,6 +9,15 @@ require_relative "generated_frontend_helper"
 require_relative "../benchmark/compatibility"
 
 class BenchmarkCompatibilityTest < Test::Unit::TestCase
+  def test_program_name_is_a_global_variable_not_a_regexp_capture
+    normalizer = Compatibility::Normalizer.new
+    ["$0", "$0 = 'program'", "[$0, $1, $10]"].each do |source|
+      expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
+      actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+      assert_equal expected, actual, source
+    end
+  end
+
   def test_do_block_binds_to_command_outside_parenthesized_argument
     normalizer = Compatibility::Normalizer.new
     [
