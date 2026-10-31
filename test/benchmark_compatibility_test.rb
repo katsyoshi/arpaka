@@ -68,6 +68,20 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_preserves_super_call_forms
+    normalizer = Compatibility::Normalizer.new
+    [
+      "def f; super; end",
+      "def f; super(); end",
+      "def f; super(1, *args, **keywords, &block); end",
+      "def f; super { |value| value }; end"
+    ].each do |source|
+      rubyvm = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false).children.fetch(2))
+      arpaka = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1)
+      assert_equal [rubyvm], arpaka, source
+    end
+  end
+
   def test_normalizes_legacy_regexp_literal_shape
     node = Class.new do
       define_singleton_method(:name) { "AST::RegexpLiteral" }
