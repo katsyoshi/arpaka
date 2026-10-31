@@ -82,6 +82,15 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_does_not_normalize_a_call_to_a_symbol_literal
+    runner = compatibility_runner
+    call = [:call, nil, false, [:symbol, [:bytes, "6d6574686f64", "US-ASCII"]], []]
+    symbol = [:symbol, [:bytes, "6d6574686f64", "US-ASCII"]]
+
+    assert_equal [:mismatch, nil], runner.__send__(:compare_trees, call, symbol)
+    assert_equal [:mismatch, nil], runner.__send__(:compare_trees, symbol, call)
+  end
+
   def test_normalizes_legacy_regexp_literal_shape
     node = Class.new do
       define_singleton_method(:name) { "AST::RegexpLiteral" }
