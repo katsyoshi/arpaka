@@ -442,8 +442,12 @@ module Compatibility
     end
 
     def equivalent_constant_path?(left, right)
-      return equivalent_constant_name?(left[1], right[2]) if constant_node?(left) && direct_constant_path_node?(right)
-      return equivalent_constant_name?(right[1], left[2]) if direct_constant_path_node?(left) && constant_node?(right)
+      if constant_node?(left) && (name = direct_constant_path_name(right))
+        return equivalent_constant_name?(left[1], name)
+      end
+      if constant_node?(right) && (name = direct_constant_path_name(left))
+        return equivalent_constant_name?(right[1], name)
+      end
 
       false
     end
@@ -469,8 +473,11 @@ module Compatibility
       value.is_a?(Array) && value.length == 3 && tag?(value.first, :constant_path)
     end
 
-    def direct_constant_path_node?(value)
-      constant_path_node?(value) && constant_node?(value[1])
+    def direct_constant_path_name(value)
+      return unless constant_path_node?(value)
+      return unless constant_node?(value[1])
+
+      value[2]
     end
 
     def compare_argument_lists(left, right, path)
