@@ -7,6 +7,11 @@ on:
 
   pull_request:
 
+  schedule:
+    - cron: "17 3 * * 1"
+
+  workflow_dispatch:
+
 permissions:
   contents: read
 
@@ -35,3 +40,153 @@ jobs:
         env:
           RUBY_BOX: '1'
         run: bundle exec rake
+
+  ractor-compatibility:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    name: Ractor compatibility (Ruby ${{ matrix.ruby }})
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby:
+          - '4.0'
+          - 'head'
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Checkout Rails
+        uses: actions/checkout@v6
+        with:
+          repository: rails/rails
+          path: external/rails
+          fetch-depth: 1
+      - name: Checkout TRICK 2013
+        uses: actions/checkout@v6
+        with:
+          repository: tric/trick2013
+          path: external/trick2013
+          fetch-depth: 1
+      - name: Checkout TRICK 2015
+        uses: actions/checkout@v6
+        with:
+          repository: tric/trick2015
+          path: external/trick2015
+          fetch-depth: 1
+      - name: Checkout TRICK 2018
+        uses: actions/checkout@v6
+        with:
+          repository: tric/trick2018
+          path: external/trick2018
+          fetch-depth: 1
+      - name: Checkout TRICK 2022
+        uses: actions/checkout@v6
+        with:
+          repository: tric/trick2022
+          path: external/trick2022
+          fetch-depth: 1
+      - name: Checkout TRICK 2025
+        uses: actions/checkout@v6
+        with:
+          repository: tric/trick2025
+          path: external/trick2025
+          fetch-depth: 1
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          rubygems: latest
+          bundler: latest
+          bundler-cache: true
+      - name: Build RubyVM reference cache
+        env:
+          RUBY_BOX: ''
+        run: |
+          ruby -rjson -rdigest -Ibenchmark -e '
+            require "compatibility/normalizer"
+            normalizer = Compatibility::Normalizer.new
+            corpora = {
+              "rails" => "external/rails",
+              "trick2013" => "external/trick2013",
+              "trick2015" => "external/trick2015",
+              "trick2018" => "external/trick2018",
+              "trick2022" => "external/trick2022",
+              "trick2025" => "external/trick2025"
+            }
+            corpora.each do |name, root|
+              Dir[File.join(root, "**", "*.rb")].sort.each do |file|
+              source = File.binread(file).force_encoding(Encoding::UTF_8)
+              reason = nil
+              begin
+                tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+                unless tree.type == :SCOPE && tree.children.length == 3 && tree.children[1].nil?
+                  raise Compatibility::Unsupported.new(:rubyvm, "unsupported root scope shape")
+                end
+                value = normalizer.rubyvm(tree.children.fetch(2))
+                canonical = value.is_a?(Array) && value.first == :sequence ? value : [:sequence, value.nil? ? [] : [value]]
+                status = "ok"
+              rescue Compatibility::Unsupported => error
+                canonical = nil
+                status = "unverified"
+                reason = error.detail
+              rescue SyntaxError, StandardError => error
+                canonical = nil
+                status = "parse_failure"
+                reason = "#{error.class}: #{error.message}"
+              end
+              record = { "type" => "reference", "corpus" => name,
+                "path" => file.delete_prefix(File.expand_path(root) + File::SEPARATOR), "sha256" => Digest::SHA256.hexdigest(source),
+                "status" => status, "elapsed_seconds" => 0.0, "tree" => canonical }
+              record["reason"] = reason if reason
+              puts JSON.generate(record, max_nesting: false)
+              end
+            end
+          ' > ractor-reference-cache.jsonl
+      - name: Generate frontend
+        env:
+          RUBY_BOX: '1'
+          OUTPUT: ractor-frontend.rb
+        run: bundle exec rake ruby:generate
+      - name: Run Thread compatibility check
+        env:
+          RUBY_BOX: ''
+        run: |
+          bundle exec ruby benchmark/compatibility.rb \
+            --corpus rails=external/rails \
+            --corpus trick2013=external/trick2013 \
+            --corpus trick2015=external/trick2015 \
+            --corpus trick2018=external/trick2018 \
+            --corpus trick2022=external/trick2022 \
+            --corpus trick2025=external/trick2025 \
+            --frontend ractor-frontend.rb \
+            --reference-cache ractor-reference-cache.jsonl \
+            --threads 32 \
+            --parallel thread \
+            --report thread-report.jsonl
+      - name: Run Ractor compatibility check
+        env:
+          RUBY_BOX: ''
+        run: |
+          bundle exec ruby benchmark/compatibility.rb \
+            --corpus rails=external/rails \
+            --corpus trick2013=external/trick2013 \
+            --corpus trick2015=external/trick2015 \
+            --corpus trick2018=external/trick2018 \
+            --corpus trick2022=external/trick2022 \
+            --corpus trick2025=external/trick2025 \
+            --frontend ractor-frontend.rb \
+            --reference-cache ractor-reference-cache.jsonl \
+            --threads 32 \
+            --parallel ractor \
+            --report ractor-report.jsonl
+      - name: Upload compatibility reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: compatibility-reports-ruby-${{ matrix.ruby }}
+          path: |
+            thread-report.jsonl
+            ractor-report.jsonl
+          if-no-files-found: ignore

@@ -56,6 +56,14 @@ generation under `Arpaka`. Add relevant Test::Unit
 coverage for behavior changes and maintain RBS declarations when changing the
 public API. No formatter or linter is configured.
 
+## Sub-agent coordination
+
+When delegating work to a sub-agent, poll its status with `wait_agent` using a
+three-minute interval (`timeout_ms: 180000`). Continue polling until the
+sub-agent reports completion, error, interruption or shutdown. Do not end the
+turn after a polling timeout; collect the terminal result and process it before
+responding to the user.
+
 ## Packaging and release
 
 Keep `Gemfile.lock` untracked; it is ignored intentionally.

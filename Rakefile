@@ -6,7 +6,10 @@ require "rake/testtask"
 Rake::TestTask.new(:test) do |t|
   t.libs << "test"
   t.libs << "lib"
-  t.test_files = FileList["test/**/*_test.rb"]
+  # The compatibility check exercises Ruby::Box and Ractor in a dedicated
+  # process. Keep it out of the regular suite so Box state cannot leak into
+  # the other tests.
+  t.test_files = FileList["test/**/*_test.rb"].exclude("test/benchmark_compatibility_test.rb")
 end
 
 namespace :ruby do
