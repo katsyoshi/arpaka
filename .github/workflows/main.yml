@@ -98,13 +98,19 @@ jobs:
               puts JSON.generate(record, max_nesting: false)
             end
           ' > ractor-reference-cache.jsonl
-      - name: Run Ractor compatibility check
+      - name: Generate frontend
         env:
           RUBY_BOX: '1'
+          OUTPUT: ractor-frontend.rb
+        run: bundle exec rake ruby:generate
+      - name: Run Ractor compatibility check
+        env:
+          RUBY_BOX: ''
         run: |
           bundle exec ruby benchmark/compatibility.rb \
             --ruby-source vendor/ruby \
             --corpus fixtures=benchmark/fixtures \
+            --frontend ractor-frontend.rb \
             --reference-cache ractor-reference-cache.jsonl \
             --threads 2 \
             --parallel ractor \

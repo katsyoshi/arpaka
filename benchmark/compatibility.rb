@@ -20,7 +20,7 @@ module Compatibility
     STATUSES = %w[match accepted_mismatch mismatch unverified parse_failure timeout error].freeze
     VERSION = 2
 
-    def initialize(ruby_source:, corpora:, timeout: 10, ruby: RbConfig.ruby, progress: nil, reference_cache: nil, threads: 1, parallel: :thread, disable_gc: false)
+    def initialize(ruby_source:, corpora:, timeout: 10, ruby: RbConfig.ruby, progress: nil, reference_cache: nil, threads: 1, parallel: :thread, disable_gc: false, frontend: nil)
       @ruby_source = File.expand_path(ruby_source)
       @corpora = corpora.map { |name, path| [name, File.expand_path(path)] }
       @timeout = timeout
@@ -31,6 +31,7 @@ module Compatibility
       @threads = Integer(threads)
       @parallel = parallel.to_sym
       @disable_gc = disable_gc
+      @frontend = frontend && File.expand_path(frontend)
     end
 
     def run
@@ -38,19 +39,29 @@ module Compatibility
       @started_at = Time.now.utc.iso8601
       @measurement_started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       @gc_before = GC.stat
-      generated = Arpaka.generate(ruby_source: @ruby_source, class_name: "CompatibilityFrontend")
-      Dir.mktmpdir("arpaka-compatibility-") do |directory|
-        frontend = File.join(directory, "frontend.rb")
-        File.write(frontend, generated)
-        @frontend_class = load(frontend).then { Object.const_get(:CompatibilityFrontend) }
-        results = @corpora.flat_map do |name, path|
-          files = corpus_files(name, path)
-          @progress&.call("#{name}: comparing #{files.length} Ruby files")
-          results = compare_files(name, path, files, frontend)
-          results
+      if @frontend
+        @frontend_class = load(@frontend).then { Object.const_get(:CompatibilityFrontend) }
+        results = run_comparison(@frontend)
+        [results, metadata(@frontend, results)]
+      else
+        generated = Arpaka.generate(ruby_source: @ruby_source, class_name: "CompatibilityFrontend")
+        Dir.mktmpdir("arpaka-compatibility-") do |directory|
+          frontend = File.join(directory, "frontend.rb")
+          File.write(frontend, generated)
+          @frontend_class = load(frontend).then { Object.const_get(:CompatibilityFrontend) }
+          results = run_comparison(frontend)
+          [results, metadata(frontend, results)]
         end
-        [results, metadata(frontend, results)]
       end
+    end
+
+    def run_comparison(frontend)
+      results = @corpora.flat_map do |name, path|
+        files = corpus_files(name, path)
+        @progress&.call("#{name}: comparing #{files.length} Ruby files")
+        compare_files(name, path, files, frontend)
+      end
+      results
     end
 
     def self.emit(results, metadata, report_path: nil, output: $stdout)
@@ -95,6 +106,9 @@ module Compatibility
 
     def validate!
       raise ConfigurationError, "Ruby source does not exist: #{@ruby_source}" unless File.directory?(@ruby_source)
+      if @frontend
+        raise ConfigurationError, "frontend does not exist: #{@frontend}" unless File.file?(@frontend)
+      end
       raise ConfigurationError, "at least one --corpus NAME=PATH is required" if @corpora.empty?
       names = @corpora.map(&:first)
       raise ConfigurationError, "corpus names must be unique" unless names.uniq.length == names.length
@@ -483,6 +497,7 @@ module Compatibility
         "gc" => gc_delta,
         "ruby_source_files" => inputs, "ruby_source_sha256" => Digest::SHA256.hexdigest(JSON.generate(inputs)),
         "generated_sha256" => Digest::SHA256.file(frontend).hexdigest,
+        "frontend" => frontend,
         "benchmark_files_sha256" => implementation,
         "git_commit" => git("rev-parse", "HEAD"), "git_dirty" => !git("status", "--porcelain").to_s.empty?,
         "corpus_sources" => @corpora.to_h do |name, path|
@@ -512,7 +527,7 @@ module Compatibility
   class CLI
     def self.run(argv)
       corpora = []
-      options = { ruby_source: File.expand_path("../vendor/ruby", __dir__), timeout: 10, threads: 1, parallel: :thread, disable_gc: false }
+      options = { ruby_source: File.expand_path("../vendor/ruby", __dir__), timeout: 10, threads: 1, parallel: :thread, disable_gc: false, frontend: nil }
       parser = OptionParser.new do |opts|
         opts.banner = "Usage: RUBY_BOX=1 bundle exec ruby benchmark/compatibility.rb --corpus NAME=PATH [options]"
         opts.on("--corpus NAME=PATH", "Corpus directory or Ruby file; repeatable") do |value|
@@ -522,6 +537,7 @@ module Compatibility
         end
         opts.on("--report PATH", "Write per-file JSONL and summary to PATH (default: stdout)") { |value| options[:report] = value }
         opts.on("--reference-cache PATH", "Read/write RubyVM normalized AST JSONL cache") { |value| options[:reference_cache] = value }
+        opts.on("--frontend PATH", "Use a pre-generated frontend instead of generating one") { |value| options[:frontend] = value }
         opts.on("--threads N", Integer, "Number of concurrent comparisons (default: 1)") { |value| options[:threads] = value }
         opts.on("--parallel MODE", %w[thread ractor], "Parallel mode (default: thread)") { |value| options[:parallel] = value.to_sym }
         opts.on("--disable-gc", "Disable GC in Ractor workers (default: enabled)") { options[:disable_gc] = true }
@@ -536,6 +552,7 @@ module Compatibility
         threads: options[:threads],
         parallel: options[:parallel],
         disable_gc: options[:disable_gc],
+        frontend: options[:frontend],
         progress: ->(message) { warn message }).run
       Runner.emit(results, metadata, report_path: options[:report])
     rescue ConfigurationError, OptionParser::ParseError => error
