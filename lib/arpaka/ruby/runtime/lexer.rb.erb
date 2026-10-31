@@ -800,7 +800,8 @@ class Lexer
     text = @source.byteslice(start, @index - start).delete("_")
     return [:tRATIONAL, Rational(text.delete_suffix("r"))] if suffix == 114
     return [:tIMAGINARY, Complex(0, text.delete_suffix("i").to_f)] if suffix == 105
-    [float ? :tFLOAT : :tINTEGER, float ? text.to_f : text.to_i]
+    base = 8 if !float && text.start_with?("0")
+    [float ? :tFLOAT : :tINTEGER, float ? text.to_f : Integer(text, base)]
   rescue ArgumentError, ZeroDivisionError
     fail!("invalid numeric literal", start)
   end
