@@ -802,6 +802,30 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::LocalRead.new(:value), method.body.last)
   end
 
+  test "lambda parameters do not leak into sibling blocks" do
+    method = GeneratedRubyFrontend.parse(<<~RUBY).statements.first
+      def register
+        ->(name) { name }
+        validate { name.dup }
+      end
+    RUBY
+
+    block_call = method.body.last
+    assert_equal(AST::BareCall.new(:name), block_call.body.first.receiver)
+  end
+
+  test "lambda parameters do not leak out of a block" do
+    program = GeneratedRubyFrontend.parse(<<~RUBY)
+      register do
+        ->(name) { name }
+      end
+      validate { name }
+    RUBY
+
+    block_call = program.statements.last
+    assert_equal(AST::BareCall.new(:name), block_call.body.first)
+  end
+
   test "method bodies may start with an array literal after arguments" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("def multi(a, b, c) [a, b, c] end") }
   end

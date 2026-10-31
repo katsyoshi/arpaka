@@ -1,6 +1,8 @@
 class Builder
   BlockBody = Data.define(:parameters, :body, :outer_local_names)
+  BlockScope = Data.define(:outer_locals, :lambda_local_counts)
   private_constant :BlockBody
+  private_constant :BlockScope
 
   RULES = <%= rules.inspect %>.to_h { |rule| [rule.fetch("id"), rule.freeze] }.freeze
   private_constant :RULES
@@ -9,7 +11,9 @@ class Builder
     @locals = {}
     @block_local_scopes = []
     @method_local_scopes = []
+    @method_lambda_local_counts = []
     @lambda_parameter_states = []
+    @lambda_local_counts = Hash.new(0)
     @declaring_method_parameters = false
   end
 
@@ -145,9 +149,15 @@ class Builder
   end
 
   def block_body(parameters, body)
-    outer_locals = @block_local_scopes.pop || @locals.dup
-    @locals = outer_locals
-    BlockBody.new(parameters, body_nodes(body), outer_locals.keys.freeze)
+    scope = @block_local_scopes.pop
+    if scope
+      @locals = scope.outer_locals
+      outer_local_names = scope.outer_locals.keys.freeze
+      @lambda_local_counts = scope.lambda_local_counts
+    else
+      outer_local_names = @locals.keys.freeze
+    end
+    BlockBody.new(parameters, body_nodes(body), outer_local_names)
   end
 
   def begin_block_parameters(value, locals = nil)
@@ -162,8 +172,13 @@ class Builder
         outer_locals.delete(name)
       end
     end
-    @block_local_scopes << outer_locals
+    @lambda_local_counts.each do |name, count|
+      current = outer_locals[name]
+      outer_locals.delete(name) if current && current <= count
+    end
+    @block_local_scopes << BlockScope.new(outer_locals, @lambda_local_counts)
     @locals = outer_locals.dup
+    @lambda_local_counts = @lambda_local_counts.dup
     parameter_names.each { |name| declare_local(name) }
     case value
     when nil
@@ -481,6 +496,7 @@ class Builder
   def lambda_node(arguments, body)
     parameter_names = lambda_parameter_names(arguments)
     inherited_names = (@locals.keys + parameter_names).uniq
+    parameter_names.each { |name| @lambda_local_counts[name] += 1 }
     previous_state = @lambda_parameter_states.pop
     node = AST::Lambda.new((arguments || []).freeze, resolve_local_reads(body_nodes(body), inherited_names))
     @declaring_method_parameters = previous_state unless previous_state.nil?
@@ -491,6 +507,8 @@ class Builder
     values = arguments.nil? ? [] : arguments.is_a?(Array) ? arguments : [arguments]
     values.flat_map do |value|
       case value
+      when Symbol
+        [value]
       when AST::Parameter
         value.name.is_a?(Symbol) ? [value.name] : []
       when Array
@@ -657,7 +675,9 @@ class Builder
 
   def begin_method_scope(value)
     @method_local_scopes << @locals
+    @method_lambda_local_counts << @lambda_local_counts
     @locals = {}
+    @lambda_local_counts = Hash.new(0)
     @declaring_method_parameters = true
     value
   end
@@ -677,7 +697,10 @@ class Builder
   end
 
   def end_method_scope
-    @locals = @method_local_scopes.pop if @method_local_scopes.any?
+    if @method_local_scopes.any?
+      @locals = @method_local_scopes.pop
+      @lambda_local_counts = @method_lambda_local_counts.pop
+    end
     @declaring_method_parameters = false
   end
 
