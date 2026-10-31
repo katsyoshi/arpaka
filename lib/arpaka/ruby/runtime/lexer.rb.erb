@@ -1216,7 +1216,7 @@ class Lexer
         in_class = false
         result << value.chr
         advance
-      elsif value == 35 && byte(1) == 123 && !in_class
+      elsif value == 35 && byte(1) == 123
         tokens << [:tSTRING_CONTENT, result.dup.force_encoding(@source_encoding)] unless result.empty?
         result = +""
         interpolated = true
@@ -1233,6 +1233,11 @@ class Lexer
         metadata = read_regexp_options
         result.force_encoding(@source_encoding)
         tokens << [:tSTRING_CONTENT, result] unless result.empty?
+        if metadata[:encoding] == "US-ASCII"
+          tokens.each do |token|
+            token[1].force_encoding(Encoding::BINARY) if token[0] == :tSTRING_CONTENT
+          end
+        end
         return [interpolated ? tokens : result, metadata]
       else
         result << value.chr
