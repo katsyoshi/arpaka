@@ -249,4 +249,47 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       end
     end
   end
+
+  def test_ractor_frontend_class_rewrite_matches_thread_frontend
+    ruby_source = File.expand_path("../vendor/ruby", __dir__)
+    source = <<~RUBY
+      class ActionCable::Loader
+        def initialize(path = "")
+          @path = path
+        end
+
+        def load
+          ActionCable::Server::Base.new(@path)
+        end
+      end
+    RUBY
+    Dir.mktmpdir("compatibility-test-") do |directory|
+      frontend = File.join(directory, "frontend.rb")
+      file = File.join(directory, "loader.rb")
+      reference = File.join(directory, "reference.jsonl")
+      corpus = File.join(directory, "corpus")
+      FileUtils.mkdir_p(corpus)
+      generated = File.read(File.expand_path("../lrama_ruby_parser.rb", __dir__))
+      File.write(frontend, generated.sub("class LramaRubyParser\n", "class CompatibilityFrontend\n"))
+      File.write(file, source)
+      FileUtils.cp(file, File.join(corpus, "loader.rb"))
+      normalized = Compatibility::Normalizer.new.rubyvm(
+        RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false).children.fetch(2))
+      normalized = [:sequence, normalized.nil? ? [] : [normalized]] unless normalized.is_a?(Array) && normalized.first == :sequence
+      File.write(reference, JSON.generate(
+        "type" => "reference", "corpus" => "fixture", "path" => "loader.rb",
+        "sha256" => Digest::SHA256.hexdigest(source), "status" => "ok", "tree" => normalized) + "\n")
+
+      results = %i[thread ractor].map do |parallel|
+        Compatibility::Runner.new(
+          ruby_source: ruby_source, corpora: [["fixture", corpus]], frontend: frontend,
+          reference_cache: reference, parallel: parallel, threads: 1).run.first
+      end
+
+      assert_equal results.fetch(0).map { |result| result.fetch("status") },
+        results.fetch(1).map { |result| result.fetch("status") }
+      assert_equal results.fetch(0).first.fetch("outcomes").fetch("arpaka").fetch("status"),
+        results.fetch(1).first.fetch("outcomes").fetch("arpaka").fetch("status")
+    end
+  end
 end

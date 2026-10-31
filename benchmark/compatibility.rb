@@ -166,9 +166,11 @@ module Compatibility
               # Constants are shared between Ractors. Give each loaded
               # frontend a private top-level name so singleton methods that
               # close over a constructor Proc stay owned by this Ractor.
-              job_class_name = "CompatibilityFrontend#{job_index}"
-              source = File.binread(job_frontend).sub(
-                "class CompatibilityFrontend\n", "class #{job_class_name}\n")
+              # Constant tables are shared between Ractors, so the name must
+              # also be unique across successive Runner invocations.
+              job_class_name = "CompatibilityFrontend#{Process.pid}#{Ractor.current.object_id}#{job_index}"
+              source = File.binread(job_frontend).gsub(
+                /\bCompatibilityFrontend\b/, job_class_name)
               eval(source, binding, job_frontend)
             ensure
               $VERBOSE = verbose
