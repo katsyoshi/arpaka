@@ -121,6 +121,17 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
   end
 
+  def test_preserves_singleton_method_required_arguments
+    normalizer = Compatibility::Normalizer.new
+    ["def self.===(other); other; end", "def self.f(a, b); [a, b]; end"].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+      rubyvm = normalizer.rubyvm(tree.children.fetch(2))
+      arpaka = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+
+      assert_equal rubyvm, arpaka, source
+    end
+  end
+
   def test_preserves_repeated_regexp_escape_backslashes
     normalizer = Compatibility::Normalizer.new
     source = "%r{\\\\/}"
