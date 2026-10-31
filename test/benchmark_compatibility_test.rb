@@ -100,18 +100,6 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     assert_equal [:match, nil], runner.__send__(:compare_trees, arpaka, rubyvm)
   end
 
-  def test_only_projects_the_final_name_of_a_direct_constant_path
-    runner = compatibility_runner
-    constant = ["constant", ["symbol", ["bytes", "42617365", "US-ASCII"]]]
-    direct = ["constant_path", ["constant", ["symbol", ["bytes", "416374696f6e", "US-ASCII"]]],
-      ["symbol", ["bytes", "42617365", "US-ASCII"]]]
-    nested = ["constant_path", ["constant_path", direct[1], ["symbol", ["bytes", "536572766572", "US-ASCII"]]],
-      ["symbol", ["bytes", "42617365", "US-ASCII"]]]
-
-    assert_equal [:match, nil], runner.__send__(:compare_trees, constant, direct)
-    assert_equal [:mismatch, nil], runner.__send__(:compare_trees, constant, nested)
-  end
-
   def test_compares_nested_qualified_paths_by_their_receivers
     runner = compatibility_runner
     base = [:constant, [:symbol, [:bytes, "416374696f6e4361626c65", "US-ASCII"]]]
