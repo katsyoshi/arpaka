@@ -54,6 +54,10 @@ class Builder
   end
 
   def binary(operator, left, right)
+    if [:"&&", :"||"].include?(operator) && right.is_a?(AST::Binary) &&
+        right.operator == operator && right.left.is_a?(AST::Call) && right.left.name == :defined
+      return AST::Binary.new(operator, AST::Binary.new(operator, left, right.left), right.right)
+    end
     AST::Binary.new(operator, left, right)
   end
 

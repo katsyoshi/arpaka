@@ -928,6 +928,18 @@ class ArpakaTest < Test::Unit::TestCase
       AST::Variable.new(:constant, :A), AST::Variable.new(:constant, :B))]), grouped)
   end
 
+  test "defined expression logical chains retain RubyVM left association" do
+    source = "ActionController::TestCase.executor_around_each_request && defined?(Rails.application) && Rails.application"
+    expected = AST::Binary.new(:"&&",
+      AST::Binary.new(:"&&",
+        AST::ReceiverCall.new(AST::ConstantPath.new(AST::Variable.new(:constant, :ActionController), :TestCase), :".", :executor_around_each_request, []),
+        AST::Call.new(:defined, [AST::ReceiverCall.new(AST::Variable.new(:constant, :Rails), :".", :application, [])]),
+      ),
+      AST::ReceiverCall.new(AST::Variable.new(:constant, :Rails), :".", :application, [])
+    )
+    assert_equal(expected, GeneratedRubyFrontend.parse(source).statements.first)
+  end
+
   test "bare names and parse state isolation" do
     expected = AST::Program.new([AST::BareCall.new(:a)])
     assert_equal(expected, parse([:tIDENTIFIER, "a"]))
