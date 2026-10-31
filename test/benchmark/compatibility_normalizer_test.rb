@@ -85,6 +85,12 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "numeric unary minus binds to a receiver call" do
+    ["-1.days", "-1.5.hours", "-(1.days)"].each do |source|
+      assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
+  end
+
   test "regexp delimiter escapes normalize to the RubyVM pattern" do
     ["/\\.\\/consumer/", "/\\//"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)

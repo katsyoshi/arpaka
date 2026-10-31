@@ -1672,7 +1672,8 @@ class Lexer
     elsif value == "+" && @previous == :tSYMBEG
       return [:tUPLUS, :+]
     elsif value == "-" && @context.begin_expression && !super_binary_operator?(start, 1)
-      return [:tUMINUS, @previous == :keyword_def || @context.alias_context ? value : nil]
+      token = numeric_literal_follows? ? :tUMINUS_NUM : :tUMINUS
+      return [token, @previous == :keyword_def || @context.alias_context ? value : nil]
     elsif value == "+" && @context.begin_expression && !super_binary_operator?(start, 1)
       return [:tUPLUS, @previous == :keyword_def || @context.alias_context ? value : nil]
     elsif value == "*" && @context.begin_expression && !super_binary_operator?(start, 1)
@@ -1699,6 +1700,11 @@ class Lexer
     before = start.positive? ? @source.getbyte(start - 1) : nil
     after = @source.getbyte(start + length)
     !whitespace_byte?(before) || whitespace_byte?(after)
+  end
+
+  def numeric_literal_follows?
+    value = byte
+    value && value.between?(48, 57)
   end
 
   def begin_expression?
