@@ -538,6 +538,10 @@ class Lexer
       @context.command_argument_candidate = false
     end
     case token
+    when "("
+      unless @context.command_call_argument
+        @context.command_call_active = false
+      end
     when ","
       @context.command_call_argument = true if @context.command_call_active &&
         @context.delimiter_stack.empty? && @context.block_stack.empty?
@@ -723,6 +727,8 @@ class Lexer
       :keyword_do
     elsif @previous == :tIDENTIFIER && @previous_previous == "." && @context.token_history[-3] == ")"
       :keyword_do
+    elsif @previous == ")" && @context.command_call_active && @context.command_call_argument
+      :keyword_do_block
     elsif [")", :keyword_super, :keyword_yield].include?(@previous)
       :keyword_do
     elsif @previous == :tLAMBDA

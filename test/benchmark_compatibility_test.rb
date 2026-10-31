@@ -9,6 +9,20 @@ require_relative "generated_frontend_helper"
 require_relative "../benchmark/compatibility"
 
 class BenchmarkCompatibilityTest < Test::Unit::TestCase
+  def test_do_block_binds_to_command_outside_parenthesized_argument
+    normalizer = Compatibility::Normalizer.new
+    [
+      "instrument :retry, options.slice(:error, :wait) do; work; end",
+      "Rails.stub :root, Pathname.getwd() do; work; end",
+      "outer(inner() do; work; end)",
+      "outer inner() { work }"
+    ].each do |source|
+      expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
+      actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+      assert_equal expected, actual, source
+    end
+  end
+
   def test_normalizes_legacy_block_call_shape
     block_call = lambda do |members, values|
       klass = Class.new do
