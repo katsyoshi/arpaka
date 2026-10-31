@@ -225,7 +225,7 @@ class Lexer
     "=>" => :tASSOC, "->" => :tLAMBDA, "[]" => :tAREF, "[]=" => :tASET
   }.freeze
 
-  def initialize(source, filename: "(ruby)")
+  def initialize(source, filename: "(ruby)", initial_line: 1)
     unless source.is_a?(String)
       raise ArgumentError, "source must be a String"
     end
@@ -236,7 +236,7 @@ class Lexer
     @source = source.b
     @filename = filename
     @index = 0
-    @line = 1
+    @line = initial_line
     @column = 0
     @previous_previous = nil
     @previous = nil
@@ -978,8 +978,9 @@ class Lexer
         tokens << [:tSTRING_CONTENT, content] unless content.empty?
         content = +""
         advance(2)
+        expression_line = @line
         expression = read_interpolation_source(start)
-        inner = self.class.new(expression, filename: @filename).each.to_a
+        inner = self.class.new(expression, filename: @filename, initial_line: expression_line).each.to_a
         inner.pop if inner.last == [0, nil]
         tokens << [:tSTRING_DBEG, nil]
         tokens.concat(inner)
@@ -1220,8 +1221,9 @@ class Lexer
         result = +""
         interpolated = true
         advance(2)
+        expression_line = @line
         expression = read_interpolation_source(start)
-        inner = self.class.new(expression, filename: @filename).each.to_a
+        inner = self.class.new(expression, filename: @filename, initial_line: expression_line).each.to_a
         inner.pop if inner.last == [0, nil]
         tokens << [:tSTRING_DBEG, nil]
         tokens.concat(inner)
@@ -1337,8 +1339,9 @@ class Lexer
         flush_content.call
         word_started = true
         advance(2)
+        expression_line = @line
         expression = read_interpolation_source(start)
-        inner = self.class.new(expression, filename: @filename).each.to_a
+        inner = self.class.new(expression, filename: @filename, initial_line: expression_line).each.to_a
         inner.pop if inner.last == [0, nil]
         tokens << [:tSTRING_DBEG, nil]
         tokens.concat(inner)

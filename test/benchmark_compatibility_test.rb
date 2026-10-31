@@ -9,6 +9,16 @@ require_relative "generated_frontend_helper"
 require_relative "../benchmark/compatibility"
 
 class BenchmarkCompatibilityTest < Test::Unit::TestCase
+  def test_line_numbers_inside_interpolation
+    normalizer = Compatibility::Normalizer.new
+    ['"#{__LINE__}"', '/#{__LINE__}/', '%W[#{__LINE__}]', '"#{"#{__LINE__}"}"', "\"text\n\#{\n__LINE__}\""].each do |expression|
+      source = "\n\n" + expression
+      expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
+      actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+      assert_equal expected, actual, source
+    end
+  end
+
   def test_program_name_is_a_global_variable_not_a_regexp_capture
     normalizer = Compatibility::Normalizer.new
     ["$0", "$0 = 'program'", "[$0, $1, $10]"].each do |source|
