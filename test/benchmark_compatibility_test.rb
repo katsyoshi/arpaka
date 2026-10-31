@@ -230,7 +230,7 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
         frontend: frontend,
         reference_cache: reference,
         parallel: :ractor,
-        threads: 1
+        threads: 2
       ).run
 
       assert_equal 1, results.length

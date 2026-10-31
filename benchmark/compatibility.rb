@@ -40,7 +40,7 @@ module Compatibility
       @measurement_started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       @gc_before = GC.stat
       if @frontend
-        @frontend_class = load(@frontend).then { Object.const_get(:CompatibilityFrontend) }
+        load_frontend unless @parallel == :ractor
         results = run_comparison(@frontend)
         [results, metadata(@frontend, results)]
       else
@@ -48,7 +48,7 @@ module Compatibility
         Dir.mktmpdir("arpaka-compatibility-") do |directory|
           frontend = File.join(directory, "frontend.rb")
           File.write(frontend, generated)
-          @frontend_class = load(frontend).then { Object.const_get(:CompatibilityFrontend) }
+          load_frontend(frontend) unless @parallel == :ractor
           results = run_comparison(frontend)
           [results, metadata(frontend, results)]
         end
@@ -152,12 +152,22 @@ module Compatibility
 
     def compare_files_with_ractors(name, root, files, frontend)
       batches = files.each_slice((files.length.fdiv(@threads)).ceil).to_a
-      frontend_class = @frontend_class
       port = Ractor::Port.new
       workers = batches.each_with_index.map do |batch, index|
-        Ractor.new(port, index, name, root, batch, frontend_class, @disable_gc) do |result_port, job_index, job_name, job_root, job_files, job_frontend_class, disable_gc|
+        Ractor.new(port, index, name, root, batch, frontend, @disable_gc) do |result_port, job_index, job_name, job_root, job_files, job_frontend, disable_gc|
           begin
             GC.disable if disable_gc
+            verbose = $VERBOSE
+            begin
+              # Each Ractor owns its frontend class, but the generated source
+              # defines the same constants in every worker. Avoid noisy
+              # redefinition warnings while loading those isolated copies.
+              $VERBOSE = nil
+              load(job_frontend)
+            ensure
+              $VERBOSE = verbose
+            end
+            job_frontend_class = Object.const_get(:CompatibilityFrontend)
             normalizer = Compatibility::Normalizer.new
             batch_results = job_files.to_h do |file|
               started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -212,6 +222,10 @@ module Compatibility
         workers.each { |worker| worker.close rescue nil }
       end
       results.flatten
+    end
+
+    def load_frontend(frontend = @frontend)
+      @frontend_class = load(frontend).then { Object.const_get(:CompatibilityFrontend) }
     end
 
     def compare_batch(name, root, files, frontend)
