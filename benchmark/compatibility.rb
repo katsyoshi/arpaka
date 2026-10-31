@@ -169,7 +169,7 @@ module Compatibility
               # Constant tables are shared between Ractors, so the name must
               # also be unique across successive Runner invocations.
               job_class_name = "CompatibilityFrontend#{Process.pid}#{Ractor.current.object_id}#{job_index}"
-              source = File.binread(job_frontend).gsub(
+              source = File.read(job_frontend, encoding: Encoding::UTF_8).gsub(
                 /\bCompatibilityFrontend\b/, job_class_name)
               eval(source, binding, job_frontend)
             ensure
@@ -184,7 +184,10 @@ module Compatibility
                 tree = job_frontend_class.parse(source, filename: file)
                 # Match the JSON boundary used by the subprocess worker. In
                 # particular, symbols in the canonical tree become strings.
-                canonical = JSON.parse(JSON.generate(normalizer.arpaka(tree), max_nesting: false))
+                canonical = JSON.parse(
+                  JSON.generate(normalizer.arpaka(tree), max_nesting: false),
+                  max_nesting: false
+                )
                 arpaka = { status: "ok", parsed: true, tree: canonical,
                   elapsed: Process.clock_gettime(Process::CLOCK_MONOTONIC) - started,
                   runtime: RUBY_DESCRIPTION, ruby_box: false }

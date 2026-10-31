@@ -255,7 +255,7 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     source = <<~RUBY
       class ActionCable::Loader
         def initialize(path = "")
-          @path = path
+          @path = path + "日本語"
         end
 
         def load
@@ -290,6 +290,7 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
         results.fetch(1).map { |result| result.fetch("status") }
       assert_equal results.fetch(0).first.fetch("outcomes").fetch("arpaka").fetch("status"),
         results.fetch(1).first.fetch("outcomes").fetch("arpaka").fetch("status")
+      assert_equal results.fetch(0).first.fetch("difference"), results.fetch(1).first.fetch("difference")
     end
   end
 end
