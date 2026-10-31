@@ -9,6 +9,15 @@ require_relative "generated_frontend_helper"
 require_relative "../benchmark/compatibility"
 
 class BenchmarkCompatibilityTest < Test::Unit::TestCase
+  def test_anonymous_rest_forwarding_preserves_positional_arguments
+    normalizer = Compatibility::Normalizer.new
+    ["def f(*); g(*); end", "def f(*, **); g(*, **); end", "def f(*); g(1, *); end"].each do |source|
+      expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
+      actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+      assert_equal expected, actual, source
+    end
+  end
+
   def test_multiple_assignment_preserves_named_rest_and_post_targets
     normalizer = Compatibility::Normalizer.new
     ["first, *rest = values", "first, *rest, last = values", "*rest = values", "*rest, last = values"].each do |source|

@@ -312,7 +312,7 @@ module Arpaka::Ruby::Actions
     317 => ["pass_through", "$1"],
     321 => ["ported", "@builder.call_arguments_with_block_pass([], $1)"],
     325 => ["ported", "@builder.forwarded_block_pass"],
-    329 => ["pass_through", "$1"], 333 => ["empty", "nil"],
+    329 => ["pass_through", "$1"], 333 => ["ported", "@builder.splat(AST::LocalRead.new(:*))"],
     334 => ["pass_through", "$1"],
     335 => ["pass_through", "$1"], 350 => ["empty", "nil"],
     352 => ["empty", "nil"], 390 => ["empty", "nil"],
