@@ -2,8 +2,8 @@
  "source_revision" => "76cca827ab52ab1d346a728f068d5b8da3e2952b",
  "source_sha256" => "c3b4893af679eaeb5688d615cbfff0459a42077776a49df5d9514187cb56b1ec",
  "runtime" => {
-   "ast_nodes" => %w[assignment singleton_method singleton_class pattern keyword_arguments].freeze,
-   "builder_methods" => %w[assignment singleton_method singleton_class rescue keyword_arguments].freeze,
+   "ast_nodes" => %w[self assignment singleton_method singleton_class pattern keyword_arguments].freeze,
+   "builder_methods" => %w[self assignment singleton_method singleton_class rescue keyword_arguments].freeze,
    "lexer" => {"source_text_tokens" => %w[tOP_ASGN tUMINUS tUPLUS].freeze}.freeze
  }.freeze,
  "actions" =>
@@ -678,7 +678,7 @@
    669 => ["ported", "@builder.variable(:constant, $1)"],
    670 => ["pass_through", "$1"],
    671 => ["ported", "@builder.literal(nil)"],
-   672 => ["ported", "@builder.literal(:self)"],
+   672 => ["ported", "@builder.self_node"],
    673 => ["ported", "@builder.literal(true)"],
    674 => ["ported", "@builder.literal(false)"],
    675 => ["ported", "@builder.literal(:__FILE__)"],
