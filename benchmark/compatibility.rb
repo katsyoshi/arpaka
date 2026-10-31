@@ -21,7 +21,7 @@ module Compatibility
     VERSION = 2
 
     def initialize(ruby_source:, corpora:, timeout: 10, ruby: RbConfig.ruby, progress: nil, reference_cache: nil, threads: 1, parallel: :thread, disable_gc: false, frontend: nil)
-      @ruby_source = File.expand_path(ruby_source)
+      @ruby_source = ruby_source && File.expand_path(ruby_source)
       @corpora = corpora.map { |name, path| [name, File.expand_path(path)] }
       @timeout = timeout
       @ruby = ruby
@@ -105,7 +105,12 @@ module Compatibility
     private
 
     def validate!
-      raise ConfigurationError, "Ruby source does not exist: #{@ruby_source}" unless File.directory?(@ruby_source)
+      if !@frontend && !@ruby_source
+        raise ConfigurationError, "ruby source is required when frontend is not provided"
+      end
+      if @ruby_source && !File.directory?(@ruby_source)
+        raise ConfigurationError, "Ruby source does not exist: #{@ruby_source}"
+      end
       if @frontend
         raise ConfigurationError, "frontend does not exist: #{@frontend}" unless File.file?(@frontend)
       end
@@ -484,8 +489,12 @@ module Compatibility
         pairs = results.select { |file| file.fetch("corpus") == name }.map { |file| [file.fetch("path"), file.fetch("sha256")] }
         [name, Digest::SHA256.hexdigest(JSON.generate(pairs))]
       end
-      inputs = %w[parse.y defs/id.def COPYING BSDL].to_h do |relative|
-        [relative, Digest::SHA256.file(File.join(@ruby_source, relative)).hexdigest]
+      inputs = if @ruby_source
+        %w[parse.y defs/id.def COPYING BSDL].to_h do |relative|
+          [relative, Digest::SHA256.file(File.join(@ruby_source, relative)).hexdigest]
+        end
+      else
+        {}
       end
       root = File.expand_path("..", __dir__)
       implementation = [__FILE__, *Dir.glob(File.join(__dir__, "compatibility", "*.rb"))].sort.to_h do |file|
@@ -527,7 +536,7 @@ module Compatibility
   class CLI
     def self.run(argv)
       corpora = []
-      options = { ruby_source: File.expand_path("../vendor/ruby", __dir__), timeout: 10, threads: 1, parallel: :thread, disable_gc: false, frontend: nil }
+      options = { ruby_source: nil, timeout: 10, threads: 1, parallel: :thread, disable_gc: false, frontend: nil }
       parser = OptionParser.new do |opts|
         opts.banner = "Usage: RUBY_BOX=1 bundle exec ruby benchmark/compatibility.rb --corpus NAME=PATH [options]"
         opts.on("--corpus NAME=PATH", "Corpus directory or Ruby file; repeatable") do |value|
@@ -541,7 +550,7 @@ module Compatibility
         opts.on("--threads N", Integer, "Number of concurrent comparisons (default: 1)") { |value| options[:threads] = value }
         opts.on("--parallel MODE", %w[thread ractor], "Parallel mode (default: thread)") { |value| options[:parallel] = value.to_sym }
         opts.on("--disable-gc", "Disable GC in Ractor workers (default: enabled)") { options[:disable_gc] = true }
-        opts.on("--ruby-source PATH", "Ruby source tree (default: vendor/ruby)") { |value| options[:ruby_source] = value }
+        opts.on("--ruby-source PATH", "Ruby source tree (required unless --frontend is provided)") { |value| options[:ruby_source] = value }
         opts.on("--timeout SECONDS", Float, "Timeout per parser and file (default: 10)") { |value| options[:timeout] = value }
         opts.on("-h", "--help", "Show help") { puts opts; return 0 }
       end
