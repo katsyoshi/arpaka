@@ -156,9 +156,10 @@ module Compatibility
       when "Ternary" then [:conditional, arpaka(values[:condition]), [arpaka(values[:then_value])], [arpaka(values[:else_value])]]
       when "StringLiteral" then [:string, text(values[:value])]
       when "InterpolatedString"
-        [:interpolated, merge_text_parts(values[:parts].map do |v|
+        parts = merge_text_parts(values[:parts].map do |v|
           v.is_a?(String) ? [:text, text(v)] : [:interpolation, arpaka(v)]
-        end)]
+        end)
+        dynamic_string(parts) || [:interpolated, parts]
       when "DynamicSymbol"
         [:dynamic_symbol, merge_text_parts(values[:parts].map do |v|
           v.is_a?(String) ? [:text, text(v)] : [:interpolation, arpaka(v)]
@@ -460,7 +461,9 @@ module Compatibility
         else
           unsupported!(:rubyvm, "REGX value #{value.class}")
         end
-      when :DSTR then [:interpolated, dynamic_parts(c)]
+      when :DSTR
+        parts = dynamic_parts(c)
+        dynamic_string(parts) || [:interpolated, parts]
       when :EVSTR then rubyvm(c[0])
       when :XSTR then [:xstring, text(c[0])]
       when :DEFN
@@ -1077,6 +1080,12 @@ module Compatibility
           merged << part
         end
       end
+    end
+
+    def dynamic_string(parts)
+      return unless parts.length == 1 && parts.first.first == :text
+
+      [:string, parts.first[1]]
     end
 
     def merge_text_payloads(left, right)

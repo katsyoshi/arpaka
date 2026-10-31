@@ -103,6 +103,22 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       Compatibility::Normalizer.new.arpaka(node)
   end
 
+  def test_normalizes_static_interpolated_strings_as_strings
+    normalizer = Compatibility::Normalizer.new
+    source = '"hello"'
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+    node = Class.new do
+      define_singleton_method(:name) { "AST::InterpolatedString" }
+      define_method(:members) { [:parts] }
+      define_method(:parts) { ["hello"] }
+    end.new
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(node)
+    assert_equal [:string, [:bytes, "68656c6c6f", "UTF-8"]],
+      normalizer.rubyvm(tree.children.fetch(2))
+  end
+
   def test_normalizes_qualified_declaration_names_like_arpaka
     tree = RubyVM::AbstractSyntaxTree.parse("class ActionCable::Loader; end", keep_script_lines: false)
     normalized = Compatibility::Normalizer.new.rubyvm(tree.children.fetch(2))
