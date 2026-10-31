@@ -821,7 +821,11 @@ class Builder
   end
 
   def assign(name, value)
-    AST::LocalWrite.new(name, value)
+    if name.is_a?(AST::ConstantPath) || name.is_a?(AST::AbsoluteConstant)
+      AST::Assignment.new(name, value)
+    else
+      AST::LocalWrite.new(name, value)
+    end
   end
 <% if runtime.fetch("builder_methods", []).include?("assignment") -%>
   def assignment(name, value)

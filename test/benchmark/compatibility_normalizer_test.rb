@@ -67,6 +67,15 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
     end
   end
 
+  test "multiline parenthesized rescue remains a modifier" do
+    source = <<~RUBY
+      transmit(
+        type: message_type,
+      ) rescue nil
+    RUBY
+    assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+  end
+
   test "break and next command arguments are control nodes" do
     ["items.each { |item| next item }", "items.each { |item| break item }"].each do |source|
       assert_equal(normalized_rubyvm(source), @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
@@ -808,6 +817,13 @@ class CompatibilityNormalizerTest < Test::Unit::TestCase
   test "string literal nodes compare with strings" do
     node = GeneratedRubyFrontend::AST::Literal.new("static")
     assert_equal([:string, [:bytes, "737461746963", "UTF-8"]], @normalizer.arpaka(node))
+  end
+
+  test "constant path assignments retain their receiver" do
+    ["A::B = 1", "::A::B = 1", "::A = 1"].each do |source|
+      assert_equal(normalized_rubyvm(source),
+        @normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source)
+    end
   end
 
   private
