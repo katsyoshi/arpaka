@@ -23,14 +23,6 @@ module Lrama
         box = ::Ruby::Box.new
         # A new box does not inherit Bundler's activated load paths.
         box.load_path.replace($LOAD_PATH)
-        if RUBY_VERSION >= "4.1"
-          # Ruby head may inherit the parent's loaded-feature state without
-          # the corresponding constants in a new Box.
-          box.require("forwardable")
-          box.require("strscan")
-          lrama = $LOADED_FEATURES.find { |feature| feature.end_with?("/lrama.rb") }
-          box.load(lrama) if lrama
-        end
         box.require(File.expand_path("backend.rb", __dir__))
         box.require(File.expand_path("action_code.rb", __dir__)) if mode == :parser
         begin
