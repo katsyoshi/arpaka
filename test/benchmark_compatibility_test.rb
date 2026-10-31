@@ -14,6 +14,10 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     [
       "instrument :retry, options.slice(:error, :wait) do; work; end",
       "Rails.stub :root, Pathname.getwd() do; work; end",
+      "test 'example' do; Rails.stub :root, Pathname.getwd do; work; end; end",
+      "test 'example' do; Rails.stub :root, Pathname.getwd() do; work; end; end",
+      "test 'example' do; outer inner() { work }; end",
+      "items.each do; rows.sort_by { |i, _| i }.each do |row|; work; end; end",
       "outer(inner() do; work; end)",
       "outer inner() { work }"
     ].each do |source|

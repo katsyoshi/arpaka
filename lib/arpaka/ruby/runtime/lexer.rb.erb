@@ -544,7 +544,8 @@ class Lexer
       end
     when ","
       @context.command_call_argument = true if @context.command_call_active &&
-        @context.delimiter_stack.empty? && @context.block_stack.empty?
+        @context.delimiter_stack.empty? &&
+        (@context.block_stack.empty? || @context.block_body_at_current_delimiter?)
     when "\n", ";"
       @context.command_argument_candidate = false
       @context.command_argument_pending = false
@@ -571,6 +572,8 @@ class Lexer
     when :tLAMBEG
       @context.push_block(:lambda)
     when "{", :tLBRACE_ARG
+      @context.command_call_active = false
+      @context.command_call_argument = false
       @context.push_block(:brace_block)
     when "}"
       @context.pop_block if [:brace_block, :lambda].include?(@context.block_stack.last)
