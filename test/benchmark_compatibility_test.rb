@@ -4,6 +4,7 @@ require "json"
 require "tmpdir"
 
 require_relative "test_helper"
+require_relative "generated_frontend_helper"
 require_relative "../benchmark/compatibility"
 
 class BenchmarkCompatibilityTest < Test::Unit::TestCase
@@ -51,6 +52,20 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
 
     assert_equal [:control, [:symbol, [:bytes, "72657475726e", "US-ASCII"]], nil],
       Compatibility::Normalizer.new.arpaka(node)
+  end
+
+  def test_preserves_block_and_method_argument_shapes
+    normalizer = Compatibility::Normalizer.new
+    [
+      "def f(*args, **keywords, &block); end",
+      "def f(required:, optional: 1); end",
+      "items.each { |first, *rest, last| [first, rest, last] }",
+      "items.each { |first:, **keywords, &block| [first, keywords, block] }"
+    ].each do |source|
+      rubyvm = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false).children.fetch(2))
+      arpaka = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+      assert_equal rubyvm, arpaka, source
+    end
   end
 
   def test_normalizes_legacy_regexp_literal_shape
