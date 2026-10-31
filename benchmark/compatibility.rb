@@ -421,6 +421,16 @@ module Compatibility
         return status == :mismatch ? [:mismatch, nil] : [:accepted_mismatch, path]
       end
 
+      if keyword_argument && hash_as_single_pair?(left, right)
+        status, = compare_trees(left[1].first, right, "#{path}[1][0]")
+        return status == :mismatch ? [:mismatch, nil] : [:accepted_mismatch, path]
+      end
+
+      if keyword_argument && hash_as_single_pair?(right, left)
+        status, = compare_trees(left, right[1].first, "#{path}[1][0]")
+        return status == :mismatch ? [:mismatch, nil] : [:accepted_mismatch, path]
+      end
+
       if call_node?(left) && call_node?(right)
         fixed_statuses = (1..3).map do |index|
           compare_trees(left[index], right[index], "#{path}[#{index}]").first
@@ -491,6 +501,12 @@ module Compatibility
       left.is_a?(Array) && right.is_a?(Array) && left.length == 2 && right.length == 2 &&
         ((tag?(left.first, :keyword_arguments) && tag?(right.first, :hash)) ||
           (tag?(left.first, :hash) && tag?(right.first, :keyword_arguments)))
+    end
+
+    def hash_as_single_pair?(hash, pair)
+      hash.is_a?(Array) && pair.is_a?(Array) && hash.length == 2 && pair.length == 3 &&
+        tag?(hash.first, :hash) && tag?(pair.first, :pair) && hash[1].is_a?(Array) &&
+        hash[1].length == 1 && hash[1].first.is_a?(Array) && tag?(hash[1].first.first, :pair)
     end
 
     def tag?(value, expected)

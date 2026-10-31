@@ -137,6 +137,25 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     assert_equal [:mismatch, nil], runner.__send__(:compare_trees, constant, nested)
   end
 
+  def test_accepts_rubyvm_single_pair_hash_for_a_bare_keyword_argument
+    runner = compatibility_runner
+    pair = [:pair, [:symbol, [:bytes, "6e616d65", "US-ASCII"]], [:integer, 1]]
+    hash = [:hash, [pair]]
+
+    assert_equal [:accepted_mismatch, "$"],
+      runner.__send__(:compare_trees,
+        [:call, nil, false, [:symbol, [:bytes, "666f6f", "US-ASCII"]], [hash]],
+        [:call, nil, false, [:symbol, [:bytes, "666f6f", "US-ASCII"]], [pair]])
+  end
+
+  def test_does_not_treat_an_explicit_hash_literal_as_a_pair_argument
+    runner = compatibility_runner
+    pair = [:pair, [:symbol, [:bytes, "6e616d65", "US-ASCII"]], [:integer, 1]]
+    hash = [:hash, [pair]]
+
+    assert_equal [:mismatch, nil], runner.__send__(:compare_trees, hash, pair)
+  end
+
   def compatibility_runner
     Compatibility::Runner.new(ruby_source: nil, corpora: [["test", __FILE__]], frontend: __FILE__)
   end
