@@ -154,7 +154,6 @@ jobs:
           RUBY_BOX: ''
         run: |
           bundle exec ruby benchmark/compatibility.rb \
-            --ruby-source vendor/ruby \
             --corpus rails=external/rails \
             --corpus trick2013=external/trick2013 \
             --corpus trick2015=external/trick2015 \
@@ -171,7 +170,6 @@ jobs:
           RUBY_BOX: ''
         run: |
           bundle exec ruby benchmark/compatibility.rb \
-            --ruby-source vendor/ruby \
             --corpus rails=external/rails \
             --corpus trick2013=external/trick2013 \
             --corpus trick2015=external/trick2015 \
