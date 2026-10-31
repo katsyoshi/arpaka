@@ -397,7 +397,7 @@
    388 => ["empty", "nil"],
    389 => ["empty", "nil"],
    390 => ["empty", "nil"],
-   391 => ["empty", "nil"],
+   391 => ["pass_through", "$1"],
    392 => ["pass_through", "nil"],
    393 => ["pass_through", "nil"],
    394 => ["pass_through", "nil"],

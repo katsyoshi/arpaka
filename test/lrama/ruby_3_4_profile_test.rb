@@ -12,6 +12,10 @@ class Ruby34ProfileTest < Test::Unit::TestCase
     assert_equal("@builder.self_node", PROFILE.fetch("actions").fetch(672).last)
   end
 
+  test "preserves singleton definition wrappers" do
+    assert_equal(["pass_through", "$1"], PROFILE.fetch("actions").fetch(391))
+  end
+
   test "does not collapse self receivers into the self symbol" do
     assert_equal([:self], Compatibility::Normalizer.new.rubyvm(
       RubyVM::AbstractSyntaxTree.parse("self", keep_script_lines: false).children.fetch(2)))

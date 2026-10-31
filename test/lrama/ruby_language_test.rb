@@ -276,6 +276,13 @@ class ArpakaTest < Test::Unit::TestCase
   test "singleton method definitions preserve receiver, name, and body" do
     expected = AST::SingletonMethodDef.new(AST::Self.new, :value, [], [literal(1)])
     assert_equal(expected, GeneratedRubyFrontend.parse("def self.value; 1; end").statements.first)
+
+    object_method = GeneratedRubyFrontend.parse("def object.value; 1; end").statements.first
+    assert_kind_of(AST::SingletonMethodDef, object_method)
+    assert_kind_of(AST::BareCall, object_method.receiver)
+
+    ordinary_method = GeneratedRubyFrontend.parse("def value; 1; end").statements.first
+    assert_kind_of(AST::Def, ordinary_method)
   end
 
   test "simple string literals preserve their content" do
