@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
+require "fileutils"
 require "tmpdir"
 
 require_relative "test_helper"
@@ -211,31 +212,41 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     Dir.mktmpdir("compatibility-test-") do |directory|
       frontend = File.join(directory, "frontend.rb")
       reference = File.join(directory, "reference.jsonl")
-      source_file = File.expand_path("../benchmark/fixtures/basic_match.rb", __dir__)
+      source_files = %w[basic_match.rb splat.rb].map do |name|
+        File.expand_path("../benchmark/fixtures/#{name}", __dir__)
+      end
+      corpus = File.join(directory, "corpus")
+      FileUtils.mkdir_p(corpus)
+      source_files.each { |path| FileUtils.cp(path, corpus) }
 
       File.write(frontend, Arpaka.generate(ruby_source: ruby_source, class_name: "CompatibilityFrontend"))
-      source = File.binread(source_file).force_encoding(Encoding::UTF_8)
-      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
-      normalized = Compatibility::Normalizer.new.rubyvm(tree.children.fetch(2))
-      normalized = [:sequence, normalized.nil? ? [] : [normalized]] unless normalized.is_a?(Array) && normalized.first == :sequence
-      File.write(reference, JSON.generate(
-        "type" => "reference", "corpus" => "fixture", "path" => "basic_match.rb",
-        "sha256" => Digest::SHA256.hexdigest(source), "status" => "ok",
-        "elapsed_seconds" => 0.0, "tree" => normalized
-      ) + "\n")
+      records = source_files.map do |source_file|
+        source = File.binread(source_file).force_encoding(Encoding::UTF_8)
+        tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+        normalized = Compatibility::Normalizer.new.rubyvm(tree.children.fetch(2))
+        normalized = [:sequence, normalized.nil? ? [] : [normalized]] unless normalized.is_a?(Array) && normalized.first == :sequence
+        {
+          "type" => "reference", "corpus" => "fixture", "path" => File.basename(source_file),
+          "sha256" => Digest::SHA256.hexdigest(source), "status" => "ok",
+          "elapsed_seconds" => 0.0, "tree" => normalized
+        }
+      end
+      File.write(reference, records.map { |record| JSON.generate(record) }.join("\n") + "\n")
 
       results, = Compatibility::Runner.new(
         ruby_source: ruby_source,
-        corpora: [["fixture", source_file]],
+        corpora: [["fixture", corpus]],
         frontend: frontend,
         reference_cache: reference,
         parallel: :ractor,
         threads: 2
       ).run
 
-      assert_equal 1, results.length
-      assert_not_include %w[parse_failure timeout error], results.first.fetch("status")
-      assert_equal "ok", results.first.fetch("outcomes").fetch("arpaka").fetch("status")
+      assert_equal source_files.length, results.length
+      results.each do |result|
+        assert_not_include %w[parse_failure timeout error], result.fetch("status")
+        assert_equal "ok", result.fetch("outcomes").fetch("arpaka").fetch("status")
+      end
     end
   end
 end

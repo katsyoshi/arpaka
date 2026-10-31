@@ -163,11 +163,17 @@ module Compatibility
               # defines the same constants in every worker. Avoid noisy
               # redefinition warnings while loading those isolated copies.
               $VERBOSE = nil
-              load(job_frontend)
+              # Constants are shared between Ractors. Give each loaded
+              # frontend a private top-level name so singleton methods that
+              # close over a constructor Proc stay owned by this Ractor.
+              job_class_name = "CompatibilityFrontend#{job_index}"
+              source = File.binread(job_frontend).sub(
+                "class CompatibilityFrontend\n", "class #{job_class_name}\n")
+              eval(source, binding, job_frontend)
             ensure
               $VERBOSE = verbose
             end
-            job_frontend_class = Object.const_get(:CompatibilityFrontend)
+            job_frontend_class = eval(job_class_name, binding, job_frontend)
             normalizer = Compatibility::Normalizer.new
             batch_results = job_files.to_h do |file|
               started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
