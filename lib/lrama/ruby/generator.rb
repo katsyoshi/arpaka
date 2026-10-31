@@ -28,6 +28,7 @@ module Lrama
         # constants into this Box. Load the entry point explicitly so the Box
         # always gets its own Lrama namespace.
         lrama = $LOADED_FEATURES.find { |feature| feature.end_with?("/lrama.rb") }
+        box.require("forwardable")
         box.load(lrama) if lrama
         box.require(File.expand_path("backend.rb", __dir__))
         box.require(File.expand_path("action_code.rb", __dir__)) if mode == :parser
