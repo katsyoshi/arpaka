@@ -112,7 +112,7 @@ module Compatibility
         end
         [:call, arpaka(values[:receiver]), values[:operator] == :"&.", symbol(values[:name]), arpaka_arguments(values[:arguments])]
       when "ArrayLiteral" then [:array, Array(values[:elements]).map { |v| arpaka(v) }]
-      when "Splat" then [:splat, arpaka(values[:value])]
+      when "Splat" then [:splat, arpaka_splat_value(values[:value])]
       when "HashLiteral" then [:hash, values[:pairs].map { |v| arpaka(v) }]
       when "KeywordArguments" then [:keyword_arguments, values[:pairs].map { |v| arpaka(v) }]
       when "Pair"
@@ -144,11 +144,17 @@ module Compatibility
         result
       when "Unary"
         operand = values[:operand]
+        normalized_operand = arpaka(operand)
+        if values[:operator] == :! && ast_name(operand) == "Binary" &&
+            [:'&&', :'||'].include?(operand.operator) && defined_expression?(normalized_operand[2])
+          return [:binary, symbol(operand.operator),
+            [:unary, symbol(:!), normalized_operand[2]], normalized_operand[3]]
+        end
         if [:+, :-].include?(values[:operator]) && operand.class.name.to_s.split("::").last == "Literal" && operand.value.is_a?(Numeric)
           value = values[:operator] == :- ? -operand.value : +operand.value
           value.is_a?(Integer) ? [:integer, value] : [:float, [value].pack("G").unpack1("H*")]
         else
-          [:unary, symbol(values[:operator]), arpaka(operand)]
+          [:unary, symbol(values[:operator]), normalized_operand]
         end
       when "If" then [:conditional, arpaka(values[:condition]), body(values[:then_body]), body(values[:else_body])]
       when "RangeLiteral"
@@ -350,7 +356,7 @@ module Compatibility
       when :LIT, :INTEGER, :FLOAT
         value = c[0]
         if value.is_a?(Regexp)
-          regexp(value.source.b.unpack1("H*"), value.options, value.encoding.name)
+          regexp(regexp_source(value.source).b.unpack1("H*"), value.options, value.encoding.name)
         elsif value.is_a?(Symbol)
           [:symbol, text(value.to_s)]
         elsif value.is_a?(Integer)
@@ -434,7 +440,12 @@ module Compatibility
         values.drop(1).reduce(values.first) { |left, right| [:binary, operator, left, right] }
       when :DOT2, :DOT3 then [:range, symbol(node.type == :DOT2 ? :".." : :"..."), rubyvm(c[0]), rubyvm(c[1])]
       when :DREGX
-        [:interpolated_regexp, dynamic_parts(c), ["unknown", "options"], ["unknown", "encoding"]]
+        parts = dynamic_parts(c)
+        if parts.all? { |part| part.first == :text }
+          regexp(parts.map { |part| part.last }.join.b.unpack1("H*"), 0, Encoding::US_ASCII.name)
+        else
+          [:interpolated_regexp, parts, ["unknown", "options"], ["unknown", "encoding"]]
+        end
       when :ENCODING
         [:encoding, c.fetch(0).name]
       when :DSYM
@@ -457,7 +468,7 @@ module Compatibility
       when :REGX
         value = c[0]
         if value.is_a?(Regexp)
-          regexp(value.source.b.unpack1("H*"), value.options, value.encoding.name)
+          regexp(regexp_source(value.source).b.unpack1("H*"), value.options, value.encoding.name)
         else
           unsupported!(:rubyvm, "REGX value #{value.class}")
         end
@@ -548,6 +559,14 @@ module Compatibility
     def arpaka_argument(value)
       if value.is_a?(Array)
         [:splat, value.length == 1 ? arpaka(value.first) : [:sequence, value.map { |item| arpaka(item) }]]
+      else
+        arpaka(value)
+      end
+    end
+
+    def arpaka_splat_value(value)
+      if value.is_a?(Array)
+        [:array, value.map { |item| arpaka(item) }]
       else
         arpaka(value)
       end
@@ -1257,7 +1276,14 @@ module Compatibility
     end
 
     def regexp_source(value)
-      value.gsub("\\/", "/")
+      value.gsub(/(?<!\\)(?:\\\\)*\\\//) { |match| match[0...-2] + "/" }
+    end
+
+    def defined_expression?(node)
+      return false unless node.is_a?(Array)
+
+      node.first == :defined ||
+        (node.first == :unary && node[1] == [:symbol, [:bytes, "21", "US-ASCII"]] && defined_expression?(node[2]))
     end
 
     def unsupported!(side, detail)

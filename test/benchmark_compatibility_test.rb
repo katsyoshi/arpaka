@@ -103,6 +103,40 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       Compatibility::Normalizer.new.arpaka(node)
   end
 
+  def test_normalizes_static_regexp_escapes_like_rubyvm
+    normalizer = Compatibility::Normalizer.new
+    ["%r{\\/}", "%r(foo\\/bar)"].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+      assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+        normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0), source
+    end
+  end
+
+  def test_preserves_binary_precedence_after_defined_expression
+    normalizer = Compatibility::Normalizer.new
+    source = "!defined?(value) || fallback"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_preserves_repeated_regexp_escape_backslashes
+    normalizer = Compatibility::Normalizer.new
+    source = "%r{\\\\/}"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_normalizes_static_dregx_as_a_static_regexp
+    normalizer = Compatibility::Normalizer.new
+    node = RubyVM::AbstractSyntaxTree.parse("/#{'x'}\\//", keep_script_lines: false).children.fetch(2)
+
+    assert_equal [:regexp, "782f", 0, "US-ASCII"], normalizer.rubyvm(node)
+  end
+
   def test_normalizes_static_interpolated_strings_as_strings
     normalizer = Compatibility::Normalizer.new
     source = '"hello"'
@@ -117,6 +151,35 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       normalizer.arpaka(node)
     assert_equal [:string, [:bytes, "68656c6c6f", "UTF-8"]],
       normalizer.rubyvm(tree.children.fetch(2))
+  end
+
+  def test_normalizes_legacy_splat_array_value_as_an_array
+    node = Class.new do
+      define_singleton_method(:name) { "AST::Splat" }
+      define_method(:members) { [:value] }
+      define_method(:value) { [Class.new do
+        define_singleton_method(:name) { "AST::Literal" }
+        define_method(:members) { [:value] }
+        define_method(:value) { 1 }
+      end.new] }
+    end.new
+
+    assert_equal [:splat, [:array, [[:integer, 1]]]],
+      Compatibility::Normalizer.new.arpaka(node)
+  end
+
+  def test_normalizes_case_and_rescue_shapes_as_a_single_ast_family
+    normalizer = Compatibility::Normalizer.new
+    [
+      "case value; when Hash; 1; else 2; end",
+      "raise FirstError rescue raise SecondError",
+      "begin; raise FirstError; rescue SecondError; 1; end"
+    ].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+      rubyvm = normalizer.rubyvm(tree.children.fetch(2))
+      arpaka = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+      assert_equal rubyvm, arpaka, source
+    end
   end
 
   def test_normalizes_qualified_declaration_names_like_arpaka
