@@ -23,13 +23,6 @@ module Lrama
         box = ::Ruby::Box.new
         # A new box does not inherit Bundler's activated load paths.
         box.load_path.replace($LOAD_PATH)
-        # `lrama` may already be present in the parent Box's loaded features.
-        # Ruby head can then make `box.require` a no-op without loading the
-        # constants into this Box. Load the entry point explicitly so the Box
-        # always gets its own Lrama namespace.
-        lrama = $LOADED_FEATURES.find { |feature| feature.end_with?("/lrama.rb") }
-        box.require("forwardable")
-        box.load(lrama) if lrama
         box.require(File.expand_path("backend.rb", __dir__))
         box.require(File.expand_path("action_code.rb", __dir__)) if mode == :parser
         begin
