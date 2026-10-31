@@ -9,6 +9,17 @@ require_relative "generated_frontend_helper"
 require_relative "../benchmark/compatibility"
 
 class BenchmarkCompatibilityTest < Test::Unit::TestCase
+  def test_interpolated_regexp_decodes_slash_delimiter_escapes
+    normalizer = Compatibility::Normalizer.new
+    [' /a\/#{value}/', '/#{value}\/tail/', '/[\/]#{value}/', '/\\\\\/#{value}/'].each do |source|
+      expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
+      actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+      assert_equal expected, actual, source
+    end
+    regexp = GeneratedRubyFrontend.parse('/a\/#{value}/').statements.first
+    assert_equal "a/", regexp.value.first
+  end
+
   def test_repeated_defined_queries_preserve_logical_associativity
     normalizer = Compatibility::Normalizer.new
     [

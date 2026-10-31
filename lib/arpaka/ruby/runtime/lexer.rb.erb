@@ -1203,9 +1203,9 @@ class Lexer
     until eof?
       value = byte
       if value == 92
-        result << value.chr
         advance
         fail!("unterminated regexp", start) if eof?
+        result << "\\" unless byte == 47
         result << byte.chr
         advance
       elsif value == 91
