@@ -36,6 +36,21 @@ class ArpakaRubyEscapeTest < Test::Unit::TestCase
     end
   end
 
+  test "quoted strings honor the source encoding comment" do
+    source = "# encoding: US-ASCII\n'requirement'\n\"dependency\"\n\"\\xFC\""
+    strings = parse(source).statements.map(&:value)
+
+    assert_equal([Encoding::US_ASCII, Encoding::US_ASCII, Encoding::BINARY],
+      strings.map(&:encoding))
+    assert_equal([0xFC], strings.last.bytes)
+  end
+
+  test "heredocs honor the source encoding comment" do
+    source = "# encoding: US-ASCII\n<<~TEXT\n  content\nTEXT\n"
+
+    assert_equal(Encoding::US_ASCII, parse(source).statements.first.value.encoding)
+  end
+
   test "escaped raw bytes remain UTF-8 tagged like Ruby strings" do
     ['"\\xFF"', '"\\377"'].each do |source|
       expected = rubyvm_string(source)

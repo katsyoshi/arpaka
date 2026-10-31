@@ -266,6 +266,10 @@ class Lexer
     raise Error, "invalid source encoding: #{error.message}"
   end
 
+  def source_string
+    String.new(encoding: @source_encoding)
+  end
+
   def each
     return enum_for(__method__) unless block_given?
     until eof? && @pending.empty? && @heredoc_queue.empty? && @deferred_suffix.nil?
@@ -965,7 +969,7 @@ class Lexer
 
   def read_interpolated_quoted(quote, start)
     return [[:tSTRING_CONTENT, read_quoted(quote, interpolate: false, start: start)]] if quote == 39
-    content = +""
+    content = source_string
     tokens = []
     until eof?
       value = byte
@@ -977,7 +981,7 @@ class Lexer
         content << escape_sequence(start, mode: :double, quote: quote)
       elsif value == 35 && byte(1) == 123
         tokens << [:tSTRING_CONTENT, content] unless content.empty?
-        content = +""
+        content = source_string
         advance(2)
         expression_line = @line
         expression = read_interpolation_source(start)
@@ -1026,7 +1030,7 @@ class Lexer
   end
 
   def read_quoted(quote, interpolate:, start:)
-    result = +""
+    result = source_string
     until eof?
       value = byte
       if value == quote
@@ -1172,7 +1176,9 @@ class Lexer
   end
 
   def raw_byte(value)
-    [value].pack("C").force_encoding(Encoding::UTF_8)
+    encoding = @source_encoding == Encoding::US_ASCII.name && value >= 0x80 ?
+      Encoding::BINARY : Encoding::UTF_8
+    [value].pack("C").force_encoding(encoding)
   end
 
   def hex_digit?(value)
@@ -1430,7 +1436,7 @@ class Lexer
 
   def read_interpolated_body(start)
     tokens = []
-    literal = +""
+    literal = source_string
     until eof?
       value = byte
       if value == 92
@@ -1444,7 +1450,7 @@ class Lexer
         tokens << [:tSTRING_DBEG, nil]
         tokens.concat(inner)
         tokens << [:tSTRING_DEND, nil]
-        literal = +""
+        literal = source_string
       else
         append_source_character(literal)
       end
@@ -1534,7 +1540,7 @@ class Lexer
       advance if byte == 10
       fail!("unterminated heredoc", start) if eof?
     end
-    body = body.force_encoding(Encoding::UTF_8)
+    body = body.force_encoding(@source_encoding)
     squiggly ? dedent_heredoc(body) : body
   end
 

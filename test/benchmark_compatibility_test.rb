@@ -9,6 +9,15 @@ require_relative "generated_frontend_helper"
 require_relative "../benchmark/compatibility"
 
 class BenchmarkCompatibilityTest < Test::Unit::TestCase
+  def test_source_encoding_comment_applies_to_string_literals
+    source = "# encoding: US-ASCII\n[\"abstract_unit\", \"\\xFC\"]"
+    normalizer = Compatibility::Normalizer.new
+    expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
+    actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+
+    assert_equal(expected, actual)
+  end
+
   def test_multiple_assignment_preserves_anonymous_rest
     normalizer = Compatibility::Normalizer.new
     ["first, * = values", "first, *, last = values", "* = values", "*, last = values"].each do |source|
