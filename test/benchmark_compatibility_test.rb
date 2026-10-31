@@ -125,6 +125,17 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     assert_equal [:mismatch, nil], runner.__send__(:compare_trees, nested, other)
   end
 
+  def test_preserves_qualified_constant_write_receivers
+    normalizer = Compatibility::Normalizer.new
+    ["A::B = 1", "A::B::C = 1", "::A::B = 1"].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+      rubyvm = normalizer.rubyvm(tree.children.fetch(2))
+      arpaka = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+
+      assert_equal arpaka, rubyvm, source
+    end
+  end
+
   def test_does_not_flatten_nested_qualified_path_to_constant
     runner = compatibility_runner
     base = [:constant, [:symbol, [:bytes, "416374696f6e4361626c65", "US-ASCII"]]]

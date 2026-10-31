@@ -795,9 +795,20 @@ module Compatibility
           # receiver.  The COLON3 wrapper carries no semantic metadata.
           return [:constant_write, nil, symbol(children[0].children.fetch(0)), rubyvm(children[2])]
         end
-        [:constant_write, rubyvm(children[0]), symbol(children[1]), rubyvm(children[2])]
+        [:constant_write, rubyvm_constant_write_receiver(children[0]), symbol(children[1]), rubyvm(children[2])]
       else
         unsupported!(:rubyvm, "CDECL fields #{children.length}")
+      end
+    end
+
+    def rubyvm_constant_write_receiver(node)
+      case node.type
+      when :COLON2
+        [:constant_path, rubyvm_constant_write_receiver(node.children.fetch(0)), symbol(node.children.fetch(1))]
+      when :COLON3
+        [:absolute_constant, symbol(node.children.fetch(0))]
+      else
+        rubyvm(node)
       end
     end
 
