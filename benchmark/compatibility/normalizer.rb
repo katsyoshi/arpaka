@@ -163,7 +163,12 @@ module Compatibility
       when "StringLiteral" then [:string, text(values[:value])]
       when "InterpolatedString"
         parts = merge_text_parts(values[:parts].map do |v|
-          v.is_a?(String) ? [:text, text(v)] : [:interpolation, arpaka(v)]
+          if v.is_a?(String)
+            [:text, text(v)]
+          else
+            value = arpaka(v)
+            value.first == :string ? [:text, value[1]] : [:interpolation, value]
+          end
         end)
         dynamic_string(parts) || [:interpolated, parts]
       when "DynamicSymbol"
