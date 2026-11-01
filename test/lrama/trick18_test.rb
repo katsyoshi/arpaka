@@ -88,4 +88,21 @@ class Trick18Test < Test::Unit::TestCase
 
     assert_nothing_raised { GeneratedRubyFrontend.parse(source) }
   end
+
+  test "parses unary command arguments after invisible unicode method names" do
+    source = "return\u200b -tmp\n"
+    call = GeneratedRubyFrontend.parse(source).statements.first
+
+    assert_instance_of(GeneratedRubyFrontend::AST::Call, call)
+    assert_equal(:"return\u200b", call.name)
+    assert_instance_of(GeneratedRubyFrontend::AST::Unary, call.arguments.first)
+    assert_equal(:-, call.arguments.first.operator)
+  end
+
+  test "keeps ASCII command operators binary" do
+    expression = GeneratedRubyFrontend.parse("foo -tmp\n").statements.first
+
+    assert_instance_of(GeneratedRubyFrontend::AST::Binary, expression)
+    assert_equal(:-, expression.operator)
+  end
 end

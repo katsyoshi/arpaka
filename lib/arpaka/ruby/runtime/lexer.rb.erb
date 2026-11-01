@@ -1699,10 +1699,10 @@ class Lexer
       return [:tUMINUS, :-]
     elsif value == "+" && @previous == :tSYMBEG
       return [:tUPLUS, :+]
-    elsif value == "-" && @context.begin_expression && !super_binary_operator?(start, 1)
+    elsif value == "-" && (@context.begin_expression || unicode_identifier_command_argument?(start)) && !super_binary_operator?(start, 1)
       token = numeric_literal_follows? ? :tUMINUS_NUM : :tUMINUS
       return [token, @previous == :keyword_def || @context.alias_context ? value : nil]
-    elsif value == "+" && @context.begin_expression && !super_binary_operator?(start, 1)
+    elsif value == "+" && (@context.begin_expression || unicode_identifier_command_argument?(start)) && !super_binary_operator?(start, 1)
       return [:tUPLUS, @previous == :keyword_def || @context.alias_context ? value : nil]
     elsif value == "*" && @context.begin_expression && !super_binary_operator?(start, 1)
       return [:tSTAR, nil]
@@ -1728,6 +1728,15 @@ class Lexer
     before = start.positive? ? @source.getbyte(start - 1) : nil
     after = @source.getbyte(start + length)
     !whitespace_byte?(before) || whitespace_byte?(after)
+  end
+
+  def unicode_identifier_command_argument?(start)
+    return false unless @previous == :tIDENTIFIER
+    return false unless @previous_value&.to_s&.match?(Regexp.new("\\p{Cf}"))
+
+    before = start.positive? ? @source.getbyte(start - 1) : nil
+    after = @source.getbyte(start + 1)
+    whitespace_byte?(before) && !whitespace_byte?(after)
   end
 
   def numeric_literal_follows?
