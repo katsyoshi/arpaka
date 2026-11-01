@@ -166,7 +166,7 @@ module Arpaka::Ruby::Actions
     674 => ["pass_through", "$1"],
     665 => ["pass_through", "$1"],
     628 => ["ported", "@builder.rescue_chain(@builder.rescue_clause($2, $3, $5), $6)"],
-    626 => ["pass_through", "$1"],
+    626 => ["ported", "@builder.constant_path(@builder.variable(:constant, $1), $3)"],
     625 => ["pass_through", "$2"],
     624 => ["ported", "@builder.pattern(:pin, [$3])"],
     622 => ["ported", "@builder.pattern(:pin, [@builder.read_local($2)])"],

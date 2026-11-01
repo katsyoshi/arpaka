@@ -595,6 +595,15 @@ class ArpakaTest < Test::Unit::TestCase
     end
   end
 
+  test "qualified constant paths in patterns retain their full path" do
+    constant = AST::ConstantPath.new(AST::Variable.new(:constant, :Prism), :CaseNode)
+    pair = AST::Pair.new(literal(:key), AST::Pattern.new(:variable, [:captured]))
+    pattern = AST::Pattern.new(:hash, [[pair], nil, constant])
+    expected = AST::Case.new(AST::BareCall.new(:value), [AST::When.new([pattern], [])], nil)
+
+    assert_equal(expected, GeneratedRubyFrontend.parse("case value; in Prism::CaseNode[key: captured]; end").statements.first)
+  end
+
   test "nested case patterns preserve array and hash captures" do
     nested_hash = AST::Pattern.new(:hash, [[AST::Pair.new(literal(:key), AST::Pattern.new(:variable, [:b]))], nil])
     nested_array = AST::Pattern.new(:array, [[AST::Pattern.new(:variable, [:a]), nested_hash], nil, []])
