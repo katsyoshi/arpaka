@@ -162,7 +162,18 @@ module Compatibility
         else
           [:unary, symbol(values[:operator]), normalized_operand]
         end
-      when "If" then [:conditional, arpaka(values[:condition]), body(values[:then_body]), body(values[:else_body])]
+      when "If"
+        condition = values[:condition]
+        normalized_condition = if ast_name(condition) == "Unary" && condition.operator == :! &&
+            ast_name(condition.operand) == "Binary" && condition.operand.operator == :"&&" &&
+            defined_expression?(arpaka(condition.operand.left)) &&
+            defined_expression?(arpaka(condition.operand.right))
+          operand = condition.operand
+          [:unary, symbol(:!), [:binary, symbol(:"&&"), arpaka(operand.left), arpaka(operand.right)]]
+        else
+          arpaka(condition)
+        end
+        [:conditional, normalized_condition, body(values[:then_body]), body(values[:else_body])]
       when "RangeLiteral"
         [:range, symbol(values[:operator]), range_endpoint(values[:begin_value]), range_endpoint(values[:end_value])]
       when "Ternary" then [:conditional, arpaka(values[:condition]), [arpaka(values[:then_value])], [arpaka(values[:else_value])]]
