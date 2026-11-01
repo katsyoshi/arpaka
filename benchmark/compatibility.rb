@@ -323,6 +323,7 @@ module Compatibility
         # Reconstruct it here so cached RubyVM results retain the same outcome
         # semantics as subprocess worker results.
         value[:parsed] = !%w[parse_failure error].include?(value[:status])
+        value[:tree] = Compatibility::Normalizer.new.normalize_cached_tree(value[:tree]) if value[:tree]
         cache[[record["corpus"], record["path"], record["sha256"]]] = value
       rescue JSON::ParserError
         next

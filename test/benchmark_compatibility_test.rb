@@ -136,6 +136,18 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_normalizes_cached_static_interpolation_tags
+    normalizer = Compatibility::Normalizer.new
+    payload = [:bytes, "68656c6c6f", "UTF-8"]
+
+    assert_equal [:string, payload],
+      normalizer.normalize_cached_tree([:interpolated, [[:text, payload]]])
+    assert_equal ["string", payload],
+      normalizer.normalize_cached_tree(["interpolated", [["text", payload]]])
+    assert_equal [:interpolated, [[:text, payload], [:interpolation, [:local_read, [:symbol, [:bytes, "76616c7565", "US-ASCII"]]]]]],
+      normalizer.normalize_cached_tree([:interpolated, [[:text, payload], [:interpolation, [:local_read, [:symbol, [:bytes, "76616c7565", "US-ASCII"]]]]]])
+  end
+
   def test_dynamic_string_interpolations_remain_interpolated
     normalizer = Compatibility::Normalizer.new
     [

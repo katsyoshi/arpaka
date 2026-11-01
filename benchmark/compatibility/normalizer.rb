@@ -1112,6 +1112,22 @@ module Compatibility
       [:string, parts.first[1]]
     end
 
+    def normalize_cached_tree(value)
+      return value unless value.is_a?(Array)
+
+      normalized = value.map { |child| normalize_cached_tree(child) }
+      interpolated = [:interpolated, "interpolated"].include?(normalized.first)
+      return normalized unless interpolated
+
+      parts = normalized[1]
+      return normalized unless parts.is_a?(Array) && parts.length == 1
+
+      part = parts.first
+      text_part = part.is_a?(Array) && [:text, "text"].include?(part.first)
+      text_part ? [normalized.first == :interpolated ? :string : "string", part[1]] : normalized
+    end
+    public :normalize_cached_tree
+
     def merge_text_payloads(left, right)
       return unless left.is_a?(Array) && right.is_a?(Array)
       return unless left.length == 3 && right.length == 3
