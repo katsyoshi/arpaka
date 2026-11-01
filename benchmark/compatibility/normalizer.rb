@@ -145,6 +145,12 @@ module Compatibility
       when "Unary"
         operand = values[:operand]
         normalized_operand = arpaka(operand)
+        if values[:operator] == :! && ast_name(operand) == "Unary" && operand.operator == :! &&
+            ast_name(operand.operand) == "Binary" &&
+            [:'&&', :'||'].include?(operand.operand.operator) && defined_expression?(normalized_operand[2])
+          return [:binary, symbol(operand.operand.operator),
+            [:unary, symbol(:!), normalized_operand[2]], normalized_operand[3]]
+        end
         if values[:operator] == :! && ast_name(operand) == "Binary" &&
             [:'&&', :'||'].include?(operand.operator) && defined_expression?(normalized_operand[2])
           return [:binary, symbol(operand.operator),

@@ -319,6 +319,15 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
   end
 
+  def test_preserves_double_negated_defined_expression_precedence
+    normalizer = Compatibility::Normalizer.new
+    source = "!!defined?(value) && fallback"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
   def test_preserves_singleton_method_required_arguments
     normalizer = Compatibility::Normalizer.new
     ["def self.===(other); other; end", "def self.f(a, b); [a, b]; end"].each do |source|
