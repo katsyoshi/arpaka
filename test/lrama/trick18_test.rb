@@ -48,6 +48,13 @@ class Trick18Test < Test::Unit::TestCase
     assert_equal(:"$/", tokens.first.last)
   end
 
+  test "recognizes the comma special global variable" do
+    tokens = GeneratedRubyFrontend.const_get(:Lexer, false).new("$,\n").each.to_a
+
+    assert_equal(:tGVAR, tokens.first.first)
+    assert_equal(:"$,", tokens.first.last)
+  end
+
   test "uses indexing brackets for calls nested in arrays" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("values = [first, second [item]]\n") }
     assert_nothing_raised { GeneratedRubyFrontend.parse("values = [first * index [0]]\n") }
