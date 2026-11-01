@@ -1192,7 +1192,7 @@ class Lexer
   def regexp_or_operator(start)
     return operator_or_punctuation(start) if [".", :tCOLON2, :tANDDOT, :keyword_def, :tSYMBEG].include?(@previous) ||
       super_binary_operator?(start, 1)
-    if @context.begin_expression
+    if @context.begin_expression || regexp_command_argument?
       advance
       value, metadata = read_regexp(start)
       content = value.is_a?(Array) ? value : [[:tSTRING_CONTENT, value]]
@@ -1238,6 +1238,9 @@ class Lexer
       elsif value == 47 && !in_class
         advance
         metadata = read_regexp_options
+        result.scan(/\(\?<([A-Za-z_][A-Za-z0-9_]*)>/) do
+          @local_variables[Regexp.last_match(1).to_sym] = true
+        end
         result.force_encoding(@source_encoding)
         tokens << [:tSTRING_CONTENT, result] unless result.empty?
         if metadata[:encoding] == "US-ASCII"
@@ -1728,6 +1731,12 @@ class Lexer
     before = start.positive? ? @source.getbyte(start - 1) : nil
     after = @source.getbyte(start + length)
     !whitespace_byte?(before) || whitespace_byte?(after)
+  end
+
+  def regexp_command_argument?
+    @previous == :tIDENTIFIER && @previous_previous == :modifier_if &&
+      !@local_variables.key?(@previous_value) &&
+      !whitespace_byte?(byte(1))
   end
 
   def unicode_identifier_command_argument?(start)

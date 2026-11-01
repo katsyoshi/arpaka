@@ -19,6 +19,13 @@ class Trick22Test < Test::Unit::TestCase
     end
   end
 
+  test "parses the tompng entry with command regexp arguments" do
+    omit("set TRICK22_ROOT to run the external Trick 2022 corpus") unless TRICK_ROOT && Dir.exist?(TRICK_ROOT)
+
+    source = File.read(File.join(TRICK_ROOT, "04-tompng", "entry.rb"))
+    assert_nothing_raised { GeneratedRubyFrontend.parse(source, filename: "04-tompng/entry.rb") }
+  end
+
   test "does not treat an operator method call as a heredoc" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("receiver.<<value\n") }
   end
