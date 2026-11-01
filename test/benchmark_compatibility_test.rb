@@ -160,6 +160,18 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_static_array_splats_followed_by_arguments_match_rubyvm
+    normalizer = Compatibility::Normalizer.new
+    [
+      "system(*%w[bundle exec], plugin_path, *args, out: output)",
+      "system(*%w[bundle install], out: output)"
+    ].each do |source|
+      expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
+      actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+      assert_equal expected, actual, source
+    end
+  end
+
   def test_numbered_parameters_in_lambdas_match_rubyvm
     normalizer = Compatibility::Normalizer.new
     ["-> { _1 }", "-> { _1 + _2 }"].each do |source|

@@ -570,12 +570,34 @@ module Compatibility
       forwarding_index = arguments.index do |argument|
         ast_name(argument) == "Parameter" && argument.kind == :forwarding
       end
-      return arguments.map { |argument| arpaka_argument(argument) } unless forwarding_index
+      unless forwarding_index
+        normalized = []
+        arguments.each_with_index do |argument, index|
+          if index < arguments.length - 1 &&
+              static_array_splat_with_following_argument?(argument, arguments[(index + 1)..])
+            normalized.concat(argument.value.elements.map { |element| arpaka(element) })
+          else
+            normalized << arpaka_argument(argument)
+          end
+        end
+        return normalized
+      end
 
       forwarded_arguments = arguments.take(forwarding_index).map { |argument| arpaka_argument(argument) }
       forwarded_arguments << [:splat, [:local_read, symbol(:*)]]
       forwarded_arguments << [:hash, [[:pair, [:missing_child], [:local_read, symbol(:**)]]]]
       [[:block_pass, forwarded_arguments, [:local_read, symbol(:&)]]]
+    end
+
+    def static_array_splat_with_following_argument?(argument, following)
+      return false unless ast_name(argument) == "Splat"
+      return false unless following.any? { |item| ast_name(item) != "HashLiteral" }
+      value = argument.value
+      return false unless ast_name(value) == "ArrayLiteral"
+
+      Array(value.elements).all? do |element|
+        ast_name(element) == "StringLiteral" && element.value.is_a?(String)
+      end
     end
 
     def arpaka_argument(value)
