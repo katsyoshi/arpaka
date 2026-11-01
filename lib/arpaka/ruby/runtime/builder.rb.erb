@@ -343,7 +343,7 @@ class Builder
   end
 
   def def_node(name, arguments, body)
-    body = resolve_local_reads(method_body_nodes(body), @locals.keys)
+    body = resolve_method_local_reads(method_body_nodes(body), @locals.keys, block_parameter_names(arguments))
     node = AST::Def.new(name.to_sym, (arguments || []).freeze, body)
     end_method_scope
     node
@@ -354,7 +354,7 @@ class Builder
       arguments = arguments.value
       arguments.grep(Symbol).each { |argument| declare_local(argument) }
     end
-    body = resolve_local_reads(method_body_nodes(body), @locals.keys)
+    body = resolve_method_local_reads(method_body_nodes(body), @locals.keys, block_parameter_names(arguments))
     node = AST::SingletonMethodDef.new(receiver, name.to_sym, (arguments || []).freeze,
       body)
     end_method_scope
@@ -764,6 +764,36 @@ class Builder
   def resolve_local_reads(value, inherited_names)
     local_names = (Array(inherited_names) + local_names_in_scope(value)).uniq
     rewrite_local_reads(value, local_names, for_target_names_in_scope(value))
+  end
+
+  def resolve_method_local_reads(value, local_names, parameter_names)
+    return resolve_local_reads(value, local_names) unless value.is_a?(Array)
+
+    assigned_names = Array(parameter_names).compact.uniq
+    result = value.map do |statement|
+      names = (assigned_names + direct_assignment_names(statement)).uniq
+      rewritten = rewrite_local_reads(statement, names, for_target_names_in_scope(statement))
+      assigned_names |= local_names_in_scope(statement)
+      rewritten
+    end
+    result.freeze if value.frozen?
+    result
+  end
+
+  def direct_assignment_names(value)
+    return [] unless data_node?(value)
+
+    case value.class.name.split("::").last
+    when "LocalWrite"
+      [value.name]
+    when "OpAssign"
+      target_names(value.target)
+    when "MultipleAssign"
+      Array(value.targets).flat_map { |target| target_names(target) } + target_names(value.rest) +
+        Array(value.post).flat_map { |target| target_names(target) }
+    else
+      []
+    end
   end
 
   def for_target_names_in_scope(value)
