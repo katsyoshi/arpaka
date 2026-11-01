@@ -586,7 +586,11 @@ class Builder
   end
 
   def rescue_clause(exceptions, variable, body)
-    AST::RescueClause.new(Array(exceptions).freeze, variable, body_nodes(body))
+    # A splatted rescue exception is represented by RubyVM as an array
+    # expression containing the splat, rather than as the splat itself.
+    exceptions = Array(exceptions)
+    exceptions = [AST::ArrayLiteral.new(exceptions.freeze)] if exceptions.length == 1 && exceptions.first.is_a?(AST::Splat)
+    AST::RescueClause.new(exceptions.freeze, variable, body_nodes(body))
   end
 
   def full_rescue(body, clauses, else_body, ensure_body)

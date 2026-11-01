@@ -102,6 +102,11 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(expected, GeneratedRubyFrontend.parse("def f(values); g(*values); end").statements.first.body.first)
   end
 
+  test "splat rescue exceptions retain their array expression" do
+    clause = GeneratedRubyFrontend.parse("begin; work; rescue *ERRORS; recover; end").statements.first.clauses.first
+    assert_equal([AST::Splat.new(AST::Variable.new(:constant, :ERRORS))], clause.exceptions.first.elements)
+  end
+
   test "predicate and bang method identifiers become no-argument calls" do
     assert_equal(AST::Call.new(:block_given?, []), GeneratedRubyFrontend.parse("block_given?").statements.first)
     assert_equal(AST::ReceiverCall.new(AST::BareCall.new(:value), :".", :empty?, []),
