@@ -39,6 +39,8 @@ module Arpaka
             ["ported", "@builder.multiple_assign_post([], :NODE_SPECIAL_NO_NAME_REST, $3)"],
           ["f_opt_primary_value", ["f_arg_asgn", "f_eq", "primary_value"]] =>
             ["ported", "@builder.parameter(:optional, $1, $3)"],
+          ["f_opt_arg_primary_value", ["f_opt_arg_primary_value", "','", "f_opt_primary_value"]] =>
+            ["ported", "@builder.parameter_list($1, $3)"],
           ["args-list_primary_value_opt_args_tail_block_args_tail_none",
             ["f_arg", "','", "f_opt_arg_primary_value", "','", "f_rest_arg", "opt_args_tail_block_args_tail_none"]] =>
             ["ported", "@builder.parameter_list(@builder.append_block_rest(@builder.parameter_list($1, $3), $5), $6)"],

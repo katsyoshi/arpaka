@@ -222,6 +222,13 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nil(anonymous_block.name)
   end
 
+  test "block parameters retain multiple optional defaults" do
+    parameters = GeneratedRubyFrontend.parse(
+      "define_method(:sample) do |_required, _first = [], _second = {}|; end"
+    ).statements.first.parameters
+    assert_equal(["_required", :_first, :_second], parameters.value.map { |parameter| parameter.respond_to?(:name) ? parameter.name : parameter })
+  end
+
   test "method keyword parameters retain required optional rest and disabled forms" do
     parameters = GeneratedRubyFrontend.parse("def sample(required:, optional: 1, **keywords, &block); end")
       .statements.first.arguments
