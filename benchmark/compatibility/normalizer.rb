@@ -78,7 +78,13 @@ module Compatibility
       unsupported!(:arpaka, "#{name} fields #{fields.inspect}, expected #{expected.inspect}") unless fields == expected
       values ||= fields.to_h { |field| [field, node.public_send(field)] }
       case name
-      when "Program", "Sequence" then [:sequence, values[:statements].map { |item| arpaka(item) }]
+      when "Program"
+        statements = values[:statements]
+        begin_blocks, regular_statements = statements.partition { |item| ast_name(item) == "BeginBlock" }
+        normalized = begin_blocks.flat_map { |item| body(item.body) } + regular_statements.map { |item| arpaka(item) }
+        normalized.concat(begin_blocks.map { [:literal, nil] }) unless begin_blocks.empty?
+        [:sequence, normalized]
+      when "Sequence" then [:sequence, values[:statements].map { |item| arpaka(item) }]
       when "Literal"
         case values[:value]
         when :__FILE__ then [:file, text("".b)]
