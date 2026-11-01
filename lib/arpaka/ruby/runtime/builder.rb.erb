@@ -383,6 +383,13 @@ class Builder
     value || [].freeze
   end
 
+  def begin_body(body)
+    nodes = body_nodes(body)
+    return nodes.first if nodes.is_a?(Array) && nodes.length == 1 && nodes.first.is_a?(AST::Undef)
+
+    nodes
+  end
+
   def method_body_nodes(body)
     nodes = body_nodes(body)
     return [].freeze if nodes.is_a?(Array) && nodes.length == 1 &&

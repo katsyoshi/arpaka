@@ -19,6 +19,12 @@ class Trick18Test < Test::Unit::TestCase
     assert_nothing_raised { GeneratedRubyFrontend.parse(source) }
   end
 
+  test "keeps undef direct inside a begin expression" do
+    loop = GeneratedRubyFrontend.parse("break while begin undef do end").statements.first
+
+    assert_equal(GeneratedRubyFrontend::AST::Undef.new([:do].freeze), loop.condition)
+  end
+
   test "does not split equality after a receiver method" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("value.__id__ == __id__\n") }
   end
