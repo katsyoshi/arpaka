@@ -180,7 +180,7 @@ module Compatibility
             batch_results = job_files.to_h do |file|
               started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
               begin
-                source = File.binread(file).force_encoding(Encoding::UTF_8)
+                source = File.binread(file).force_encoding(Encoding::UTF_8).gsub("\r\n", "\n")
                 tree = job_frontend_class.parse(source, filename: file)
                 # Match the JSON boundary used by the subprocess worker. In
                 # particular, symbols in the canonical tree become strings.

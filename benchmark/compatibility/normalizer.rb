@@ -83,7 +83,7 @@ module Compatibility
         case values[:value]
         when :__FILE__ then [:file, text("".b)]
         when Symbol then [:symbol, text(values[:value].to_s)]
-        when String then [:string, text(values[:value])]
+        when String then [:string, string_text(values[:value])]
         when Integer then [:integer, values[:value]]
         when Float then [:float, [values[:value]].pack("G").unpack1("H*")]
         when Rational then rational(values[:value])
@@ -160,7 +160,7 @@ module Compatibility
       when "RangeLiteral"
         [:range, symbol(values[:operator]), range_endpoint(values[:begin_value]), range_endpoint(values[:end_value])]
       when "Ternary" then [:conditional, arpaka(values[:condition]), [arpaka(values[:then_value])], [arpaka(values[:else_value])]]
-      when "StringLiteral" then [:string, text(values[:value])]
+      when "StringLiteral" then [:string, string_text(values[:value])]
       when "InterpolatedString"
         parts = merge_text_parts(values[:parts].map do |v|
           if v.is_a?(String)
@@ -1228,7 +1228,7 @@ module Compatibility
 
     def symbol(value)
       unsupported!(:rubyvm, "symbol value #{value.class}") unless value.is_a?(Symbol)
-      [:symbol, text(value.to_s)]
+      [:symbol, symbol_text(value.to_s)]
     end
 
     def logical_operator(value)
@@ -1260,6 +1260,21 @@ module Compatibility
 
     def text(value)
       [:bytes, value.b.unpack1("H*"), value.encoding.name]
+    end
+
+    def string_text(value)
+      return text(value) unless value.empty? && value.encoding == Encoding::US_ASCII
+
+      [:bytes, value.b.unpack1("H*"), Encoding::UTF_8.name]
+    end
+
+    def symbol_text(value)
+      if value.encoding == Encoding::ASCII_8BIT
+        utf8 = value.dup.force_encoding(Encoding::UTF_8)
+        return [:bytes, value.b.unpack1("H*"), Encoding::UTF_8.name] if utf8.valid_encoding?
+      end
+
+      text(value)
     end
 
     def regexp(pattern_bytes, options, encoding)

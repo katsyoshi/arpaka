@@ -18,6 +18,30 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     assert_equal(expected, actual)
   end
 
+  def test_normalizes_empty_string_and_utf8_symbol_metadata
+    normalizer = Compatibility::Normalizer.new
+
+    empty = "<<TEXT\nTEXT\n"
+    expected_empty = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(empty).children.fetch(2))
+    actual_empty = normalizer.arpaka(GeneratedRubyFrontend.parse(empty)).fetch(1).fetch(0)
+    assert_equal expected_empty, actual_empty
+
+    source = "$🚀 = 0"
+    expected_symbol = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
+    actual_symbol = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+    assert_equal expected_symbol, actual_symbol
+  end
+
+  def test_compatibility_runner_normalizes_crlf_input
+    normalizer = Compatibility::Normalizer.new
+    source = "<<TEXT\r\none\r\ntwo\r\nTEXT\r\n"
+    expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
+    normalized_source = source.gsub("\r\n", "\n")
+    actual = normalizer.arpaka(GeneratedRubyFrontend.parse(normalized_source)).fetch(1).fetch(0)
+
+    assert_equal expected, actual
+  end
+
   def test_multiple_assignment_preserves_anonymous_rest
     normalizer = Compatibility::Normalizer.new
     ["first, * = values", "first, *, last = values", "* = values", "*, last = values"].each do |source|
