@@ -32,6 +32,14 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     assert_equal expected_symbol, actual_symbol
   end
 
+  def test_preserves_command_call_unary_plus_precedence
+    normalizer = Compatibility::Normalizer.new
+    source = "srand +big && $counter >> 1"
+    expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
+    actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+    assert_equal expected, actual
+  end
+
   def test_compatibility_runner_normalizes_crlf_input
     normalizer = Compatibility::Normalizer.new
     source = "<<TEXT\r\none\r\ntwo\r\nTEXT\r\n"

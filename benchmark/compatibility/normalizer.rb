@@ -121,6 +121,14 @@ module Compatibility
       when "Binary"
         left = arpaka(values[:left])
         right = arpaka(values[:right])
+        if [:'&&', :'||'].include?(values[:operator]) &&
+            ast_name(values[:left]) == "Binary" && values[:left].operator == :+ &&
+            ast_name(values[:left].left) == "BareCall" &&
+            ast_name(values[:right]) == "Binary" && values[:right].operator == :>>
+          return [:call, nil, false, symbol(values[:left].left.name),
+            [[:binary, symbol(values[:operator]),
+              [:unary, symbol(:+), left[3]], right]]]
+        end
         if values[:operator] == :=~
           left_regexp = ast_name(values[:left]) == "RegexpLiteral"
           dynamic_right_regexp = ast_name(values[:right]) == "RegexpLiteral" && values[:right].value.is_a?(Array)
