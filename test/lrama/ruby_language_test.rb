@@ -115,6 +115,15 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal([AST::Splat.new(AST::Variable.new(:constant, :ERRORS))], clause.exceptions.first.elements)
   end
 
+  test "mixed rescue exceptions retain their array expression" do
+    clause = GeneratedRubyFrontend.parse("begin; work; rescue Errors::Encoding, *DECRYPT_ERRORS; recover; end").statements.first.clauses.first
+    assert_equal(
+      [AST::ConstantPath.new(AST::Variable.new(:constant, :Errors), :Encoding),
+       AST::Splat.new(AST::Variable.new(:constant, :DECRYPT_ERRORS))],
+      clause.exceptions.first.elements
+    )
+  end
+
   test "predicate and bang method identifiers become no-argument calls" do
     assert_equal(AST::Call.new(:block_given?, []), GeneratedRubyFrontend.parse("block_given?").statements.first)
     assert_equal(AST::ReceiverCall.new(AST::BareCall.new(:value), :".", :empty?, []),
