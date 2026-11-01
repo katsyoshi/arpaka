@@ -174,6 +174,15 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     assert_equal normalizer.arpaka(current), normalizer.arpaka(legacy)
   end
 
+  def test_splat_tail_keeps_positional_and_keyword_arguments_together
+    normalizer = Compatibility::Normalizer.new
+    source = "tag_string(name, *args, options, escape: escape)"
+    expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
+    actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+
+    assert_equal expected, actual
+  end
+
   def test_normalizes_control_without_optional_value_field
     node = Class.new do
       define_singleton_method(:name) { "AST::Control" }

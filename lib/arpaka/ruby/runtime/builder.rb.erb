@@ -122,6 +122,11 @@ class Builder
       end
     end
     flush_pairs.call
+    splat_index = result.rindex { |argument| argument.is_a?(AST::Splat) }
+    if splat_index && result[(splat_index + 1)..].length > 1 &&
+        result[(splat_index + 1)..].any? { |argument| argument.is_a?(AST::HashLiteral) }
+      result[splat_index + 1..] = [AST::Splat.new(AST::ArrayLiteral.new(result[(splat_index + 1)..].freeze))]
+    end
     result.freeze
   end
 <% else -%>
