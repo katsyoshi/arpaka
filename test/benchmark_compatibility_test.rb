@@ -310,6 +310,20 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_does_not_normalize_bare_rescue_as_a_rescue_modifier
+    normalizer = Compatibility::Normalizer.new
+    [
+      "def f; raise FirstError rescue raise SecondError; end",
+      "def f\n  raise FirstError\nrescue\n  raise SecondError\nend"
+    ].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+      rubyvm = normalizer.rubyvm(tree.children.fetch(2))
+      arpaka = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+
+      assert_equal rubyvm, arpaka, source
+    end
+  end
+
   def test_normalizes_qualified_declaration_names_like_arpaka
     tree = RubyVM::AbstractSyntaxTree.parse("class ActionCable::Loader; end", keep_script_lines: false)
     normalized = Compatibility::Normalizer.new.rubyvm(tree.children.fetch(2))

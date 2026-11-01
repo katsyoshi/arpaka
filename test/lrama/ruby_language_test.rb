@@ -311,6 +311,13 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(AST::Program.new([literal(:foo)]), parse([:tSYMBEG, nil], [:tIDENTIFIER, :foo]))
   end
 
+  test "for target locals are visible before the loop in the surrounding scope" do
+    tree = GeneratedRubyFrontend.parse("you != program; for you, program in values; end")
+
+    assert_equal(AST::Binary.new(:!=, AST::LocalRead.new(:you), AST::LocalRead.new(:program)),
+      tree.statements.first)
+  end
+
   test "index access preserves receiver and index arguments" do
     receiver = AST::ArrayLiteral.new([literal(1), literal(2)])
     expected = AST::Index.new(receiver, [literal(0)])

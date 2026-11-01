@@ -747,7 +747,23 @@ class Builder
   # Resolve the remaining BareCall nodes once a scope's AST is complete.
   def resolve_local_reads(value, inherited_names)
     local_names = (Array(inherited_names) + local_names_in_scope(value)).uniq
-    rewrite_local_reads(value, local_names)
+    rewrite_local_reads(value, local_names, for_target_names_in_scope(value))
+  end
+
+  def for_target_names_in_scope(value)
+    case value
+    when Array
+      value.flat_map { |item| for_target_names_in_scope(item) }
+    end
+    return [] unless data_node?(value)
+
+    if value.class.name.split("::").last == "For"
+      target_names(value.variable) + value.members.flat_map do |member|
+        for_target_names_in_scope(value.public_send(member))
+      end
+    else
+      value.members.flat_map { |member| for_target_names_in_scope(value.public_send(member)) }
+    end
   end
 
   def local_names_in_scope(value)
@@ -765,6 +781,10 @@ class Builder
     when "MultipleAssign"
       Array(value.targets).flat_map { |target| target_names(target) } +
         local_names_in_scope(value.value)
+    when "For"
+      target_names(value.variable) + value.members.flat_map do |member|
+        local_names_in_scope(value.public_send(member))
+      end
     when "Def", "SingletonMethodDef", "Lambda", "BlockCall",
          "ClassDef", "ModuleDef", "SingletonClassDef"
       []
@@ -785,10 +805,10 @@ class Builder
     target_names(targets).each { |name| declare_local(name) }
   end
 
-  def rewrite_local_reads(value, local_names)
+  def rewrite_local_reads(value, local_names, for_target_names = [])
     case value
     when Array
-      result = value.map { |item| rewrite_local_reads(item, local_names) }
+      result = value.map { |item| rewrite_local_reads(item, local_names, for_target_names) }
       result.freeze if value.frozen?
       return result
     end
@@ -800,16 +820,23 @@ class Builder
     end
 
     case type
+    when "ReceiverCall"
+      receiver = value.receiver
+      unless receiver.is_a?(AST::BareCall) && for_target_names.include?(receiver.name)
+        receiver = rewrite_local_reads(receiver, local_names, for_target_names)
+      end
+      return value.with(receiver: receiver,
+        arguments: rewrite_local_reads(value.arguments, local_names, for_target_names))
     when "BlockCall"
-      return value.with(call: rewrite_local_reads(value.call, local_names))
+      return value.with(call: rewrite_local_reads(value.call, local_names, for_target_names))
     when "SingletonMethodDef"
-      return value.with(receiver: rewrite_local_reads(value.receiver, local_names))
+      return value.with(receiver: rewrite_local_reads(value.receiver, local_names, for_target_names))
     when "Def", "Lambda", "ClassDef", "ModuleDef", "SingletonClassDef"
       return value
     end
 
     fields = value.members.to_h do |member|
-      [member, rewrite_local_reads(value.public_send(member), local_names)]
+      [member, rewrite_local_reads(value.public_send(member), local_names, for_target_names)]
     end
     value.with(**fields)
   end

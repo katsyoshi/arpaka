@@ -1141,25 +1141,11 @@ module Compatibility
       nodes.length == 1 ? nodes.first : [:sequence, nodes]
     end
 
-    def implicit_rescue_modifier?(value)
-      return false unless ast_name(value) == "FullRescue"
-      return false unless value.else_body.nil? && value.ensure_body.nil?
-
-      clauses = value.clauses
-      return false unless value.body.length == 1
-      clauses.length == 1 && clauses.first.exceptions.empty? && clauses.first.variable.nil? &&
-        clauses.first.body.length == 1
-    end
-
     def range_endpoint(value)
       value.nil? ? [:literal, nil] : arpaka(value)
     end
 
     def method_body(value)
-      if implicit_rescue_modifier?(value)
-        clause = value.clauses.fetch(0)
-        return [[:rescue_modifier, body_value(value.body), body_value(clause.body)]]
-      end
       normalize_terminal_nil_body(body(value))
     end
 
