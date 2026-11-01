@@ -545,6 +545,16 @@ class ArpakaTest < Test::Unit::TestCase
     end
   end
 
+  test "rightward scalar patterns retain their pattern wrapper" do
+    literal_pattern = AST::Pattern.new(:value, [AST::StringLiteral.new("foo")])
+    variable_pattern = AST::Pattern.new(:variable, [:value])
+
+    assert_equal(AST::Case.new(AST::StringLiteral.new("input"), [AST::When.new([literal_pattern], [])], nil),
+      GeneratedRubyFrontend.parse('"input" => "foo"').statements.first)
+    assert_equal(AST::Case.new(AST::BareCall.new(:input), [AST::When.new([variable_pattern], [])], nil),
+      GeneratedRubyFrontend.parse("input => value").statements.first)
+  end
+
   test "case in array patterns preserves captures and rest captures" do
     captures = AST::Pattern.new(:array, [[AST::Pattern.new(:variable, [:a]), AST::Pattern.new(:variable, [:b])], nil, []])
     captures_clause = AST::When.new([captures], [literal(:pair)])
