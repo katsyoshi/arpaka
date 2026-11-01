@@ -102,6 +102,14 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(expected, GeneratedRubyFrontend.parse("def f(values); g(*values); end").statements.first.body.first)
   end
 
+  test "array literals retain trailing positional values inside a splat" do
+    expected = AST::ArrayLiteral.new([
+      AST::Splat.new(AST::BareCall.new(:values)),
+      AST::Splat.new(AST::ArrayLiteral.new([literal(1), literal(2)]))
+    ])
+    assert_equal(expected, GeneratedRubyFrontend.parse("[*values, 1, 2]").statements.first)
+  end
+
   test "splat rescue exceptions retain their array expression" do
     clause = GeneratedRubyFrontend.parse("begin; work; rescue *ERRORS; recover; end").statements.first.clauses.first
     assert_equal([AST::Splat.new(AST::Variable.new(:constant, :ERRORS))], clause.exceptions.first.elements)

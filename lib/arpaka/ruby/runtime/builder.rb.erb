@@ -938,6 +938,13 @@ class Builder
 
   def array(elements)
     elements = elements.is_a?(Array) ? elements : [elements]
+    if elements.first.is_a?(AST::Splat)
+      last_splat_index = elements.rindex { |element| element.is_a?(AST::Splat) }
+      trailing = elements[(last_splat_index + 1)..]
+      if trailing && trailing.length > 1 && trailing.none? { |element| element.is_a?(AST::Pair) }
+        elements = elements[0..last_splat_index] + [AST::Splat.new(AST::ArrayLiteral.new(trailing.freeze))]
+      end
+    end
     pair_index = elements.index { |element| element.is_a?(AST::Pair) }
     if pair_index && elements.drop(pair_index).all? { |element| element.is_a?(AST::Pair) }
       elements = elements.take(pair_index) + [AST::HashLiteral.new(elements.drop(pair_index).freeze)]
