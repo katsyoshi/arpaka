@@ -536,6 +536,15 @@ class ArpakaTest < Test::Unit::TestCase
     assert_equal(expected, GeneratedRubyFrontend.parse("case value; in 1; :one; end").statements.first)
   end
 
+  test "rightward pattern matches retain their single case clause" do
+    pattern = AST::Pattern.new(:hash, [[AST::Pair.new(literal(:key), AST::Pattern.new(:variable, [:value]))], nil])
+    expected = AST::Case.new(AST::BareCall.new(:input), [AST::When.new([pattern], [])], nil)
+
+    ["input => {key: value}", "input in {key: value}"].each do |source|
+      assert_equal(expected, GeneratedRubyFrontend.parse(source).statements.first, source)
+    end
+  end
+
   test "case in array patterns preserves captures and rest captures" do
     captures = AST::Pattern.new(:array, [[AST::Pattern.new(:variable, [:a]), AST::Pattern.new(:variable, [:b])], nil, []])
     captures_clause = AST::When.new([captures], [literal(:pair)])
