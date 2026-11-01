@@ -124,6 +124,17 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_numbered_parameters_in_lambdas_match_rubyvm
+    normalizer = Compatibility::Normalizer.new
+    ["-> { _1 }", "-> { _1 + _2 }"].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+      rubyvm = normalizer.rubyvm(tree.children.fetch(2))
+      arpaka = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+
+      assert_equal rubyvm, arpaka, source
+    end
+  end
+
   def test_program_name_is_a_global_variable_not_a_regexp_capture
     normalizer = Compatibility::Normalizer.new
     ["$0", "$0 = 'program'", "[$0, $1, $10]"].each do |source|

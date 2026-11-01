@@ -508,6 +508,13 @@ class Builder
 
   def lambda_node(arguments, body)
     parameter_names = lambda_parameter_names(arguments)
+    if parameter_names.empty?
+      implicit_names = implicit_block_parameter_names(body)
+      unless implicit_names.empty?
+        arguments = implicit_names
+        parameter_names = implicit_names
+      end
+    end
     inherited_names = (@locals.keys + parameter_names).uniq
     parameter_names.each { |name| @lambda_local_counts[name] += 1 }
     previous_state = @lambda_parameter_states.pop
