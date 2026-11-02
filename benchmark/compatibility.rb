@@ -40,7 +40,7 @@ module Compatibility
       @measurement_started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       @gc_before = GC.stat
       if @frontend
-        @frontend_class = load(@frontend).then { Object.const_get(:CompatibilityFrontend) }
+        load_frontend unless @parallel == :ractor
         results = run_comparison(@frontend)
         [results, metadata(@frontend, results)]
       else
@@ -48,7 +48,7 @@ module Compatibility
         Dir.mktmpdir("arpaka-compatibility-") do |directory|
           frontend = File.join(directory, "frontend.rb")
           File.write(frontend, generated)
-          @frontend_class = load(frontend).then { Object.const_get(:CompatibilityFrontend) }
+          load_frontend(frontend) unless @parallel == :ractor
           results = run_comparison(frontend)
           [results, metadata(frontend, results)]
         end
@@ -152,21 +152,42 @@ module Compatibility
 
     def compare_files_with_ractors(name, root, files, frontend)
       batches = files.each_slice((files.length.fdiv(@threads)).ceil).to_a
-      frontend_class = @frontend_class
       port = Ractor::Port.new
       workers = batches.each_with_index.map do |batch, index|
-        Ractor.new(port, index, name, root, batch, frontend_class, @disable_gc) do |result_port, job_index, job_name, job_root, job_files, job_frontend_class, disable_gc|
+        Ractor.new(port, index, name, root, batch, frontend, @disable_gc) do |result_port, job_index, job_name, job_root, job_files, job_frontend, disable_gc|
           begin
             GC.disable if disable_gc
+            verbose = $VERBOSE
+            begin
+              # Each Ractor owns its frontend class, but the generated source
+              # defines the same constants in every worker. Avoid noisy
+              # redefinition warnings while loading those isolated copies.
+              $VERBOSE = nil
+              # Constants are shared between Ractors. Give each loaded
+              # frontend a private top-level name so singleton methods that
+              # close over a constructor Proc stay owned by this Ractor.
+              # Constant tables are shared between Ractors, so the name must
+              # also be unique across successive Runner invocations.
+              job_class_name = "CompatibilityFrontend#{Process.pid}#{Ractor.current.object_id}#{job_index}"
+              source = File.read(job_frontend, encoding: Encoding::UTF_8).gsub(
+                /\bCompatibilityFrontend\b/, job_class_name)
+              eval(source, binding, job_frontend)
+            ensure
+              $VERBOSE = verbose
+            end
+            job_frontend_class = eval(job_class_name, binding, job_frontend)
             normalizer = Compatibility::Normalizer.new
             batch_results = job_files.to_h do |file|
               started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
               begin
-                source = File.binread(file).force_encoding(Encoding::UTF_8)
+                source = File.binread(file).force_encoding(Encoding::UTF_8).gsub("\r\n", "\n")
                 tree = job_frontend_class.parse(source, filename: file)
                 # Match the JSON boundary used by the subprocess worker. In
                 # particular, symbols in the canonical tree become strings.
-                canonical = JSON.parse(JSON.generate(normalizer.arpaka(tree), max_nesting: false))
+                canonical = JSON.parse(
+                  JSON.generate(normalizer.arpaka(tree), max_nesting: false),
+                  max_nesting: false
+                )
                 arpaka = { status: "ok", parsed: true, tree: canonical,
                   elapsed: Process.clock_gettime(Process::CLOCK_MONOTONIC) - started,
                   runtime: RUBY_DESCRIPTION, ruby_box: false }
@@ -212,6 +233,10 @@ module Compatibility
         workers.each { |worker| worker.close rescue nil }
       end
       results.flatten
+    end
+
+    def load_frontend(frontend = @frontend)
+      @frontend_class = load(frontend).then { Object.const_get(:CompatibilityFrontend) }
     end
 
     def compare_batch(name, root, files, frontend)
@@ -293,6 +318,12 @@ module Compatibility
         next unless record["type"] == "reference"
         value = record.transform_keys(&:to_sym)
         value[:elapsed] = value.delete(:elapsed_seconds)
+        # Reference caches produced by the Oracle contain the normalized tree
+        # and status, but do not need to repeat the worker's parsed flag.
+        # Reconstruct it here so cached RubyVM results retain the same outcome
+        # semantics as subprocess worker results.
+        value[:parsed] = !%w[parse_failure error].include?(value[:status])
+        value[:tree] = Compatibility::Normalizer.new.normalize_cached_tree(value[:tree]) if value[:tree]
         cache[[record["corpus"], record["path"], record["sha256"]]] = value
       rescue JSON::ParserError
         next
@@ -409,9 +440,20 @@ module Compatibility
 
     def compare_trees(left, right, path = "$", keyword_argument: false)
       return [:match, nil] if left == right
+      return [:match, nil] if equivalent_constant_path?(left, right)
 
       if keyword_argument && keyword_arguments_as_hash?(left, right)
         status, = compare_trees(left[1], right[1], "#{path}[1]")
+        return status == :mismatch ? [:mismatch, nil] : [:accepted_mismatch, path]
+      end
+
+      if keyword_argument && hash_as_single_pair?(left, right)
+        status, = compare_trees(left[1].first, right, "#{path}[1][0]")
+        return status == :mismatch ? [:mismatch, nil] : [:accepted_mismatch, path]
+      end
+
+      if keyword_argument && hash_as_single_pair?(right, left)
+        status, = compare_trees(left, right[1].first, "#{path}[1][0]")
         return status == :mismatch ? [:mismatch, nil] : [:accepted_mismatch, path]
       end
 
@@ -435,6 +477,38 @@ module Compatibility
       [:match, nil]
     end
 
+    def equivalent_constant_path?(left, right)
+      return equivalent_constant_name?(left[1], right[2]) if constant_node?(left) && direct_constant_path_node?(right)
+      return equivalent_constant_name?(right[1], left[2]) if direct_constant_path_node?(left) && constant_node?(right)
+
+      false
+    end
+
+    def equivalent_constant_name?(left, right)
+      return true if left == right
+      return false unless left.is_a?(Array) && right.is_a?(Array) && left.length == 2 && right.length == 2
+      return false unless tag?(left.first, :symbol) && tag?(right.first, :symbol)
+
+      left[1] == right[1] || equivalent_bytes?(left[1], right[1])
+    end
+
+    def equivalent_bytes?(left, right)
+      left.is_a?(Array) && right.is_a?(Array) && left.length == 3 && right.length == 3 &&
+        tag?(left.first, :bytes) && tag?(right.first, :bytes) && left[1..] == right[1..]
+    end
+
+    def constant_node?(value)
+      value.is_a?(Array) && value.length == 2 && tag?(value.first, :constant)
+    end
+
+    def constant_path_node?(value)
+      value.is_a?(Array) && value.length == 3 && tag?(value.first, :constant_path)
+    end
+
+    def direct_constant_path_node?(value)
+      constant_path_node?(value) && constant_node?(value[1])
+    end
+
     def compare_argument_lists(left, right, path)
       return :mismatch unless left.is_a?(Array) && right.is_a?(Array) && left.length == right.length
       statuses = left.each_index.map do |index|
@@ -453,6 +527,12 @@ module Compatibility
       left.is_a?(Array) && right.is_a?(Array) && left.length == 2 && right.length == 2 &&
         ((tag?(left.first, :keyword_arguments) && tag?(right.first, :hash)) ||
           (tag?(left.first, :hash) && tag?(right.first, :keyword_arguments)))
+    end
+
+    def hash_as_single_pair?(hash, pair)
+      hash.is_a?(Array) && pair.is_a?(Array) && hash.length == 2 && pair.length == 3 &&
+        tag?(hash.first, :hash) && tag?(pair.first, :pair) && hash[1].is_a?(Array) &&
+        hash[1].length == 1 && hash[1].first.is_a?(Array) && tag?(hash[1].first.first, :pair)
     end
 
     def tag?(value, expected)

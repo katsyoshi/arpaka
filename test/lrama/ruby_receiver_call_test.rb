@@ -94,6 +94,8 @@ class RubyReceiverCallTest < Test::Unit::TestCase
       [:call, nil, false, node.name, node.arguments.map { |argument| normalize_arpaka(argument) }]
     when AST::BareCall
       [:bare_call, node.name]
+    when AST::Self
+      [:literal, :self]
     when AST::Variable
       assert_equal(:constant, node.kind)
       [:constant, node.name]

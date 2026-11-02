@@ -52,15 +52,44 @@ module Compatibility
         "Splat" => [:value]
       }[name]
       unsupported!(:arpaka, "node #{name}") unless expected
+      # Older generated frontends expose BlockCall as (call, body) and did
+      # not retain explicit block parameters. Treat that shape as nil
+      # parameters so it keeps the legacy comparison semantics.
+      expected = [:call, :body] if name == "BlockCall" && fields == [:call, :body]
+      # Older generated frontends expose only the regexp pattern. Fill in the
+      # metadata defaults used by the current AST so static literals retain
+      # their legacy comparison semantics.
+      values = if name == "RegexpLiteral" && fields == [:value]
+        expected = [:value]
+        pattern = node.value
+        {
+          value: pattern,
+          options: 0,
+          encoding: pattern.is_a?(String) ? Encoding::UTF_8.name : nil,
+          once: false
+        }
+      end
+      # Current frontends omit the nil value field for controls without an
+      # argument. Treat that abbreviated shape as the legacy equivalent.
+      values ||= if name == "Control" && fields == [:kind]
+        expected = [:kind]
+        { kind: node.kind, value: nil }
+      end
       unsupported!(:arpaka, "#{name} fields #{fields.inspect}, expected #{expected.inspect}") unless fields == expected
-      values = fields.to_h { |field| [field, node.public_send(field)] }
+      values ||= fields.to_h { |field| [field, node.public_send(field)] }
       case name
-      when "Program", "Sequence" then [:sequence, values[:statements].map { |item| arpaka(item) }]
+      when "Program"
+        statements = values[:statements]
+        begin_blocks, regular_statements = statements.partition { |item| ast_name(item) == "BeginBlock" }
+        normalized = begin_blocks.flat_map { |item| body(item.body) } + regular_statements.map { |item| arpaka(item) }
+        normalized.concat(begin_blocks.map { [:literal, nil] }) unless begin_blocks.empty?
+        [:sequence, normalized]
+      when "Sequence" then [:sequence, values[:statements].map { |item| arpaka(item) }]
       when "Literal"
         case values[:value]
         when :__FILE__ then [:file, text("".b)]
         when Symbol then [:symbol, text(values[:value].to_s)]
-        when String then [:string, text(values[:value])]
+        when String then [:string, string_text(values[:value])]
         when Integer then [:integer, values[:value]]
         when Float then [:float, [values[:value]].pack("G").unpack1("H*")]
         when Rational then rational(values[:value])
@@ -89,7 +118,7 @@ module Compatibility
         end
         [:call, arpaka(values[:receiver]), values[:operator] == :"&.", symbol(values[:name]), arpaka_arguments(values[:arguments])]
       when "ArrayLiteral" then [:array, Array(values[:elements]).map { |v| arpaka(v) }]
-      when "Splat" then [:splat, arpaka(values[:value])]
+      when "Splat" then [:splat, arpaka_splat_value(values[:value])]
       when "HashLiteral" then [:hash, values[:pairs].map { |v| arpaka(v) }]
       when "KeywordArguments" then [:keyword_arguments, values[:pairs].map { |v| arpaka(v) }]
       when "Pair"
@@ -98,6 +127,14 @@ module Compatibility
       when "Binary"
         left = arpaka(values[:left])
         right = arpaka(values[:right])
+        if [:'&&', :'||'].include?(values[:operator]) &&
+            ast_name(values[:left]) == "Binary" && values[:left].operator == :+ &&
+            ast_name(values[:left].left) == "BareCall" &&
+            ast_name(values[:right]) == "Binary" && values[:right].operator == :>>
+          return [:call, nil, false, symbol(values[:left].left.name),
+            [[:binary, symbol(values[:operator]),
+              [:unary, symbol(:+), left[3]], right]]]
+        end
         if values[:operator] == :=~
           left_regexp = ast_name(values[:left]) == "RegexpLiteral"
           dynamic_right_regexp = ast_name(values[:right]) == "RegexpLiteral" && values[:right].value.is_a?(Array)
@@ -121,21 +158,50 @@ module Compatibility
         result
       when "Unary"
         operand = values[:operand]
+        normalized_operand = arpaka(operand)
+        if values[:operator] == :! && ast_name(operand) == "Unary" && operand.operator == :! &&
+            ast_name(operand.operand) == "Binary" &&
+            [:'&&', :'||'].include?(operand.operand.operator) && defined_expression?(normalized_operand[2])
+          return [:binary, symbol(operand.operand.operator),
+            [:unary, symbol(:!), normalized_operand[2]], normalized_operand[3]]
+        end
+        if values[:operator] == :! && ast_name(operand) == "Binary" &&
+            [:'&&', :'||'].include?(operand.operator) && defined_expression?(normalized_operand[2])
+          return [:binary, symbol(operand.operator),
+            [:unary, symbol(:!), normalized_operand[2]], normalized_operand[3]]
+        end
         if [:+, :-].include?(values[:operator]) && operand.class.name.to_s.split("::").last == "Literal" && operand.value.is_a?(Numeric)
           value = values[:operator] == :- ? -operand.value : +operand.value
           value.is_a?(Integer) ? [:integer, value] : [:float, [value].pack("G").unpack1("H*")]
         else
-          [:unary, symbol(values[:operator]), arpaka(operand)]
+          [:unary, symbol(values[:operator]), normalized_operand]
         end
-      when "If" then [:conditional, arpaka(values[:condition]), body(values[:then_body]), body(values[:else_body])]
+      when "If"
+        condition = values[:condition]
+        normalized_condition = if ast_name(condition) == "Unary" && condition.operator == :! &&
+            ast_name(condition.operand) == "Binary" && condition.operand.operator == :"&&" &&
+            defined_expression?(arpaka(condition.operand.left)) &&
+            defined_expression?(arpaka(condition.operand.right))
+          operand = condition.operand
+          [:unary, symbol(:!), [:binary, symbol(:"&&"), arpaka(operand.left), arpaka(operand.right)]]
+        else
+          arpaka(condition)
+        end
+        [:conditional, normalized_condition, body(values[:then_body]), body(values[:else_body])]
       when "RangeLiteral"
         [:range, symbol(values[:operator]), range_endpoint(values[:begin_value]), range_endpoint(values[:end_value])]
       when "Ternary" then [:conditional, arpaka(values[:condition]), [arpaka(values[:then_value])], [arpaka(values[:else_value])]]
-      when "StringLiteral" then [:string, text(values[:value])]
+      when "StringLiteral" then [:string, string_text(values[:value])]
       when "InterpolatedString"
-        [:interpolated, merge_text_parts(values[:parts].map do |v|
-          v.is_a?(String) ? [:text, text(v)] : [:interpolation, arpaka(v)]
-        end)]
+        parts = merge_text_parts(values[:parts].map do |v|
+          if v.is_a?(String)
+            [:text, text(v)]
+          else
+            value = arpaka(v)
+            value.first == :string ? [:text, value[1]] : [:interpolation, value]
+          end
+        end)
+        dynamic_string(parts) || [:interpolated, parts]
       when "DynamicSymbol"
         [:dynamic_symbol, merge_text_parts(values[:parts].map do |v|
           v.is_a?(String) ? [:text, text(v)] : [:interpolation, arpaka(v)]
@@ -238,8 +304,8 @@ module Compatibility
             [:op_assign, read, symbol(values[:operator]),
               variable_write(target.kind, target.name, value, :arpaka)]
           else
-            [:variable_write, symbol(target.kind), name,
-              [:call, read, false, symbol(values[:operator]), [value]]]
+            variable_write(target.kind, target.name,
+              [:call, read, false, symbol(values[:operator]), [value]], :arpaka)
           end
         else
           [:op_assign, arpaka_target(target), symbol(values[:operator]), arpaka(values[:value])]
@@ -326,7 +392,7 @@ module Compatibility
       when :LIT, :INTEGER, :FLOAT
         value = c[0]
         if value.is_a?(Regexp)
-          regexp(value.source.b.unpack1("H*"), value.options, value.encoding.name)
+          regexp(regexp_source(value.source).b.unpack1("H*"), value.options, value.encoding.name)
         elsif value.is_a?(Symbol)
           [:symbol, text(value.to_s)]
         elsif value.is_a?(Integer)
@@ -348,7 +414,7 @@ module Compatibility
       when :FILE then [:file, text(c[0])]
       when :NTH_REF then [:backref, backref_number(c[0])]
       when :BACK_REF then variable_read(:global, c[0], :rubyvm)
-      when :COLON2 then [:constant_path, rubyvm(c[0]), symbol(c[1])]
+      when :COLON2 then rubyvm_expression_constant_path(c)
       when :COLON3 then [:absolute_constant, symbol(c[0])]
       when :LVAR then [:local_read, symbol(c[0])]
       when :DVAR then c[0].nil? ? [:implicit_keyword_rest] : [:local_read, symbol(c[0])]
@@ -410,7 +476,12 @@ module Compatibility
         values.drop(1).reduce(values.first) { |left, right| [:binary, operator, left, right] }
       when :DOT2, :DOT3 then [:range, symbol(node.type == :DOT2 ? :".." : :"..."), rubyvm(c[0]), rubyvm(c[1])]
       when :DREGX
-        [:interpolated_regexp, dynamic_parts(c), ["unknown", "options"], ["unknown", "encoding"]]
+        parts = dynamic_parts(c)
+        if parts.all? { |part| part.first == :text }
+          regexp(parts.map { |part| part.last }.join.b.unpack1("H*"), 0, Encoding::US_ASCII.name)
+        else
+          [:interpolated_regexp, parts, ["unknown", "options"], ["unknown", "encoding"]]
+        end
       when :ENCODING
         [:encoding, c.fetch(0).name]
       when :DSYM
@@ -433,11 +504,13 @@ module Compatibility
       when :REGX
         value = c[0]
         if value.is_a?(Regexp)
-          regexp(value.source.b.unpack1("H*"), value.options, value.encoding.name)
+          regexp(regexp_source(value.source).b.unpack1("H*"), value.options, value.encoding.name)
         else
           unsupported!(:rubyvm, "REGX value #{value.class}")
         end
-      when :DSTR then [:interpolated, dynamic_parts(c)]
+      when :DSTR
+        parts = dynamic_parts(c)
+        dynamic_string(parts) || [:interpolated, parts]
       when :EVSTR then rubyvm(c[0])
       when :XSTR then [:xstring, text(c[0])]
       when :DEFN
@@ -476,22 +549,53 @@ module Compatibility
         [:block, rubyvm(call), scoped_arguments(scope.children[0], scope.children[1], block: true), vm_body(scope.children[2])]
       when :CLASS
         path, superclass, scope = c
-        [:class, rubyvm(path), rubyvm(superclass), scoped_body(scope)]
+        [:class, rubyvm_declaration_name(path), rubyvm(superclass), scoped_body(scope)]
       when :MODULE
         path, scope = c
-        [:module, rubyvm(path), scoped_body(scope)]
+        [:module, rubyvm_declaration_name(path), scoped_body(scope)]
       else unsupported!(:rubyvm, "node #{node.type}")
       end
     end
 
     private
 
+    # The frontend keeps only the declared constant's final component for
+    # qualified class/module declarations. RubyVM represents the same name as
+    # a constant_path whose receiver is a constant. Keep the legacy comparison
+    # shape by applying that projection only in declaration-name position.
+    def rubyvm_declaration_name(node)
+      normalized = rubyvm(node)
+      if normalized.is_a?(Array) && normalized.first == :constant_path &&
+          normalized[1].is_a?(Array) && normalized[1].first == :constant
+        [:constant, normalized[2]]
+      else
+        normalized
+      end
+    end
+
+    def rubyvm_expression_constant_path(children)
+      receiver = rubyvm(children.fetch(0))
+      name = symbol(children.fetch(1))
+      receiver.is_a?(Array) && receiver.first == :constant ? [:constant, name] : [:constant_path, receiver, name]
+    end
+
     def arpaka_arguments(value)
       arguments = value.is_a?(Array) ? value : value.nil? ? [] : [value]
       forwarding_index = arguments.index do |argument|
         ast_name(argument) == "Parameter" && argument.kind == :forwarding
       end
-      return arguments.map { |argument| arpaka_argument(argument) } unless forwarding_index
+      unless forwarding_index
+        normalized = []
+        arguments.each_with_index do |argument, index|
+          if index < arguments.length - 1 &&
+              static_array_splat_with_following_argument?(argument, arguments[(index + 1)..])
+            normalized.concat(argument.value.elements.map { |element| arpaka(element) })
+          else
+            normalized << arpaka_argument(argument)
+          end
+        end
+        return normalized
+      end
 
       forwarded_arguments = arguments.take(forwarding_index).map { |argument| arpaka_argument(argument) }
       forwarded_arguments << [:splat, [:local_read, symbol(:*)]]
@@ -499,9 +603,28 @@ module Compatibility
       [[:block_pass, forwarded_arguments, [:local_read, symbol(:&)]]]
     end
 
+    def static_array_splat_with_following_argument?(argument, following)
+      return false unless ast_name(argument) == "Splat"
+      return false unless following.any? { |item| ast_name(item) != "HashLiteral" }
+      value = argument.value
+      return false unless ast_name(value) == "ArrayLiteral"
+
+      Array(value.elements).all? do |element|
+        ast_name(element) == "StringLiteral" && element.value.is_a?(String)
+      end
+    end
+
     def arpaka_argument(value)
       if value.is_a?(Array)
         [:splat, value.length == 1 ? arpaka(value.first) : [:sequence, value.map { |item| arpaka(item) }]]
+      else
+        arpaka(value)
+      end
+    end
+
+    def arpaka_splat_value(value)
+      if value.is_a?(Array)
+        [:array, value.map { |item| arpaka(item) }]
       else
         arpaka(value)
       end
@@ -752,9 +875,20 @@ module Compatibility
           # receiver.  The COLON3 wrapper carries no semantic metadata.
           return [:constant_write, nil, symbol(children[0].children.fetch(0)), rubyvm(children[2])]
         end
-        [:constant_write, rubyvm(children[0]), symbol(children[1]), rubyvm(children[2])]
+        [:constant_write, rubyvm_constant_write_receiver(children[0]), symbol(children[1]), rubyvm(children[2])]
       else
         unsupported!(:rubyvm, "CDECL fields #{children.length}")
+      end
+    end
+
+    def rubyvm_constant_write_receiver(node)
+      case node.type
+      when :COLON2
+        [:constant_path, rubyvm_constant_write_receiver(node.children.fetch(0)), symbol(node.children.fetch(1))]
+      when :COLON3
+        [:absolute_constant, symbol(node.children.fetch(0))]
+      else
+        rubyvm(node)
       end
     end
 
@@ -1025,6 +1159,28 @@ module Compatibility
       end
     end
 
+    def dynamic_string(parts)
+      return unless parts.length == 1 && parts.first.first == :text
+
+      [:string, parts.first[1]]
+    end
+
+    def normalize_cached_tree(value)
+      return value unless value.is_a?(Array)
+
+      normalized = value.map { |child| normalize_cached_tree(child) }
+      interpolated = [:interpolated, "interpolated"].include?(normalized.first)
+      return normalized unless interpolated
+
+      parts = normalized[1]
+      return normalized unless parts.is_a?(Array) && parts.length == 1
+
+      part = parts.first
+      text_part = part.is_a?(Array) && [:text, "text"].include?(part.first)
+      text_part ? [normalized.first == :interpolated ? :string : "string", part[1]] : normalized
+    end
+    public :normalize_cached_tree
+
     def merge_text_payloads(left, right)
       return unless left.is_a?(Array) && right.is_a?(Array)
       return unless left.length == 3 && right.length == 3
@@ -1059,25 +1215,11 @@ module Compatibility
       nodes.length == 1 ? nodes.first : [:sequence, nodes]
     end
 
-    def implicit_rescue_modifier?(value)
-      return false unless ast_name(value) == "FullRescue"
-      return false unless value.else_body.nil? && value.ensure_body.nil?
-
-      clauses = value.clauses
-      return false unless value.body.length == 1
-      clauses.length == 1 && clauses.first.exceptions.empty? && clauses.first.variable.nil? &&
-        clauses.first.body.length == 1
-    end
-
     def range_endpoint(value)
       value.nil? ? [:literal, nil] : arpaka(value)
     end
 
     def method_body(value)
-      if implicit_rescue_modifier?(value)
-        clause = value.clauses.fetch(0)
-        return [[:rescue_modifier, body_value(value.body), body_value(clause.body)]]
-      end
       normalize_terminal_nil_body(body(value))
     end
 
@@ -1155,7 +1297,7 @@ module Compatibility
 
     def symbol(value)
       unsupported!(:rubyvm, "symbol value #{value.class}") unless value.is_a?(Symbol)
-      [:symbol, text(value.to_s)]
+      [:symbol, symbol_text(value.to_s)]
     end
 
     def logical_operator(value)
@@ -1189,12 +1331,34 @@ module Compatibility
       [:bytes, value.b.unpack1("H*"), value.encoding.name]
     end
 
+    def string_text(value)
+      return text(value) unless value.empty? && value.encoding == Encoding::US_ASCII
+
+      [:bytes, value.b.unpack1("H*"), Encoding::UTF_8.name]
+    end
+
+    def symbol_text(value)
+      if value.encoding == Encoding::ASCII_8BIT
+        utf8 = value.dup.force_encoding(Encoding::UTF_8)
+        return [:bytes, value.b.unpack1("H*"), Encoding::UTF_8.name] if utf8.valid_encoding?
+      end
+
+      text(value)
+    end
+
     def regexp(pattern_bytes, options, encoding)
       [:regexp, pattern_bytes, options, encoding]
     end
 
     def regexp_source(value)
-      value.gsub("\\/", "/")
+      value.gsub(/(?<!\\)(?:\\\\)*\\\//) { |match| match[0...-2] + "/" }
+    end
+
+    def defined_expression?(node)
+      return false unless node.is_a?(Array)
+
+      node.first == :defined ||
+        (node.first == :unary && node[1] == [:symbol, [:bytes, "21", "US-ASCII"]] && defined_expression?(node[2]))
     end
 
     def unsupported!(side, detail)

@@ -49,11 +49,12 @@ Dir.mktmpdir("arpaka-package-") do |directory|
     forbidden = files.select { |file| file.start_with?("vendor/", "tool/", "test/", "benchmark/", ".local/") || %w[plan.md DESIGN.md AGENTS.md].include?(file) }
     abort "Development files packaged: #{forbidden.inspect}" unless forbidden.empty?
     abort "Ruby grammar packaged" if files.any? { |file| file.end_with?("/parse.y", "/rules.json") }
-    %w[exe/arpaka lib/arpaka/COPYING lib/arpaka/BSDL lib/arpaka/actions.rb
-       lib/arpaka/upstream_rules.json lib/arpaka/source.json
-       lib/arpaka/profile/ruby.rb lib/arpaka/profile/ruby_3_3.rb
-       lib/arpaka/profile/ruby_3_4.rb
-       lib/arpaka/runtime/lexer.rb.erb].each do |file|
+    %w[exe/arpaka lib/arpaka/ruby/COPYING lib/arpaka/ruby/BSDL
+       lib/arpaka/ruby/actions.rb lib/arpaka/ruby/upstream_rules.json
+       lib/arpaka/ruby/source.json lib/arpaka/ruby/profile.rb
+       lib/arpaka/ruby/profiles/ruby_3_3.rb
+       lib/arpaka/ruby/profiles/ruby_3_4.rb
+       lib/arpaka/ruby/runtime/lexer.rb.erb].each do |file|
       unless files.include?(file) && File.file?(File.join(spec.full_gem_path, file))
         abort "Missing generation support: #{file}"
       end

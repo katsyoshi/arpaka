@@ -1,0 +1,1032 @@
+class Builder
+  BlockBody = Data.define(:parameters, :body, :outer_local_names)
+  BlockScope = Data.define(:outer_locals, :lambda_local_counts)
+  private_constant :BlockBody
+  private_constant :BlockScope
+
+  RULES = <%= rules.inspect %>.to_h { |rule| [rule.fetch("id"), rule.freeze] }.freeze
+  private_constant :RULES
+
+  def initialize
+    @locals = {}
+    @block_local_scopes = []
+    @method_local_scopes = []
+    @method_lambda_local_counts = []
+    @lambda_parameter_states = []
+    @lambda_local_counts = Hash.new(0)
+    @declaring_method_parameters = false
+  end
+
+  def program(statements)
+    AST::Program.new(resolve_local_reads(body_nodes(statements), @locals.keys))
+  end
+
+  def integer(value)
+    raise ArgumentError, "tINTEGER requires an Integer value" unless value.is_a?(Integer)
+    AST::Literal.new(value)
+  end
+
+  def float(value)
+    raise ArgumentError, "tFLOAT requires a Float value" unless value.is_a?(Float)
+    AST::Literal.new(value)
+  end
+
+  def literal(value)
+    AST::Literal.new(value)
+  end
+
+  def line_literal(value)
+    AST::Literal.new(value.is_a?(Integer) ? value : :__LINE__)
+  end
+
+  def encoding_literal
+    AST::EncodingLiteral.new(@source_encoding || Encoding::UTF_8.name)
+  end
+
+<% if runtime.fetch("builder_methods", []).include?("self") -%>
+  def self_node
+    AST::Self.new
+  end
+<% end -%>
+
+  def reserved_word(value)
+    value.to_sym
+  end
+
+  def binary(operator, left, right)
+    if [:"&&", :"||"].include?(operator) && right.is_a?(AST::Binary) &&
+        right.operator == operator && right.left.is_a?(AST::Call) && right.left.name == :defined
+      return AST::Binary.new(operator, AST::Binary.new(operator, left, right.left), right.right)
+    end
+    AST::Binary.new(operator, left, right)
+  end
+
+  def operator(value)
+    value.to_sym
+  end
+
+  def range(operator, begin_value, end_value)
+    AST::RangeLiteral.new(operator, begin_value, end_value)
+  end
+
+  def ternary(condition, then_value, else_value)
+    AST::Ternary.new(condition, then_value, else_value)
+  end
+
+  def call(name, arguments)
+    AST::Call.new(name, normalize_call_arguments(arguments))
+  end
+
+  def super_call(arguments)
+    AST::Super.new(arguments&.freeze)
+  end
+
+  def receiver_call(receiver, operator, name, arguments)
+    AST::ReceiverCall.new(receiver, operator, name, normalize_call_arguments(arguments))
+  end
+
+  def block_pass(arguments, value)
+    AST::BlockPass.new(normalize_call_arguments(arguments), value)
+  end
+
+  def call_arguments_with_block_pass(arguments, pass)
+    return normalize_call_arguments(arguments) if pass.nil?
+
+    [AST::BlockPass.new(normalize_call_arguments(arguments), pass.value)].freeze
+  end
+
+  def forwarded_block_pass
+    block_pass([], AST::LocalRead.new(:&))
+  end
+
+<% if runtime.fetch("builder_methods", []).include?("keyword_arguments") -%>
+  def normalize_call_arguments(arguments)
+    return [] if arguments.nil?
+    arguments = [arguments] unless arguments.is_a?(Array)
+
+    result = []
+    pairs = []
+    flush_pairs = lambda do
+      unless pairs.empty?
+        result << AST::HashLiteral.new(pairs.freeze)
+        pairs = []
+      end
+    end
+
+    arguments.each do |argument|
+      if argument.is_a?(AST::Pair)
+        pairs << argument
+      else
+        flush_pairs.call
+        result << argument
+      end
+    end
+    flush_pairs.call
+    splat_index = result.rindex { |argument| argument.is_a?(AST::Splat) }
+    if splat_index && result[(splat_index + 1)..].length > 1 &&
+        result[(splat_index + 1)..].any? { |argument| argument.is_a?(AST::HashLiteral) }
+      result[splat_index + 1..] = [AST::Splat.new(AST::ArrayLiteral.new(result[(splat_index + 1)..].freeze))]
+    end
+    result.freeze
+  end
+<% else -%>
+  def normalize_call_arguments(arguments)
+    arguments.nil? ? [] : (arguments.is_a?(Array) ? arguments.freeze : [arguments].freeze)
+  end
+<% end -%>
+
+  def block_call(call, body)
+    if body.is_a?(BlockBody)
+      parameters = body.parameters
+      implicit_names = []
+      if parameters.is_a?(AST::BlockParameters) && parameters.kind == :none
+        implicit_names = implicit_block_parameter_names(body.body)
+        unless implicit_names.empty?
+          parameters = AST::BlockParameters.new(:required, implicit_names.freeze)
+        end
+      end
+      outer_local_names = body.outer_local_names
+      block_local_names = (block_parameter_names(parameters) + implicit_names).uniq - outer_local_names
+      local_names = outer_local_names + block_local_names
+      resolved_call = rewrite_shadowed_local_reads(call, block_local_names)
+      resolved_call = resolve_local_reads(resolved_call, outer_local_names)
+      resolved_body = resolve_local_reads(body.body, local_names)
+      AST::BlockCall.new(resolved_call, parameters, resolved_body)
+    else
+      AST::BlockCall.new(call, nil, resolve_local_reads(body_nodes(body), @locals.keys))
+    end
+  end
+
+  def block_body(parameters, body)
+    scope = @block_local_scopes.pop
+    if scope
+      @locals = scope.outer_locals
+      outer_local_names = scope.outer_locals.keys.freeze
+      @lambda_local_counts = scope.lambda_local_counts
+    else
+      outer_local_names = @locals.keys.freeze
+    end
+    BlockBody.new(parameters, body_nodes(body), outer_local_names)
+  end
+
+  def begin_block_parameters(value, locals = nil)
+    local_names = Array(locals).compact
+    parameter_names = (block_parameter_names(value) + block_parameter_names(local_names)).uniq
+    outer_locals = @locals.dup
+    parameter_names.each do |name|
+      count = outer_locals[name]
+      if count && count > 1
+        outer_locals[name] = count - 1
+      else
+        outer_locals.delete(name)
+      end
+    end
+    @lambda_local_counts.each do |name, count|
+      current = outer_locals[name]
+      outer_locals.delete(name) if current && current <= count
+    end
+    @block_local_scopes << BlockScope.new(outer_locals, @lambda_local_counts)
+    @locals = outer_locals.dup
+    @lambda_local_counts = @lambda_local_counts.dup
+    parameter_names.each { |name| declare_local(name) }
+    case value
+    when nil
+      parameters = AST::BlockParameters.new(:none, nil)
+    when Symbol
+      parameters = AST::BlockParameters.new(:required, [value].freeze)
+    when Array
+      parameters = AST::BlockParameters.new(:required, value.freeze)
+    when AST::BlockParameters
+      parameters = value
+    when AST::Parameter
+      # A block-only parameter (`|&block|`) is delivered by the grammar as a
+      # Parameter rather than an array of parameters. Keep it in the same
+      # representation as other block parameter forms instead of losing it as
+      # an unknown shape.
+      parameters = AST::BlockParameters.new(:required, [value].freeze)
+    else
+      parameters = AST::BlockParameters.new(:unknown, value)
+    end
+    return parameters if local_names.empty?
+    AST::BlockParameters.new(parameters.kind,
+      Array(parameters.value) + [AST::BlockParameters.new(:locals, local_names.freeze)])
+  end
+
+  def block_destructure(names)
+    AST::BlockParameters.new(:destructured, Array(names).freeze)
+  end
+
+  def append_block_rest(parameters, rest, post = nil)
+    values = Array(parameters).dup
+    rest_name = rest.is_a?(AST::Parameter) ? rest.name : Array(rest).first
+    values << AST::BlockParameters.new(:rest, rest_name)
+    values.concat(Array(post).map { |name| AST::BlockParameters.new(:post, name) }) unless post.nil?
+    values.freeze
+  end
+
+  def block_parameter_names(parameters)
+    parameters = [parameters] unless parameters.is_a?(Array)
+    parameters.flat_map do |parameter|
+      case parameter
+      when Symbol then [parameter]
+      when Array then block_parameter_names(parameter)
+      when AST::BlockParameters
+        case parameter.kind
+        when :destructured then block_parameter_names(parameter.value)
+        when :rest, :post then [parameter.value].compact
+        else []
+        end
+      when AST::Parameter
+        parameter.name ? [parameter.name] : []
+      else []
+      end
+    end
+  end
+
+  def implicit_block_parameter_names(value)
+    numbered = []
+    visit = lambda do |current|
+      case current
+      when Array
+        current.each { |item| visit.call(item) }
+      else
+        return unless data_node?(current)
+
+        type = current.class.name.split("::").last
+        if type == "BareCall" && current.name.to_s.match?(/\A_[1-9][0-9]*\z/)
+          numbered << current.name.to_s.delete_prefix("_").to_i
+        elsif type == "BlockCall"
+          visit.call(current.call)
+        elsif !["Def", "SingletonMethodDef", "Lambda", "ClassDef", "ModuleDef", "SingletonClassDef"].include?(type)
+          current.members.each { |member| visit.call(current.public_send(member)) }
+        end
+      end
+    end
+    visit.call(value)
+    maximum = numbered.max
+    maximum ? (1..maximum).map { |index| "_#{index}".to_sym } : []
+  end
+
+  def append_arguments(arguments, argument)
+    list = arguments.is_a?(Array) ? arguments : [arguments]
+    (list + [argument]).freeze
+  end
+
+  def combine_arguments(left, right)
+    left = left.nil? ? [] : left.is_a?(Array) ? left : [left]
+    right = right.nil? ? [] : right.is_a?(Array) ? right : [right]
+    (left + right).freeze
+  end
+
+  def parameter(kind, name, value = nil)
+    if method_parameter_scope?
+      declare_local(name) if name.is_a?(Symbol)
+      declare_local(:**) if kind == :keyword_rest && name.nil?
+    end
+    AST::Parameter.new(kind, name, value)
+  end
+
+  def finish_method_parameters(value)
+    @declaring_method_parameters = false
+    value
+  end
+
+  def parameter_list(*values)
+    parameters = values.flat_map do |value|
+      value.is_a?(Array) ? value : value.nil? ? [] : [value]
+    end
+    return nil if parameters.empty?
+    return parameters.first if parameters.length == 1
+    parameters.freeze
+  end
+
+  def string(value)
+    if value.is_a?(Array)
+      parts = value.flat_map do |part|
+        part.is_a?(AST::InterpolatedString) ? part.parts : [part]
+      end
+      return AST::InterpolatedString.new(parts.freeze) if parts.any? { |part| !part.is_a?(String) }
+      value = parts.join
+    end
+    AST::StringLiteral.new(value.to_s)
+  end
+
+  def regexp(value, metadata = nil)
+    metadata ||= {}
+    parts = value.is_a?(Array) ? value : [value]
+    parts = parts.flat_map { |part| part.is_a?(AST::InterpolatedString) ? part.parts : [part] }
+    pattern = parts.all? { |part| part.is_a?(String) } ? parts.join : parts.freeze
+    options = metadata.fetch(:options, 0)
+    encoding = metadata[:encoding]
+    if pattern.is_a?(String)
+      pattern = pattern.dup.force_encoding(encoding || metadata[:source_encoding] || Encoding::UTF_8.name)
+      regexp = Regexp.new(pattern, options)
+      regexp.names.each { |name| declare_local(name.to_sym) }
+      options = regexp.options
+      encoding = regexp.encoding.name
+    end
+    AST::RegexpLiteral.new(pattern, options, encoding, metadata.fetch(:once, false))
+  end
+
+  def xstring(value)
+    if value.is_a?(Array)
+      parts = value.flat_map { |part| part.is_a?(AST::InterpolatedString) ? part.parts : [part] }
+      return AST::XStringLiteral.new(parts.freeze) if parts.any? { |part| !part.is_a?(String) }
+
+      value = parts.join
+    end
+    AST::XStringLiteral.new(value.to_s)
+  end
+
+  def for_node(variable, enumerable, body)
+    AST::For.new(variable, enumerable, body)
+  end
+
+  def def_node(name, arguments, body)
+    body = resolve_method_local_reads(method_body_nodes(body), @locals.keys, block_parameter_names(arguments))
+    node = AST::Def.new(name.to_sym, (arguments || []).freeze, body)
+    end_method_scope
+    node
+  end
+<% if runtime.fetch("builder_methods", []).include?("singleton_method") -%>
+  def singleton_method_node(receiver, name, arguments, body)
+    if arguments.is_a?(AST::BlockParameters) && arguments.kind == :destructured
+      arguments = arguments.value
+      arguments.grep(Symbol).each { |argument| declare_local(argument) }
+    end
+    body = resolve_method_local_reads(method_body_nodes(body), @locals.keys, block_parameter_names(arguments))
+    node = AST::SingletonMethodDef.new(receiver, name.to_sym, (arguments || []).freeze,
+      body)
+    end_method_scope
+    node
+  end
+<% end -%>
+
+  def class_node(name, superclass, body)
+    AST::ClassDef.new(declaration_name(name), superclass, body_nodes(body))
+  end
+
+  def module_node(name, body)
+    AST::ModuleDef.new(declaration_name(name), body_nodes(body))
+  end
+<% if runtime.fetch("builder_methods", []).include?("singleton_class") -%>
+  def singleton_class_node(receiver, body)
+    AST::SingletonClassDef.new(receiver, body_nodes(body))
+  end
+<% end -%>
+
+  def body_nodes(body)
+    value = body
+    while value.is_a?(Array) && value.length == 1 && value.first.is_a?(Array)
+      value = value.first
+    end
+    value || [].freeze
+  end
+
+  def begin_body(body)
+    nodes = body_nodes(body)
+    return nodes.first if nodes.is_a?(Array) && nodes.length == 1 && nodes.first.is_a?(AST::Undef)
+
+    nodes
+  end
+
+  def method_body_nodes(body)
+    nodes = body_nodes(body)
+    return [].freeze if nodes.is_a?(Array) && nodes.length == 1 &&
+      nodes.first.is_a?(AST::Literal) && nodes.first.value.nil?
+
+    nodes
+  end
+
+  def symbol(value)
+    if value.is_a?(Array)
+      parts = value.flat_map { |part| part.is_a?(AST::InterpolatedString) ? part.parts : [part] }
+      return AST::DynamicSymbol.new(parts.freeze) if parts.any? { |part| !part.is_a?(String) }
+
+      value = parts.join
+    end
+    value = value.name if value.is_a?(AST::Variable)
+    AST::Literal.new(value.to_sym)
+  end
+
+  def join_strings(parts)
+    parts
+  end
+
+  def interpolation(value)
+    value = value.is_a?(Array) && value.length == 1 ? value.first : value
+    AST::InterpolatedString.new([value].freeze)
+  end
+
+  def concat_strings(left, right)
+    left_parts = string_parts(left)
+    right_parts = string_parts(right)
+    parts = left_parts + right_parts
+    parts.all? { |part| part.is_a?(String) } ? AST::StringLiteral.new(parts.join) : AST::InterpolatedString.new(parts.freeze)
+  end
+
+  def string_parts(value)
+    case value
+    when String then [value]
+    when AST::StringLiteral then [value.value]
+    when AST::InterpolatedString then value.parts
+    else [value]
+    end
+  end
+
+  def index(receiver, arguments)
+    AST::Index.new(receiver, arguments.freeze)
+  end
+
+  def splat(value)
+    AST::Splat.new(value)
+  end
+
+  def loop(kind, condition, body)
+    AST::Loop.new(kind, condition, body)
+  end
+
+  def control(kind, arguments = nil)
+    arguments = arguments.nil? ? [] : arguments.is_a?(Array) ? arguments : [arguments]
+    value = case arguments.length
+    when 0 then nil
+    when 1 then arguments.first
+    else AST::ArrayLiteral.new(arguments.freeze)
+    end
+    AST::Control.new(kind, value)
+  end
+
+  def variable(kind, name)
+    AST::Variable.new(kind, name.is_a?(String) ? name.to_sym : name)
+  end
+
+  def constant_path(receiver, name)
+    AST::ConstantPath.new(receiver, name.to_sym)
+  end
+
+  def absolute_constant(name)
+    AST::AbsoluteConstant.new(name.to_sym)
+  end
+
+  def declaration_name(name)
+    if name.is_a?(AST::Variable) && name.kind == :constant
+      name.name
+    else
+      name
+    end
+  end
+
+  def rescue_modifier(expression, fallback)
+    AST::Rescue.new(expression, fallback)
+  end
+
+  def when_node(patterns, body)
+    if @method_local_scopes.any? && body.is_a?(Array) && body.length == 1 &&
+        body.first.is_a?(AST::Literal) && body.first.value.nil?
+      body = [].freeze
+    end
+    AST::When.new(patterns.freeze, body)
+  end
+
+  def case_node(expression, whens, else_body)
+    AST::Case.new(expression, whens.freeze, else_body)
+  end
+
+  def case_clauses(value)
+    value.is_a?(Array) ? value : [value]
+  end
+
+  def case_parts(value)
+    values = case_clauses(value)
+    if values.all? { |item| item.is_a?(AST::When) }
+      [values, nil]
+    else
+      [values.grep(AST::When), values.reject { |item| item.is_a?(AST::When) }]
+    end
+  end
+
+  def case_chain(when_node, rest)
+    [when_node] + (rest.nil? ? [] : flatten_case_clauses(rest))
+  end
+
+  def flatten_case_clauses(value)
+    value.is_a?(Array) ? value.flat_map { |item| flatten_case_clauses(item) } : [value]
+  end
+
+  def lambda_node(arguments, body)
+    parameter_names = lambda_parameter_names(arguments)
+    if parameter_names.empty?
+      implicit_names = implicit_block_parameter_names(body)
+      unless implicit_names.empty?
+        arguments = implicit_names
+        parameter_names = implicit_names
+      end
+    end
+    inherited_names = (@locals.keys + parameter_names).uniq
+    parameter_names.each { |name| @lambda_local_counts[name] += 1 }
+    previous_state = @lambda_parameter_states.pop
+    node = AST::Lambda.new((arguments || []).freeze, resolve_local_reads(body_nodes(body), inherited_names))
+    @declaring_method_parameters = previous_state unless previous_state.nil?
+    node
+  end
+
+  def lambda_parameter_names(arguments)
+    values = arguments.nil? ? [] : arguments.is_a?(Array) ? arguments : [arguments]
+    values.flat_map do |value|
+      case value
+      when Symbol
+        [value]
+      when AST::Parameter
+        value.name.is_a?(Symbol) ? [value.name] : []
+      when Array
+        lambda_parameter_names(value)
+      else
+        []
+      end
+    end
+  end
+<% if runtime.fetch("builder_methods", []).include?("pattern") -%>
+  def pattern(kind, values)
+    AST::Pattern.new(kind.to_sym, Array(values).freeze)
+  end
+
+  def pattern_constant(value)
+    value.is_a?(Symbol) ? variable(:constant, value) : value
+  end
+
+  def pattern_value(value)
+    return value if value.is_a?(AST::Pattern)
+    return pattern(:variable, [value]) if value.is_a?(Symbol)
+    pattern(:value, [value])
+  end
+
+  def pattern_array_parts(pre, rest = nil, post = nil)
+    [Array(pre).map { |value| pattern_value(value) }.freeze,
+      rest.nil? ? nil : pattern_value(rest),
+      Array(post).map { |value| pattern_value(value) }.freeze].freeze
+  end
+
+  def array_pattern(parts)
+    pattern(:array, pattern_array_parts(*parts))
+  end
+
+  def pattern_find_parts(pre_rest, values, post_rest)
+    rest_pattern = ->(value) { value.nil? ? pattern(:rest, [nil]) : pattern_value(value) }
+    [rest_pattern.call(pre_rest), Array(values).map { |value| pattern_value(value) }.freeze,
+      rest_pattern.call(post_rest)].freeze
+  end
+
+  def pattern_pair(key, value = :__arpaka_missing_pattern_value__)
+    key_node = key.is_a?(AST::Literal) ? key : AST::Literal.new(key)
+    value_node = if value == :__arpaka_missing_pattern_value__
+      pattern(:variable, [key])
+    else
+      pattern_value(value)
+    end
+    AST::Pair.new(key_node, value_node)
+  end
+
+  def hash_pattern_parts(pairs, rest = nil)
+    [Array(pairs).freeze, rest].freeze
+  end
+<% end -%>
+<% if runtime.fetch("builder_methods", []).include?("rescue") -%>
+  def body_statement(body, clauses, else_body, ensure_body)
+    clauses = clauses.nil? ? [] : Array(clauses)
+    if clauses.empty? && else_body.nil? && ensure_body.nil?
+      body_nodes(body)
+    else
+      full_rescue(body, clauses, else_body, ensure_body)
+    end
+  end
+
+  def rescue_chain(clause, rest)
+    [clause] + (rest.nil? ? [] : Array(rest))
+  end
+
+  def rescue_clause(exceptions, variable, body)
+    # A splatted rescue exception is represented by RubyVM as an array
+    # expression containing the splat, rather than as the splat itself.
+    exceptions = Array(exceptions)
+    if exceptions.any? { |exception| exception.is_a?(AST::Splat) }
+      exceptions = [AST::ArrayLiteral.new(exceptions.freeze)]
+    end
+    AST::RescueClause.new(exceptions.freeze, variable, body_nodes(body))
+  end
+
+  def full_rescue(body, clauses, else_body, ensure_body)
+    AST::FullRescue.new(body_nodes(body), Array(clauses).freeze,
+      else_body.nil? ? nil : body_nodes(else_body),
+      ensure_body.nil? ? nil : body_nodes(ensure_body))
+  end
+
+  def begin_block(body)
+    AST::BeginBlock.new(body_nodes(body))
+  end
+
+  def end_block(body)
+    AST::EndBlock.new(body_nodes(body))
+  end
+<% end -%>
+
+  def unary(operator, operand)
+    AST::Unary.new(operator, operand)
+  end
+
+  def if_node(condition, then_body, else_body)
+    AST::If.new(condition, then_body, else_body)
+  end
+
+  def unless_node(condition, then_body, else_body)
+    AST::If.new(AST::Unary.new(:!, condition), then_body, else_body)
+  end
+
+  def elsif_node(condition, then_body, else_body)
+    AST::If.new(condition, then_body, else_body)
+  end
+
+  def parentheses(statements, rule_id)
+    return AST::Sequence.new(statements.freeze) if @defined_depth.to_i.positive?
+    return statements.first if statements.length == 1
+    AST::Sequence.new(statements.freeze)
+  end
+
+  def begin_defined
+    @defined_depth = @defined_depth.to_i + 1
+    nil
+  end
+
+  def defined_call(value)
+    @defined_depth = [@defined_depth.to_i - 1, 0].max
+    if value.is_a?(AST::Ternary)
+      condition = value.condition
+      if condition.is_a?(AST::Sequence) && condition.statements.length == 1
+        condition = condition.statements.first
+        return AST::Ternary.new(AST::Call.new(:defined, [condition].freeze),
+          value.then_value, value.else_value)
+      end
+    end
+    value = defined_group_value(value)
+    operand = defined_logical_operand(value)
+    return defined_logical_groups(operand) if operand
+    AST::Call.new(:defined, [value].freeze)
+  end
+
+  def defined_group_value(value)
+    while value.is_a?(AST::Sequence) && value.statements.length == 1
+      value = value.statements.first
+    end
+    value
+  end
+
+  def defined_logical_operand(value)
+    return unless value.is_a?(AST::Binary)
+
+    left = value.left
+    if left.is_a?(AST::Sequence)
+      operand = defined_group_value(left)
+      return defined_logical_chain(value.operator, AST::Call.new(:defined, [operand].freeze), value.right)
+    end
+
+    nested = defined_logical_operand(left)
+    return unless nested
+
+    defined_logical_chain(value.operator, nested, value.right)
+  end
+
+  def defined_logical_chain(operator, left, right)
+    if right.is_a?(AST::Binary) && right.operator == operator && [:"&&", :"||"].include?(operator)
+      left = defined_logical_chain(operator, left, right.left)
+      return AST::Binary.new(operator, left, right.right)
+    end
+    AST::Binary.new(operator, left, right)
+  end
+
+  def defined_logical_groups(value)
+    value = defined_group_value(value)
+    return value unless value.is_a?(AST::Binary)
+
+    AST::Binary.new(value.operator, defined_logical_groups(value.left), defined_logical_groups(value.right))
+  end
+
+  def identifier(value)
+    unless value.is_a?(Symbol) || value.is_a?(String)
+      raise ArgumentError, "tIDENTIFIER requires a Symbol or String value"
+    end
+    value.to_sym
+  end
+
+  def declare_local(name)
+    @locals[name] = @locals.fetch(name, 0) + 1
+    name
+  end
+
+  def begin_method_scope(value)
+    @method_local_scopes << @locals
+    @method_lambda_local_counts << @lambda_local_counts
+    @locals = {}
+    @lambda_local_counts = Hash.new(0)
+    @declaring_method_parameters = true
+    value
+  end
+
+  def begin_lambda_parameters
+    @lambda_parameter_states << @declaring_method_parameters
+    @declaring_method_parameters = false
+    nil
+  end
+
+  def declare_method_parameter(name)
+    declare_local(name)
+  end
+
+  def declare_method_parameter_list(name)
+    [declare_local(name)].freeze
+  end
+
+  def end_method_scope
+    if @method_local_scopes.any?
+      @locals = @method_local_scopes.pop
+      @lambda_local_counts = @method_lambda_local_counts.pop
+    end
+    @declaring_method_parameters = false
+  end
+
+  def finish_method_scope(value)
+    end_method_scope
+    value
+  end
+
+  def read_local(name)
+    return name if name.is_a?(AST::Variable)
+    (@locals.key?(name) ? AST::LocalRead : AST::BareCall).new(name)
+  end
+
+  def method_parameter_scope?
+    @method_local_scopes.any? && @lambda_parameter_states.empty?
+  end
+
+  # Ruby decides whether an identifier is a local variable for the whole
+  # lexical scope. The parser reduces a reference before it necessarily sees
+  # a later assignment, so read_local cannot make that decision on its own.
+  # Resolve the remaining BareCall nodes once a scope's AST is complete.
+  def resolve_local_reads(value, inherited_names)
+    local_names = (Array(inherited_names) + local_names_in_scope(value)).uniq
+    rewrite_local_reads(value, local_names, for_target_names_in_scope(value))
+  end
+
+  def resolve_method_local_reads(value, local_names, parameter_names)
+    return resolve_local_reads(value, local_names) unless value.is_a?(Array)
+
+    assigned_names = Array(parameter_names).compact.uniq
+    result = value.map do |statement|
+      names = (assigned_names + direct_assignment_names(statement)).uniq
+      rewritten = rewrite_local_reads(statement, names, for_target_names_in_scope(statement))
+      assigned_names |= local_names_in_scope(statement)
+      rewritten
+    end
+    result.freeze if value.frozen?
+    result
+  end
+
+  def direct_assignment_names(value)
+    return [] unless data_node?(value)
+
+    case value.class.name.split("::").last
+    when "LocalWrite"
+      [value.name]
+    when "OpAssign"
+      target_names(value.target)
+    when "MultipleAssign"
+      Array(value.targets).flat_map { |target| target_names(target) } + target_names(value.rest) +
+        Array(value.post).flat_map { |target| target_names(target) }
+    else
+      []
+    end
+  end
+
+  def for_target_names_in_scope(value)
+    case value
+    when Array
+      value.flat_map { |item| for_target_names_in_scope(item) }
+    end
+    return [] unless data_node?(value)
+
+    if value.class.name.split("::").last == "For"
+      target_names(value.variable) + value.members.flat_map do |member|
+        for_target_names_in_scope(value.public_send(member))
+      end
+    else
+      value.members.flat_map { |member| for_target_names_in_scope(value.public_send(member)) }
+    end
+  end
+
+  def local_names_in_scope(value)
+    case value
+    when Array
+      return value.flat_map { |item| local_names_in_scope(item) }
+    end
+    return [] unless data_node?(value)
+
+    case value.class.name.split("::").last
+    when "LocalWrite"
+      [value.name] + local_names_in_scope(value.value)
+    when "OpAssign"
+      target_names(value.target) + local_names_in_scope(value.value)
+    when "MultipleAssign"
+      Array(value.targets).flat_map { |target| target_names(target) } +
+        local_names_in_scope(value.value)
+    when "For"
+      target_names(value.variable) + value.members.flat_map do |member|
+        local_names_in_scope(value.public_send(member))
+      end
+    when "Def", "SingletonMethodDef", "Lambda", "BlockCall",
+         "ClassDef", "ModuleDef", "SingletonClassDef"
+      []
+    else
+      value.members.flat_map { |member| local_names_in_scope(value.public_send(member)) }
+    end
+  end
+
+  def target_names(target)
+    case target
+    when Symbol then [target]
+    when Array then target.flat_map { |item| target_names(item) }
+    else []
+    end
+  end
+
+  def declare_local_targets(targets)
+    target_names(targets).each { |name| declare_local(name) }
+  end
+
+  def rewrite_local_reads(value, local_names, for_target_names = [])
+    case value
+    when Array
+      result = value.map { |item| rewrite_local_reads(item, local_names, for_target_names) }
+      result.freeze if value.frozen?
+      return result
+    end
+    return value unless data_node?(value)
+
+    type = value.class.name.split("::").last
+    if type == "BareCall" && local_names.include?(value.name)
+      return AST::LocalRead.new(value.name)
+    end
+
+    case type
+    when "ReceiverCall"
+      receiver = value.receiver
+      unless receiver.is_a?(AST::BareCall) && for_target_names.include?(receiver.name)
+        receiver = rewrite_local_reads(receiver, local_names, for_target_names)
+      end
+      return value.with(receiver: receiver,
+        arguments: rewrite_local_reads(value.arguments, local_names, for_target_names))
+    when "BlockCall"
+      return value.with(call: rewrite_local_reads(value.call, local_names, for_target_names))
+    when "SingletonMethodDef"
+      return value.with(receiver: rewrite_local_reads(value.receiver, local_names, for_target_names))
+    when "Def", "Lambda", "ClassDef", "ModuleDef", "SingletonClassDef"
+      return value
+    end
+
+    fields = value.members.to_h do |member|
+      [member, rewrite_local_reads(value.public_send(member), local_names, for_target_names)]
+    end
+    value.with(**fields)
+  end
+
+  def rewrite_shadowed_local_reads(value, local_names)
+    case value
+    when Array
+      result = value.map { |item| rewrite_shadowed_local_reads(item, local_names) }
+      result.freeze if value.frozen?
+      return result
+    end
+    return value unless data_node?(value)
+
+    type = value.class.name.split("::").last
+    if type == "LocalRead" && local_names.include?(value.name)
+      return AST::BareCall.new(value.name)
+    end
+
+    case type
+    when "BlockCall", "Def", "Lambda", "ClassDef", "ModuleDef", "SingletonClassDef"
+      return value
+    end
+
+    fields = value.members.to_h do |member|
+      [member, rewrite_shadowed_local_reads(value.public_send(member), local_names)]
+    end
+    value.with(**fields)
+  end
+
+  def data_node?(value)
+    value.respond_to?(:members) && value.respond_to?(:with)
+  end
+
+  def assign(name, value)
+    if name.is_a?(AST::ConstantPath) || name.is_a?(AST::AbsoluteConstant)
+      AST::Assignment.new(name, value)
+    else
+      AST::LocalWrite.new(name, value)
+    end
+  end
+<% if runtime.fetch("builder_methods", []).include?("assignment") -%>
+  def assignment(name, value)
+    if name.is_a?(AST::Field) || name.is_a?(AST::Index)
+      AST::Assignment.new(name, value)
+    else
+      AST::LocalWrite.new(name, value)
+    end
+  end
+
+  def opassign(target, operator, value)
+    AST::OpAssign.new(target, operator.to_s.delete_suffix("=").to_sym, value)
+  end
+
+  def multiple_assign(targets, value)
+    value = array(value) if value.is_a?(Array)
+    if targets.is_a?(AST::MultipleAssign)
+      declare_local_targets(targets.targets)
+      return AST::MultipleAssign.new(targets.targets, value, rest: targets.rest, post: targets.post)
+    end
+    declare_local_targets(targets)
+    AST::MultipleAssign.new(Array(targets).freeze, value)
+  end
+
+  def multiple_assign_post(targets, rest, post)
+    declare_local_targets(targets)
+    declare_local_targets(rest)
+    declare_local_targets(post)
+    AST::MultipleAssign.new(Array(targets).freeze, nil, rest: rest, post: Array(post))
+  end
+
+  def assign_mrhs(targets, value)
+    value = array(value) if value.is_a?(Array)
+    targets = targets.is_a?(Array) ? targets : [targets]
+    return assignment(targets.first, value) if targets.length == 1
+    multiple_assign(targets, value)
+  end
+
+  def field(receiver, operator, name)
+    AST::Field.new(receiver, operator.to_sym, name.to_sym)
+  end
+
+  def alias_node(kind, new_name, old_name)
+    AST::Alias.new(kind, new_name, old_name)
+  end
+
+  def undef_node(names)
+    AST::Undef.new(Array(names).freeze)
+  end
+<% end -%>
+
+  def array(elements)
+    elements = elements.is_a?(Array) ? elements : [elements]
+    if elements.first.is_a?(AST::Splat)
+      last_splat_index = elements.rindex { |element| element.is_a?(AST::Splat) }
+      trailing = elements[(last_splat_index + 1)..]
+      if trailing && trailing.length > 1 && trailing.none? { |element| element.is_a?(AST::Pair) }
+        elements = elements[0..last_splat_index] + [AST::Splat.new(AST::ArrayLiteral.new(trailing.freeze))]
+      end
+    end
+    pair_index = elements.index { |element| element.is_a?(AST::Pair) }
+    if pair_index && elements.drop(pair_index).all? { |element| element.is_a?(AST::Pair) }
+      elements = elements.take(pair_index) + [AST::HashLiteral.new(elements.drop(pair_index).freeze)]
+    end
+    AST::ArrayLiteral.new(elements.freeze)
+  end
+
+  def word_array(elements, symbols: false)
+    elements ||= []
+    elements = elements.elements if elements.is_a?(AST::ArrayLiteral)
+    values = elements.map do |value|
+      if value.is_a?(AST::InterpolatedString)
+        symbols ? AST::DynamicSymbol.new(value.parts) : value
+      else
+        value = value.value if value.is_a?(AST::StringLiteral)
+        symbols ? value.to_sym : AST::StringLiteral.new(value.to_s)
+      end
+    end
+    AST::ArrayLiteral.new(values.freeze)
+  end
+
+  def hash(pairs)
+    AST::HashLiteral.new(pairs.freeze)
+  end
+
+  def pair(key, value)
+    AST::Pair.new(key, value)
+  end
+
+  def append(list, value)
+    value.nil? ? list : (list + [value]).freeze
+  end
+
+  def unsupported(id)
+    rule = RULES.fetch(id)
+    raise UnsupportedSyntax.new(rule.fetch("rule"), rule.fetch("line"))
+  end
+end
+private_constant :Builder

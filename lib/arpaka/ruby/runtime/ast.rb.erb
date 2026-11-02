@@ -1,6 +1,10 @@
 module AST
   Program = Data.define(:statements)
   Literal = Data.define(:value)
+  EncodingLiteral = Data.define(:value)
+<% if runtime.fetch("ast_nodes", []).include?("self") -%>
+  Self = Data.define
+<% end -%>
   Binary = Data.define(:operator, :left, :right)
   Unary = Data.define(:operator, :operand)
   If = Data.define(:condition, :then_body, :else_body)
@@ -9,28 +13,49 @@ module AST
 <% if runtime.fetch("ast_nodes", []).include?("assignment") -%>
   Assignment = Data.define(:target, :value)
   OpAssign = Data.define(:target, :operator, :value)
-  MultipleAssign = Data.define(:targets, :value)
+  MultipleAssign = Data.define(:targets, :rest, :post, :value) do
+    constructor = method(:new)
+    define_singleton_method(:new) do |targets, value = nil, rest: nil, post: nil|
+      constructor.call(Array(targets).freeze, rest, Array(post).freeze, value)
+    end
+  end
   Field = Data.define(:receiver, :operator, :name)
-  Alias = Data.define(:new_name, :old_name)
+  Alias = Data.define(:kind, :new_name, :old_name)
   Undef = Data.define(:names)
 <% end -%>
   BareCall = Data.define(:name)
   ArrayLiteral = Data.define(:elements)
+  Splat = Data.define(:value)
   HashLiteral = Data.define(:pairs)
+<% if runtime.fetch("ast_nodes", []).include?("keyword_arguments") -%>
+  KeywordArguments = Data.define(:pairs)
+<% end -%>
   Pair = Data.define(:key, :value)
   RangeLiteral = Data.define(:operator, :begin_value, :end_value)
   Ternary = Data.define(:condition, :then_value, :else_value)
   Call = Data.define(:name, :arguments)
+  Super = Data.define(:arguments)
+  BlockPass = Data.define(:arguments, :value)
   ReceiverCall = Data.define(:receiver, :operator, :name, :arguments)
-  BlockCall = Data.define(:call, :body)
+  BlockParameters = Data.define(:kind, :value)
+  Parameter = Data.define(:kind, :name, :value)
+  BlockCall = Data.define(:call, :parameters, :body)
   StringLiteral = Data.define(:value)
   InterpolatedString = Data.define(:parts)
+  DynamicSymbol = Data.define(:parts)
   Index = Data.define(:receiver, :arguments)
   Loop = Data.define(:kind, :condition, :body)
-  Control = Data.define(:kind)
+  Control = Data.define(:kind, :value)
   Variable = Data.define(:kind, :name)
+  ConstantPath = Data.define(:receiver, :name)
+  AbsoluteConstant = Data.define(:name)
   Rescue = Data.define(:expression, :fallback)
-  RegexpLiteral = Data.define(:value)
+  RegexpLiteral = Data.define(:value, :options, :encoding, :once) do
+    constructor = method(:new)
+    define_singleton_method(:new) do |value, options = 0, encoding = nil, once = false|
+      constructor.call(value, options, encoding, once)
+    end
+  end
   XStringLiteral = Data.define(:value)
   For = Data.define(:variable, :enumerable, :body)
   Def = Data.define(:name, :arguments, :body)

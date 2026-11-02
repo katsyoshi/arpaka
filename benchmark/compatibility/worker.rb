@@ -26,7 +26,7 @@ require frontend_path if mode == "arpaka"
 
 inputs.each do |input|
   started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-  source = File.binread(input.fetch("path")).force_encoding(Encoding::UTF_8)
+  source = File.binread(input.fetch("path")).force_encoding(Encoding::UTF_8).gsub("\r\n", "\n")
   begin
     tree = if mode == "arpaka"
       Object.const_get(:CompatibilityFrontend).parse(source, filename: input.fetch("filename"))
