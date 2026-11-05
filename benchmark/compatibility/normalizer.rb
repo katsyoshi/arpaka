@@ -220,12 +220,16 @@ module Compatibility
       when "Def"
         args = arpaka_method_arguments(values[:arguments])
         [:def, symbol(values[:name]), args, method_body(values[:body])]
-      when "BlockCall" then [:block, arpaka(values[:call]), block_parameters(values[:parameters]), body(values[:body])]
+      when "BlockCall"
+        call = arpaka(values[:call])
+        block_body = arpaka_dynamic_scope { body(values[:body]) }
+        [:block, call, block_parameters(values[:parameters]), block_body]
       when "BlockParameters" then block_parameters_node(values[:kind], values[:value])
       when "Parameter"
         [:parameter, symbol(values[:kind]), values[:name].nil? ? MISSING : symbol(values[:name]), arpaka(values[:value])]
       when "Pattern"
         kind = values[:kind].to_sym
+        normalized_kind = kind == :variable && @arpaka_dynamic_scope_depth.to_i.positive? ? :value : kind
         pattern_values = case kind
         when :array
           pre, rest, post = values[:values]
@@ -241,7 +245,11 @@ module Compatibility
         when :rest
           [arpaka_pattern_value(values[:values].first)]
         when :variable
-          [symbol(values[:values].first)]
+          if @arpaka_dynamic_scope_depth.to_i.positive?
+            [[:local_write, symbol(values[:values].first), nil]]
+          else
+            [symbol(values[:values].first)]
+          end
         when :pin
           [arpaka(values[:values].first)]
         when :guard, :guard_unless
@@ -249,7 +257,7 @@ module Compatibility
         else
           values[:values].map { |item| arpaka(item) }
         end
-        [:pattern, symbol(kind), pattern_values]
+        [:pattern, symbol(normalized_kind), pattern_values]
       when "Index" then [:call, arpaka(values[:receiver]), false, symbol(:[]), arpaka_arguments(values[:arguments])]
       when "Control" then [:control, symbol(values[:kind]), arpaka(values[:value])]
       when "Case"
@@ -1047,7 +1055,11 @@ module Compatibility
 
     def arpaka_pattern_value(value)
       return arpaka(value) unless value.is_a?(Symbol)
-      [:pattern, symbol(:variable), [symbol(value)]]
+      if @arpaka_dynamic_scope_depth.to_i.positive?
+        [:pattern, symbol(:value), [[:local_write, symbol(value), nil]]]
+      else
+        [:pattern, symbol(:variable), [symbol(value)]]
+      end
     end
 
     def arpaka_pattern_rest(value)
@@ -1237,6 +1249,13 @@ module Compatibility
       return [] if value.nil?
       return value.map { |item| arpaka(item) } if value.is_a?(Array)
       [arpaka(value)]
+    end
+
+    def arpaka_dynamic_scope
+      @arpaka_dynamic_scope_depth = @arpaka_dynamic_scope_depth.to_i + 1
+      yield
+    ensure
+      @arpaka_dynamic_scope_depth -= 1
     end
 
     def body_value(value)

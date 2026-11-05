@@ -481,6 +481,16 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_normalizes_shorthand_pattern_bindings_inside_blocks
+    normalizer = Compatibility::Normalizer.new
+    source = "assert_pattern { @params => { person: } }"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+    expected = normalizer.rubyvm(tree.children.fetch(2))
+    actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+
+    assert_equal expected, actual
+  end
+
   def test_compares_final_constant_of_qualified_path_with_constant
     runner = compatibility_runner
     constant = [:constant, [:symbol, [:bytes, "42617365", "US-ASCII"]]]
