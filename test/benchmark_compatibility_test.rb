@@ -384,6 +384,15 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     assert_equal [:regexp, "782f", 0, "US-ASCII"], normalizer.rubyvm(node)
   end
 
+  def test_normalizes_static_dregx_text_parts_like_arpaka
+    normalizer = Compatibility::Normalizer.new
+    source = %q{AUTH_SCHEME_REGEX = /^([0-9A-Za-z!\#$%&'*+\-.^_`|~]+)\s+/}
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
   def test_normalizes_static_interpolated_strings_as_strings
     normalizer = Compatibility::Normalizer.new
     source = '"hello"'

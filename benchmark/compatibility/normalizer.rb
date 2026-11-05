@@ -478,7 +478,8 @@ module Compatibility
       when :DREGX
         parts = dynamic_parts(c)
         if parts.all? { |part| part.first == :text }
-          regexp(parts.map { |part| part.last }.join.b.unpack1("H*"), 0, Encoding::US_ASCII.name)
+          pattern = parts.map { |part| part.last.fetch(1) }.join
+          regexp(pattern, 0, Encoding::US_ASCII.name)
         else
           [:interpolated_regexp, parts, ["unknown", "options"], ["unknown", "encoding"]]
         end
