@@ -303,7 +303,7 @@ module Arpaka::Ruby::Actions
     551 => ["pass_through", "$2"],
     550 => ["pass_through", "$2"],
     539 => ["pass_through", "$1"],
-    522 => ["pass_through", "$2"],
+    522 => ["ported", "[@builder.splat($2)].freeze"],
     630 => ["pass_through", "$1"], 631 => ["pass_through", "$1"],
     632 => ["empty", "nil"], 633 => ["pass_through", "$2"], 634 => ["empty", "nil"],
     635 => ["pass_through", "$2"],

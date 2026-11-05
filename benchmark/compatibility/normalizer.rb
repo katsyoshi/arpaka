@@ -279,7 +279,7 @@ module Compatibility
         patterns = values[:patterns].is_a?(Array) ? values[:patterns] : [values[:patterns]]
         when_body = body(values[:body])
         when_body = [] if @arpaka_case_statement && when_body == [[:literal, nil]]
-        [:when, patterns.map { |pattern| arpaka(pattern) }, when_body]
+        [:when, patterns.map { |pattern| arpaka_case_pattern(pattern) }, when_body]
       when "Loop"
         # RubyVM stores whether the loop body is evaluated before the first
         # condition check as a trailing boolean on WHILE/UNTIL. Arpaka's
@@ -1097,6 +1097,11 @@ module Compatibility
     def arpaka_pattern_rest(value)
       return nil if value.nil?
       [:pattern, symbol(:rest), [arpaka_pattern_value(value.values.first)]]
+    end
+
+    def arpaka_case_pattern(value)
+      normalized = arpaka(value)
+      ast_name(value) == "Splat" ? [:array, [normalized]] : normalized
     end
 
     def rubyvm_targets(node)

@@ -96,6 +96,15 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
   end
 
+  def test_destructured_singleton_method_parameters_resolve_outer_locals_in_blocks
+    normalizer = Compatibility::Normalizer.new
+    source = "def self.f((first, second)); values.each { |value| second&.include?(value) }; end"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
   def test_multiple_assignment_preserves_named_rest_and_post_targets
     normalizer = Compatibility::Normalizer.new
     ["first, *rest = values", "first, *rest, last = values", "*rest = values", "*rest, last = values"].each do |source|
@@ -438,6 +447,15 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
   def test_normalizes_static_dregx_text_parts_like_arpaka
     normalizer = Compatibility::Normalizer.new
     source = %q{AUTH_SCHEME_REGEX = /^([0-9A-Za-z!\#$%&'*+\-.^_`|~]+)\s+/}
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_preserves_splat_case_patterns
+    normalizer = Compatibility::Normalizer.new
+    source = "case name; when *Relation::MULTI_VALUE_METHODS; value; end"
     tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
 
     assert_equal normalizer.rubyvm(tree.children.fetch(2)),

@@ -933,7 +933,11 @@ class Builder
       return value.with(receiver: receiver,
         arguments: rewrite_local_reads(value.arguments, local_names, for_target_names))
     when "BlockCall"
-      return value.with(call: rewrite_local_reads(value.call, local_names, for_target_names))
+      parameter_names = block_parameter_names(value.parameters)
+      return value.with(
+        call: rewrite_local_reads(value.call, local_names, for_target_names),
+        body: rewrite_local_reads(value.body, local_names - parameter_names, for_target_names)
+      )
     when "SingletonMethodDef"
       return value.with(receiver: rewrite_local_reads(value.receiver, local_names, for_target_names))
     when "Def", "Lambda", "ClassDef", "ModuleDef", "SingletonClassDef"
