@@ -362,6 +362,7 @@ module Compatibility
       when "SingletonMethodDef"
         args = retained_arpaka_arguments(values[:arguments])
         [:singleton_def, arpaka(values[:receiver]), symbol(values[:name]),
+          args,
           method_body(values[:body], preserve_terminal_nil: method_arguments_present?(args))]
       when "SingletonClassDef" then [:singleton_class, arpaka(values[:receiver]), body(values[:body])]
       when "Lambda" then [:lambda, retained_arpaka_arguments(values[:arguments]), expression_body(values[:body])]
