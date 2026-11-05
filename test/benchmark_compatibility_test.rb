@@ -502,6 +502,15 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_normalizes_terminal_nil_in_rescue_body_conditionals
+    normalizer = Compatibility::Normalizer.new
+    source = "def f; if object; object; elsif condition; nil; else; value; end; rescue NameError; nil; end"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
   def test_normalizes_qualified_declaration_names_like_arpaka
     tree = RubyVM::AbstractSyntaxTree.parse("class ActionCable::Loader; end", keep_script_lines: false)
     normalized = Compatibility::Normalizer.new.rubyvm(tree.children.fetch(2))

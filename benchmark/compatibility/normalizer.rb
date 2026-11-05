@@ -342,11 +342,13 @@ module Compatibility
           # RubyVM does not wrap an ensure-only expression in an empty rescue
           # node. Keep the frontend's FullRescue shape, but normalize it to
           # the VM's direct ensure body representation.
-          [:ensure, body(values[:body]), body(values[:ensure_body])]
+          [:ensure, normalize_terminal_nil_body(body(values[:body])), body(values[:ensure_body])]
         elsif values[:ensure_body].nil?
-          [:rescue, body(values[:body]), values[:clauses].map { |clause| arpaka(clause) }, body(values[:else_body])]
+          [:rescue, normalize_terminal_nil_body(body(values[:body])),
+            values[:clauses].map { |clause| arpaka(clause) }, body(values[:else_body])]
         else
-          rescue_body = [:rescue, body(values[:body]), values[:clauses].map { |clause| arpaka(clause) }, body(values[:else_body])]
+          rescue_body = [:rescue, normalize_terminal_nil_body(body(values[:body])),
+            values[:clauses].map { |clause| arpaka(clause) }, body(values[:else_body])]
           [:ensure, [rescue_body], body(values[:ensure_body])]
         end
       when "RescueClause"
