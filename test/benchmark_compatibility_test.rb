@@ -78,6 +78,15 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_destructured_method_parameters_match_rubyvm
+    normalizer = Compatibility::Normalizer.new
+    source = "def f((first, second)); first; end"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
   def test_multiple_assignment_preserves_named_rest_and_post_targets
     normalizer = Compatibility::Normalizer.new
     ["first, *rest = values", "first, *rest, last = values", "*rest = values", "*rest, last = values"].each do |source|
@@ -85,6 +94,15 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
       assert_equal expected, actual, source
     end
+  end
+
+  def test_block_destructured_rest_targets_match_rubyvm
+    normalizer = Compatibility::Normalizer.new
+    source = "values.each { |(key, value), memo| memo }"
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+      assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+        normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0), source
   end
 
   def test_regexp_character_classes_preserve_interpolation
@@ -515,7 +533,23 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     normalizer = Compatibility::Normalizer.new
     [
       "def f(argument); nil; end",
-      "def f(argument); if condition; value; else; nil; end; end"
+      "def method_missing(...)\n  nil\nend",
+      "def f(*)\n  nil\nend"
+    ].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+      assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+        normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0), source
+    end
+  end
+
+  def test_normalizes_nil_ternary_branches_as_empty_bodies
+    normalizer = Compatibility::Normalizer.new
+    [
+      "def f(argument); condition ? value : nil; end",
+      "def f(argument); condition ? nil : value; end",
+      "def f(argument); @value = condition ? value : nil; end",
+      "values.map { |value| condition ? nil : value }"
     ].each do |source|
       tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
 
@@ -632,6 +666,13 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       runner.__send__(:compare_trees,
         [:call, nil, false, [:symbol, [:bytes, "666f6f", "US-ASCII"]], [hash]],
         [:call, nil, false, [:symbol, [:bytes, "666f6f", "US-ASCII"]], [pair]])
+  end
+
+  def test_accepts_rubyvm_terminal_nil_body_variant
+    runner = compatibility_runner
+
+    assert_equal [:accepted_mismatch, "$"],
+      runner.__send__(:compare_trees, [], [[:literal, nil]])
   end
 
   def test_does_not_treat_an_explicit_hash_literal_as_a_pair_argument

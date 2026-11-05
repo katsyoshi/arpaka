@@ -198,10 +198,12 @@ module Compatibility
         else
           arpaka(condition)
         end
-        [:conditional, normalized_condition, body(values[:then_body]), body(values[:else_body])]
+        [:conditional, normalized_condition, conditional_body(values[:then_body]), conditional_body(values[:else_body])]
       when "RangeLiteral"
         [:range, symbol(values[:operator]), range_endpoint(values[:begin_value]), range_endpoint(values[:end_value])]
-      when "Ternary" then [:conditional, arpaka(values[:condition]), [arpaka(values[:then_value])], [arpaka(values[:else_value])]]
+      when "Ternary"
+        [:conditional, arpaka(values[:condition]), ternary_branch(values[:then_value], statement: statement),
+          ternary_branch(values[:else_value], statement: statement)]
       when "StringLiteral" then [:string, string_text(values[:value])]
       when "InterpolatedString"
         parts = merge_text_parts(values[:parts].map do |v|
@@ -231,7 +233,7 @@ module Compatibility
       when "Def"
         args = arpaka_method_arguments(values[:arguments])
         [:def, symbol(values[:name]), args,
-          method_body(values[:body], preserve_terminal_nil: method_arguments_present?(args))]
+          method_body(values[:body], preserve_terminal_nil: method_arguments_present?(values[:arguments]))]
       when "BlockCall"
         call = arpaka(values[:call])
         block_body = arpaka_dynamic_scope { expression_body(values[:body]) }
@@ -363,7 +365,7 @@ module Compatibility
         args = retained_arpaka_arguments(values[:arguments])
         [:singleton_def, arpaka(values[:receiver]), symbol(values[:name]),
           args,
-          method_body(values[:body], preserve_terminal_nil: method_arguments_present?(args))]
+          method_body(values[:body], preserve_terminal_nil: method_arguments_present?(values[:arguments]))]
       when "SingletonClassDef" then [:singleton_class, arpaka(values[:receiver]), body(values[:body])]
       when "Lambda" then [:lambda, retained_arpaka_arguments(values[:arguments]), expression_body(values[:body])]
       when "Variable"
@@ -385,7 +387,8 @@ module Compatibility
         unsupported!(:rubyvm, "nested SCOPE")
       when :MASGN
         value, targets, rest = c
-        normalized_value = if value.is_a?(RubyVM::AbstractSyntaxTree::Node) && value.type == :DVAR && value.children == [nil]
+        normalized_value = if value.is_a?(RubyVM::AbstractSyntaxTree::Node) &&
+            [:DVAR, :LVAR].include?(value.type) && value.children == [nil]
           nil
         else
           rubyvm(value)
@@ -667,6 +670,12 @@ module Compatibility
     def arpaka_method_arguments(value)
       parameters = value.is_a?(Array) ? value : value.nil? ? [] : [value]
       unless parameters.any? { |parameter| ast_name(parameter) == "Parameter" }
+        if parameters.length == 1 && ast_name(parameters.first) == "BlockParameters" &&
+            parameters.first.kind == :destructured
+          targets = Array(parameters.first.value).map { |name| arpaka_block_pattern_target(name) }
+          return [:retained_arguments, [], [:pre_init, [:multiple_assign, targets, nil, nil]]]
+        end
+
         return [:retained_arguments, parameters.map do |parameter|
           if parameter.is_a?(Symbol)
             symbol(parameter)
@@ -740,6 +749,8 @@ module Compatibility
     def arpaka_block_pattern_target(value)
       if value.is_a?(Array)
         [:multiple_target, value.map { |name| arpaka_block_pattern_target(name) }]
+      elsif ast_name(value) == "BlockParameters" && value.kind == :rest
+        arpaka_block_pattern_target(value.value)
       else
         [:local_target, symbol(value)]
       end
@@ -1306,8 +1317,28 @@ module Compatibility
       normalize_terminal_nil_body(body(value), preserve_terminal_nil: preserve_terminal_nil)
     end
 
+    def ternary_branch(value, statement:)
+      if statement && !@arpaka_conditional_body && ast_name(value) == "Literal" && value.value.nil?
+        return []
+      end
+
+      [arpaka(value)]
+    end
+
+    def conditional_body(value)
+      previous = @arpaka_conditional_body
+      @arpaka_conditional_body = true
+      body(value)
+    ensure
+      @arpaka_conditional_body = previous
+    end
+
     def method_arguments_present?(arguments)
-      arguments.length > 2 || arguments.fetch(1).any?
+      parameters = arguments.is_a?(Array) ? arguments : arguments.nil? ? [] : [arguments]
+      return false if parameters.one? && ast_name(parameters.first) == "Parameter" &&
+        parameters.first.name.nil? && [:forwarding, :rest].include?(parameters.first.kind)
+
+      parameters.length > 2 || parameters.any?
     end
 
     def normalize_terminal_nil_body(nodes, preserve_terminal_nil: false)
@@ -1320,7 +1351,7 @@ module Compatibility
 
       normalized = last.dup
       normalized[2] = normalize_terminal_nil_body(normalized[2])
-      normalized[3] = normalize_terminal_nil_body(normalized[3], preserve_terminal_nil: preserve_terminal_nil)
+      normalized[3] = normalize_terminal_nil_body(normalized[3])
       nodes[0...-1] + [normalized]
     end
 

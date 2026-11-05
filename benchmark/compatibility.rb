@@ -290,7 +290,11 @@ module Compatibility
         difference = status == "mismatch" ? first_mismatch(vm[:tree], arpaka[:tree]) : nil
         path, expected, actual = difference || first_difference(vm[:tree], arpaka[:tree])
         result["difference"] = { "path" => path, "rubyvm" => excerpt(expected), "arpaka" => excerpt(actual) }
-        result["reason"] = "keyword arguments are represented as HASH in RubyVM AST" if status == "accepted_mismatch"
+        result["reason"] = if contains_terminal_nil_variant?(vm[:tree], arpaka[:tree])
+          "RubyVM omits explicit terminal nil in some method and block bodies"
+        else
+          "keyword arguments are represented as HASH in RubyVM AST"
+        end if status == "accepted_mismatch"
       end
       result
     rescue SystemCallError => error
@@ -441,6 +445,7 @@ module Compatibility
     def compare_trees(left, right, path = "$", keyword_argument: false)
       return [:match, nil] if left == right
       return [:match, nil] if equivalent_constant_path?(left, right)
+      return [:accepted_mismatch, path] if terminal_nil_variant?(left, right)
 
       if keyword_argument && keyword_arguments_as_hash?(left, right)
         status, = compare_trees(left[1], right[1], "#{path}[1]")
@@ -527,6 +532,25 @@ module Compatibility
       left.is_a?(Array) && right.is_a?(Array) && left.length == 2 && right.length == 2 &&
         ((tag?(left.first, :keyword_arguments) && tag?(right.first, :hash)) ||
           (tag?(left.first, :hash) && tag?(right.first, :keyword_arguments)))
+    end
+
+    def terminal_nil_variant?(left, right)
+      return true if (left == [] && terminal_nil_node?(right)) ||
+        (right == [] && terminal_nil_node?(left))
+
+      false
+    end
+
+    def terminal_nil_node?(value)
+      value.is_a?(Array) && value.length == 1 && value.first.is_a?(Array) &&
+        value.first.length == 2 && tag?(value.first.first, :literal) && value.first[1].nil?
+    end
+
+    def contains_terminal_nil_variant?(left, right)
+      return true if terminal_nil_variant?(left, right)
+      return false unless left.is_a?(Array) && right.is_a?(Array) && left.length == right.length
+
+      left.each_index.any? { |index| contains_terminal_nil_variant?(left[index], right[index]) }
     end
 
     def hash_as_single_pair?(hash, pair)

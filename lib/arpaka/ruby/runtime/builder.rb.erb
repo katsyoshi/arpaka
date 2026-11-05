@@ -416,6 +416,9 @@ class Builder
   end
 
   def method_arguments_present?(arguments)
+    return false if arguments.is_a?(AST::Parameter) && arguments.name.nil? &&
+      [:forwarding, :rest].include?(arguments.kind)
+
     !arguments.nil? && (!arguments.is_a?(Array) || arguments.any?)
   end
 
