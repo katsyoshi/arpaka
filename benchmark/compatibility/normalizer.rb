@@ -230,7 +230,8 @@ module Compatibility
         end
       when "Def"
         args = arpaka_method_arguments(values[:arguments])
-        [:def, symbol(values[:name]), args, method_body(values[:body])]
+        [:def, symbol(values[:name]), args,
+          method_body(values[:body], preserve_terminal_nil: method_arguments_present?(args))]
       when "BlockCall"
         call = arpaka(values[:call])
         block_body = arpaka_dynamic_scope { expression_body(values[:body]) }
@@ -359,8 +360,9 @@ module Compatibility
       when "ModuleDef"
         [:module, arpaka_declaration_name(values[:name]), body(values[:body])]
       when "SingletonMethodDef"
+        args = retained_arpaka_arguments(values[:arguments])
         [:singleton_def, arpaka(values[:receiver]), symbol(values[:name]),
-          retained_arpaka_arguments(values[:arguments]), method_body(values[:body])]
+          method_body(values[:body], preserve_terminal_nil: method_arguments_present?(args))]
       when "SingletonClassDef" then [:singleton_class, arpaka(values[:receiver]), body(values[:body])]
       when "Lambda" then [:lambda, retained_arpaka_arguments(values[:arguments]), expression_body(values[:body])]
       when "Variable"
@@ -1299,11 +1301,16 @@ module Compatibility
       value.nil? ? [:literal, nil] : arpaka(value)
     end
 
-    def method_body(value)
-      normalize_terminal_nil_body(body(value))
+    def method_body(value, preserve_terminal_nil: false)
+      normalize_terminal_nil_body(body(value), preserve_terminal_nil: preserve_terminal_nil)
     end
 
-    def normalize_terminal_nil_body(nodes)
+    def method_arguments_present?(arguments)
+      arguments.length > 2 || arguments.fetch(1).any?
+    end
+
+    def normalize_terminal_nil_body(nodes, preserve_terminal_nil: false)
+      return nodes if preserve_terminal_nil && nodes == [[:literal, nil]]
       return [] if nodes == [[:literal, nil]]
       return nodes if nodes.empty?
 
@@ -1312,7 +1319,7 @@ module Compatibility
 
       normalized = last.dup
       normalized[2] = normalize_terminal_nil_body(normalized[2])
-      normalized[3] = normalize_terminal_nil_body(normalized[3])
+      normalized[3] = normalize_terminal_nil_body(normalized[3], preserve_terminal_nil: preserve_terminal_nil)
       nodes[0...-1] + [normalized]
     end
 

@@ -511,6 +511,19 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
   end
 
+  def test_preserves_terminal_nil_for_methods_with_arguments
+    normalizer = Compatibility::Normalizer.new
+    [
+      "def f(argument); nil; end",
+      "def f(argument); if condition; value; else; nil; end; end"
+    ].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+      assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+        normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0), source
+    end
+  end
+
   def test_normalizes_qualified_declaration_names_like_arpaka
     tree = RubyVM::AbstractSyntaxTree.parse("class ActionCable::Loader; end", keep_script_lines: false)
     normalized = Compatibility::Normalizer.new.rubyvm(tree.children.fetch(2))
