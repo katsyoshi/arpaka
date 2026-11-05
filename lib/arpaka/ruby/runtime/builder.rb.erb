@@ -55,10 +55,28 @@ class Builder
 
   def binary(operator, left, right)
     if [:"&&", :"||"].include?(operator) && right.is_a?(AST::Binary) &&
-        right.operator == operator && right.left.is_a?(AST::Call) && right.left.name == :defined
-      return AST::Binary.new(operator, AST::Binary.new(operator, left, right.left), right.right)
+        right.operator == operator && logical_chain_starts_with_defined?(operator, right)
+      return prepend_logical_chain(operator, left, right)
     end
     AST::Binary.new(operator, left, right)
+  end
+
+  def logical_chain_starts_with_defined?(operator, value)
+    if value.is_a?(AST::Binary) && value.operator == operator
+      logical_chain_starts_with_defined?(operator, value.left)
+    elsif value.is_a?(AST::Unary) && value.operator == :!
+      value.operand.is_a?(AST::Call) && value.operand.name == :defined
+    else
+      value.is_a?(AST::Call) && value.name == :defined
+    end
+  end
+
+  def prepend_logical_chain(operator, left, value)
+    if value.is_a?(AST::Binary) && value.operator == operator
+      AST::Binary.new(operator, prepend_logical_chain(operator, left, value.left), value.right)
+    else
+      AST::Binary.new(operator, left, value)
+    end
   end
 
   def operator(value)
@@ -635,7 +653,19 @@ class Builder
 <% end -%>
 
   def unary(operator, operand)
+    if operator == :! && operand.is_a?(AST::Binary) &&
+        [:"&&", :"||"].include?(operand.operator) && logical_chain_starts_with_defined?(operand.operator, operand)
+      return negate_logical_chain(operand)
+    end
     AST::Unary.new(operator, operand)
+  end
+
+  def negate_logical_chain(value)
+    if value.is_a?(AST::Binary) && [:"&&", :"||"].include?(value.operator)
+      AST::Binary.new(value.operator, negate_logical_chain(value.left), value.right)
+    else
+      AST::Unary.new(:!, value)
+    end
   end
 
   def if_node(condition, then_body, else_body)

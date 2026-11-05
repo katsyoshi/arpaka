@@ -113,7 +113,8 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       "defined?(@a) && @a && defined?(@b) && @b && check",
       "defined?(@a) || @a || defined?(@b) || @b || check",
       "defined?(@a) && (@a && defined?(@b))",
-      "defined?(@a && @b) && check"
+      "defined?(@a && @b) && check",
+      "token != false && defined?(protect_against_forgery?) && protect_against_forgery? && (token || !defined?(embed_authenticity_token?) || embed_authenticity_token?)"
     ].each do |source|
       expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
       actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
