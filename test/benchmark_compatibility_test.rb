@@ -87,6 +87,15 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
   end
 
+  def test_destructured_singleton_method_parameters_match_rubyvm
+    normalizer = Compatibility::Normalizer.new
+    source = "def self.f((first, second)); first; end"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
   def test_multiple_assignment_preserves_named_rest_and_post_targets
     normalizer = Compatibility::Normalizer.new
     ["first, *rest = values", "first, *rest, last = values", "*rest = values", "*rest, last = values"].each do |source|

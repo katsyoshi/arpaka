@@ -373,8 +373,10 @@ class Builder
 <% if runtime.fetch("builder_methods", []).include?("singleton_method") -%>
   def singleton_method_node(receiver, name, arguments, body)
     if arguments.is_a?(AST::BlockParameters) && arguments.kind == :destructured
-      arguments = arguments.value
-      arguments.grep(Symbol).each { |argument| declare_local(argument) }
+      arguments.value.grep(Symbol).each { |argument| declare_local(argument) }
+      if arguments.value.any? { |value| value.is_a?(AST::BlockParameters) }
+        arguments = arguments.value
+      end
     end
     body = resolve_method_local_reads(
       method_body_nodes(body, preserve_terminal_nil: method_arguments_present?(arguments)),
