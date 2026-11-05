@@ -1615,6 +1615,14 @@ class ArpakaTest < Test::Unit::TestCase
     assert_nothing_raised { GeneratedRubyFrontend.parse("value = left || proc { 1 }") }
   end
 
+  test "source lexer keeps an outer do block after a proc command raises" do
+    source = 'selector.stub(:register, proc { handshake_written.wait(5); raise ArgumentError, "mode not supported" }) do; end'
+    tokens = GeneratedRubyFrontend.const_get(:Lexer, false).new(source).each.to_a
+
+    assert_equal :keyword_do, tokens.fetch(-4).first
+    assert_nothing_raised { GeneratedRubyFrontend.parse(source) }
+  end
+
   test "source lexer uses block do after nested command arguments" do
     tokens = GeneratedRubyFrontend.const_get(:Lexer, false).new("travel_to Time.new(1) do; 1; end").each.to_a
     assert_includes(tokens.map(&:first), :keyword_do_block)

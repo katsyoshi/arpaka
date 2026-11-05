@@ -580,6 +580,8 @@ class Lexer
       @context.command_call_argument = false
       @context.push_block(:brace_block)
     when "}"
+      @context.command_call_active = false
+      @context.command_call_argument = false
       @context.pop_block if [:brace_block, :lambda].include?(@context.block_stack.last)
       @context.pop_scope if @context.scope_stack.last == :lambda
     when :keyword_end
