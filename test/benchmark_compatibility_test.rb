@@ -180,6 +180,15 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_static_array_splats_in_array_literals_match_rubyvm
+    normalizer = Compatibility::Normalizer.new
+    source = "VALUES = [head, *%w[first second]].freeze"
+    expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false).children.fetch(2))
+    actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+
+    assert_equal expected, actual
+  end
+
   def test_numbered_parameters_in_lambdas_match_rubyvm
     normalizer = Compatibility::Normalizer.new
     ["-> { _1 }", "-> { _1 + _2 }"].each do |source|

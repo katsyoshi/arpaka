@@ -117,7 +117,15 @@ module Compatibility
           unsupported!(:arpaka, "receiver operator #{values[:operator].inspect}")
         end
         [:call, arpaka(values[:receiver]), values[:operator] == :"&.", symbol(values[:name]), arpaka_arguments(values[:arguments])]
-      when "ArrayLiteral" then [:array, Array(values[:elements]).map { |v| arpaka(v) }]
+      when "ArrayLiteral"
+        elements = Array(values[:elements]).flat_map do |value|
+          if static_array_splat?(value)
+            Array(value.value.elements).map { |element| arpaka(element) }
+          else
+            [arpaka(value)]
+          end
+        end
+        [:array, elements]
       when "Splat" then [:splat, arpaka_splat_value(values[:value])]
       when "HashLiteral" then [:hash, values[:pairs].map { |v| arpaka(v) }]
       when "KeywordArguments" then [:keyword_arguments, values[:pairs].map { |v| arpaka(v) }]
@@ -621,6 +629,10 @@ module Compatibility
       Array(value.elements).all? do |element|
         ast_name(element) == "StringLiteral" && element.value.is_a?(String)
       end
+    end
+
+    def static_array_splat?(value)
+      ast_name(value) == "Splat" && ast_name(value.value) == "ArrayLiteral"
     end
 
     def arpaka_argument(value)
