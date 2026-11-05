@@ -557,8 +557,13 @@ class Builder
 
   def pattern_value(value)
     return value if value.is_a?(AST::Pattern)
-    return pattern(:variable, [value]) if value.is_a?(Symbol)
+    return pattern_variable(value) if value.is_a?(Symbol)
     pattern(:value, [value])
+  end
+
+  def pattern_variable(name)
+    declare_local(name)
+    pattern(:variable, [name])
   end
 
   def pattern_array_parts(pre, rest = nil, post = nil)
@@ -580,7 +585,7 @@ class Builder
   def pattern_pair(key, value = :__arpaka_missing_pattern_value__)
     key_node = key.is_a?(AST::Literal) ? key : AST::Literal.new(key)
     value_node = if value == :__arpaka_missing_pattern_value__
-      pattern(:variable, [key])
+      pattern_variable(key)
     else
       pattern_value(value)
     end
