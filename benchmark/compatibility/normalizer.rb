@@ -14,7 +14,7 @@ module Compatibility
   class Normalizer
     MISSING = [:missing].freeze
 
-    def arpaka(node)
+    def arpaka(node, statement: false)
       return nil if node.nil?
       return [:symbol, text(node.to_s)] if node.is_a?(Symbol)
       return [:sequence, node.map { |item| arpaka(item) }] if node.is_a?(Array)
@@ -81,10 +81,10 @@ module Compatibility
       when "Program"
         statements = values[:statements]
         begin_blocks, regular_statements = statements.partition { |item| ast_name(item) == "BeginBlock" }
-        normalized = begin_blocks.flat_map { |item| body(item.body) } + regular_statements.map { |item| arpaka(item) }
+        normalized = begin_blocks.flat_map { |item| body(item.body) } + regular_statements.map { |item| arpaka(item, statement: true) }
         normalized.concat(begin_blocks.map { [:literal, nil] }) unless begin_blocks.empty?
         [:sequence, normalized]
-      when "Sequence" then [:sequence, values[:statements].map { |item| arpaka(item) }]
+      when "Sequence" then [:sequence, values[:statements].map { |item| arpaka(item, statement: true) }]
       when "Literal"
         case values[:value]
         when :__FILE__ then [:file, text("".b)]
@@ -271,11 +271,12 @@ module Compatibility
         [:pattern, symbol(normalized_kind), pattern_values]
       when "Index" then [:call, arpaka(values[:receiver]), false, symbol(:[]), arpaka_arguments(values[:arguments])]
       when "Control" then [:control, symbol(values[:kind]), arpaka(values[:value])]
-      when "Case"
-        [:case, arpaka(values[:expression]), values[:whens].map { |clause| arpaka(clause) }, body(values[:else_body])]
+      when "Case" then arpaka_case(values, statement)
       when "When"
         patterns = values[:patterns].is_a?(Array) ? values[:patterns] : [values[:patterns]]
-        [:when, patterns.map { |pattern| arpaka(pattern) }, body(values[:body])]
+        when_body = body(values[:body])
+        when_body = [] if @arpaka_case_statement && when_body == [[:literal, nil]]
+        [:when, patterns.map { |pattern| arpaka(pattern) }, when_body]
       when "Loop"
         # RubyVM stores whether the loop body is evaluated before the first
         # condition check as a trailing boolean on WHILE/UNTIL. Arpaka's
@@ -1262,8 +1263,16 @@ module Compatibility
 
     def body(value)
       return [] if value.nil?
-      return value.map { |item| arpaka(item) } if value.is_a?(Array)
-      [arpaka(value)]
+      return value.map { |item| arpaka(item, statement: true) } if value.is_a?(Array)
+      [arpaka(value, statement: true)]
+    end
+
+    def arpaka_case(values, statement)
+      previous = @arpaka_case_statement
+      @arpaka_case_statement = statement
+      [:case, arpaka(values[:expression]), values[:whens].map { |clause| arpaka(clause) }, body(values[:else_body])]
+    ensure
+      @arpaka_case_statement = previous
     end
 
     def arpaka_dynamic_scope
