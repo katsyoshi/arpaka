@@ -483,12 +483,16 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
 
   def test_normalizes_shorthand_pattern_bindings_inside_blocks
     normalizer = Compatibility::Normalizer.new
-    source = "assert_pattern { @params => { person: }; person }"
-    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
-    expected = normalizer.rubyvm(tree.children.fetch(2))
-    actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+    [
+      "assert_pattern { @params => { person: }; person }",
+      "assert_pattern { @params => { person: { age:, **rest } }; [age, rest] }"
+    ].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+      expected = normalizer.rubyvm(tree.children.fetch(2))
+      actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
 
-    assert_equal expected, actual
+      assert_equal expected, actual, source
+    end
   end
 
   def test_compares_final_constant_of_qualified_path_with_constant

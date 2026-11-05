@@ -548,7 +548,10 @@ class Builder
   end
 <% if runtime.fetch("builder_methods", []).include?("pattern") -%>
   def pattern(kind, values)
-    AST::Pattern.new(kind.to_sym, Array(values).freeze)
+    kind = kind.to_sym
+    values = Array(values)
+    declare_local(values.first) if kind == :rest && values.first.is_a?(Symbol)
+    AST::Pattern.new(kind, values.freeze)
   end
 
   def pattern_constant(value)
