@@ -213,6 +213,7 @@ class Builder
   end
 
   def block_destructure(names)
+    names = [AST::BlockParameters.new(:rest, names)] if names.is_a?(Symbol)
     AST::BlockParameters.new(:destructured, Array(names).freeze)
   end
 

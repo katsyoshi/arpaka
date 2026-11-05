@@ -287,6 +287,16 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_preserves_parenthesized_block_rest_parameters
+    normalizer = Compatibility::Normalizer.new
+    source = "request.cookies_rotations.signed.each do |(*secrets)|; options = secrets.extract_options!; end"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+    expected = normalizer.rubyvm(tree.children.fetch(2))
+    actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+
+    assert_equal expected, actual
+  end
+
   def test_preserves_super_call_forms
     normalizer = Compatibility::Normalizer.new
     [

@@ -638,7 +638,15 @@ module Compatibility
     def arpaka_method_arguments(value)
       parameters = value.is_a?(Array) ? value : value.nil? ? [] : [value]
       unless parameters.any? { |parameter| ast_name(parameter) == "Parameter" }
-        return [:retained_arguments, parameters.map { |parameter| parameter.is_a?(Symbol) ? symbol(parameter) : arpaka(parameter) }]
+        return [:retained_arguments, parameters.map do |parameter|
+          if parameter.is_a?(Symbol)
+            symbol(parameter)
+          elsif ast_name(parameter) == "BlockParameters" && parameter.kind == :rest
+            symbol(parameter.value)
+          else
+            arpaka(parameter)
+          end
+        end]
       end
 
       required = []
@@ -791,8 +799,11 @@ module Compatibility
         result << [:block, symbol(blocks.first.name || :&)] unless blocks.empty?
         result
       when :destructured
-        targets = Array(value).map { |name| arpaka_block_pattern_target(name) }
-        [:retained_arguments, [], [:pre_init, [:multiple_assign, targets, nil, nil]]]
+        values = Array(value)
+        rest = values.find { |item| ast_name(item) == "BlockParameters" && item.kind == :rest }
+        targets = values.reject { |item| item.equal?(rest) }.map { |name| arpaka_block_pattern_target(name) }
+        rest_target = rest.nil? ? nil : arpaka_block_pattern_target(rest.value)
+        [:retained_arguments, [], [:pre_init, [:multiple_assign, targets, rest_target, nil]]]
       else unsupported!(:arpaka, "block parameter form #{kind.inspect}")
       end
     end
