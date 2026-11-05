@@ -461,6 +461,15 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_preserves_explicit_nil_case_when_bodies
+    normalizer = Compatibility::Normalizer.new
+    source = "def f; result = case options; when FalseClass; nil; end; end"
+    expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false).children.fetch(2))
+    actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+
+    assert_equal expected, actual
+  end
+
   def test_does_not_normalize_bare_rescue_as_a_rescue_modifier
     normalizer = Compatibility::Normalizer.new
     [
