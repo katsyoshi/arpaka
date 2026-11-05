@@ -462,6 +462,24 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
   end
 
+  def test_unwraps_single_statement_begin_expression_in_binary_operands
+    normalizer = Compatibility::Normalizer.new
+    source = "value = fallback || begin result if ready; end"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_preserves_single_destructured_block_parameter
+    normalizer = Compatibility::Normalizer.new
+    source = "rows.map { |(value)| type.deserialize(value) }"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
   def test_normalizes_static_interpolated_strings_as_strings
     normalizer = Compatibility::Normalizer.new
     source = '"hello"'

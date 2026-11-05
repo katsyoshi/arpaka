@@ -136,8 +136,8 @@ module Compatibility
         key = values[:key].nil? ? [:missing_child] : arpaka(values[:key])
         [:pair, key, arpaka(values[:value])]
       when "Binary"
-        left = arpaka(values[:left])
-        right = arpaka(values[:right])
+        left = arpaka_expression(values[:left])
+        right = arpaka_expression(values[:right])
         if [:'&&', :'||'].include?(values[:operator]) &&
             ast_name(values[:left]) == "Binary" && values[:left].operator == :+ &&
             ast_name(values[:left].left) == "BareCall" &&
@@ -1097,6 +1097,15 @@ module Compatibility
     def arpaka_pattern_rest(value)
       return nil if value.nil?
       [:pattern, symbol(:rest), [arpaka_pattern_value(value.values.first)]]
+    end
+
+    def arpaka_expression(value)
+      normalized = arpaka(value)
+      if value.is_a?(Array) && normalized.is_a?(Array) && normalized.first == :sequence && normalized[1].length == 1
+        normalized[1].first
+      else
+        normalized
+      end
     end
 
     def arpaka_case_pattern(value)

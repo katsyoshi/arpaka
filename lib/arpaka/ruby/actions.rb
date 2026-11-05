@@ -564,7 +564,7 @@ module Arpaka::Ruby::Actions
     408 => ["empty", "nil"], 410 => ["empty", "nil"], 411 => ["empty", "nil"],
     422 => ["pass_through", "$1"], 429 => ["pass_through", "$1"],
     430 => ["pass_through", "$1"],
-    432 => ["pass_through", "$1"], 434 => ["pass_through", "$1"],
+    432 => ["pass_through", "$1"], 434 => ["ported", "[$1].freeze"],
     437 => ["pass_through", "$1"], 440 => ["empty", "nil"],
     441 => ["pass_through", "$1"], 442 => ["pass_through", "$1"],
     443 => ["empty", "nil"],
