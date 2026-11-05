@@ -452,10 +452,14 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
   end
 
   def test_normalizes_qualified_expression_names_like_arpaka
-    tree = RubyVM::AbstractSyntaxTree.parse("ActionCable::Server::Base", keep_script_lines: false)
-    normalized = Compatibility::Normalizer.new.rubyvm(tree.children.fetch(2))
+    normalizer = Compatibility::Normalizer.new
+    ["Zeitwerk::Loader", "Zeitwerk::Loader.eager_load_all", "ActionCable::Server::Base"].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+      normalized = normalizer.rubyvm(tree.children.fetch(2))
+      actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
 
-    assert_equal [:constant, [:symbol, [:bytes, "42617365", "US-ASCII"]]], normalized
+      assert_equal normalized, actual, source
+    end
   end
 
   def test_compares_final_constant_of_qualified_path_with_constant

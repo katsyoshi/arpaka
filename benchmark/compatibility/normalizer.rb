@@ -343,7 +343,7 @@ module Compatibility
       when "Lambda" then [:lambda, retained_arpaka_arguments(values[:arguments]), body(values[:body])]
       when "Variable"
         variable_read(values[:kind], values[:name], :arpaka)
-      when "ConstantPath" then [:constant_path, arpaka(values[:receiver]), symbol(values[:name])]
+      when "ConstantPath" then arpaka_expression_constant_path(values[:receiver], values[:name])
       when "AbsoluteConstant" then [:absolute_constant, symbol(values[:name])]
       end
     rescue NoMethodError => error
@@ -806,6 +806,23 @@ module Compatibility
       end
     end
 
+    def arpaka_expression_constant_path(receiver, name)
+      normalized_receiver = arpaka(receiver)
+      normalized_name = symbol(name)
+      normalized_receiver.is_a?(Array) && normalized_receiver.first == :constant ?
+        [:constant, normalized_name] : [:constant_path, normalized_receiver, normalized_name]
+    end
+
+    def arpaka_qualified_constant_path(node)
+      receiver = node.receiver
+      normalized_receiver = if ast_name(receiver) == "ConstantPath"
+        arpaka_qualified_constant_path(receiver)
+      else
+        arpaka(receiver)
+      end
+      [:constant_path, normalized_receiver, symbol(node.name)]
+    end
+
     def arpaka_alias_name(value)
       value.is_a?(Symbol) ? symbol(value) : arpaka(value)
     end
@@ -814,7 +831,7 @@ module Compatibility
       normalized_value = arpaka(value)
       return [:local_write, symbol(target), normalized_value] if target.is_a?(Symbol)
       if ast_name(target) == "ConstantPath"
-        return [:constant_write, arpaka(target), symbol(target.name), normalized_value]
+        return [:constant_write, arpaka_qualified_constant_path(target), symbol(target.name), normalized_value]
       end
       if ast_name(target) == "AbsoluteConstant"
         return [:constant_write, nil, symbol(target.name), normalized_value]
