@@ -118,12 +118,15 @@ module Compatibility
         end
         [:call, arpaka(values[:receiver]), values[:operator] == :"&.", symbol(values[:name]), arpaka_arguments(values[:arguments])]
       when "ArrayLiteral"
-        elements = Array(values[:elements]).flat_map do |value|
-          if static_array_splat?(value)
-            Array(value.value.elements).map { |element| arpaka(element) }
+        elements = []
+        splat_seen = false
+        Array(values[:elements]).each do |value|
+          if static_array_splat?(value) && !splat_seen
+            elements.concat(Array(value.value.elements).map { |element| arpaka(element) })
           else
-            [arpaka(value)]
+            elements << arpaka(value)
           end
+          splat_seen ||= ast_name(value) == "Splat"
         end
         [:array, elements]
       when "Splat" then [:splat, arpaka_splat_value(values[:value])]
