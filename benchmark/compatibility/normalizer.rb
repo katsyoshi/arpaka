@@ -233,7 +233,7 @@ module Compatibility
         [:def, symbol(values[:name]), args, method_body(values[:body])]
       when "BlockCall"
         call = arpaka(values[:call])
-        block_body = arpaka_dynamic_scope { body(values[:body]) }
+        block_body = arpaka_dynamic_scope { expression_body(values[:body]) }
         [:block, call, block_parameters(values[:parameters]), block_body]
       when "BlockParameters" then block_parameters_node(values[:kind], values[:value])
       when "Parameter"
@@ -360,7 +360,7 @@ module Compatibility
         [:singleton_def, arpaka(values[:receiver]), symbol(values[:name]),
           retained_arpaka_arguments(values[:arguments]), method_body(values[:body])]
       when "SingletonClassDef" then [:singleton_class, arpaka(values[:receiver]), body(values[:body])]
-      when "Lambda" then [:lambda, retained_arpaka_arguments(values[:arguments]), body(values[:body])]
+      when "Lambda" then [:lambda, retained_arpaka_arguments(values[:arguments]), expression_body(values[:body])]
       when "Variable"
         variable_read(values[:kind], values[:name], :arpaka)
       when "ConstantPath" then arpaka_expression_constant_path(values[:receiver], values[:name])
@@ -1265,6 +1265,12 @@ module Compatibility
       return [] if value.nil?
       return value.map { |item| arpaka(item, statement: true) } if value.is_a?(Array)
       [arpaka(value, statement: true)]
+    end
+
+    def expression_body(value)
+      return [] if value.nil?
+      values = value.is_a?(Array) ? value : [value]
+      values.each_with_index.map { |item, index| arpaka(item, statement: index < values.length - 1) }
     end
 
     def arpaka_case(values, statement)
