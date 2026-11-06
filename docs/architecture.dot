@@ -1,0 +1,30 @@
+digraph arpaka_architecture {
+  graph [bgcolor="white", rankdir=TB, pad="0.25", nodesep="0.45", ranksep="0.65"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12,
+        color="#334155", fillcolor="#f8fafc", margin="0.16,0.10"];
+  edge [color="#64748b", penwidth=1.2, arrowsize=0.75, fontname="Helvetica", fontsize=10];
+
+  parse_y [label="Ruby parse.y\n(Yacc/Bison grammar)", fillcolor="#e0f2fe"];
+  lrama_parser [label="Lrama::Parser\nread grammar"];
+  grammar [label="Grammar model\nYaccRule / Actions"];
+  ruby_backend [label="Lrama::Ruby backend\ngenerate Ruby Parser", fillcolor="#dcfce7"];
+  generated_parser [label="Generated Ruby Parser\nparse table + reduce actions", fillcolor="#dcfce7"];
+
+  ruby_source [label="Ruby source", fillcolor="#fef3c7"];
+  lexer [label="Arpaka Lexer\nsource → tokens", fillcolor="#fef3c7"];
+  builder [label="Arpaka Builder\nsemantic values → AST", fillcolor="#fce7f3"];
+  ast [label="Arpaka AST\nindependent representation", fillcolor="#fce7f3"];
+  frontend [label="Generated Ruby entry file\nLexer + Parser + Builder", fillcolor="#ede9fe"];
+
+  oracle [label="RubyVM::AST\nvalidation oracle", shape=note, fillcolor="#f1f5f9"];
+  comparator [label="Compatibility comparator\nmatch / accepted / mismatch / unverified", shape=note, fillcolor="#f1f5f9"];
+
+  parse_y -> lrama_parser -> grammar -> ruby_backend -> generated_parser;
+  ruby_source -> lexer -> generated_parser;
+  generated_parser -> builder -> ast;
+  generated_parser -> frontend [style=dashed, label="embedded in"];
+  lexer -> frontend [style=dashed, label="embedded in"];
+  builder -> frontend [style=dashed, label="embedded in"];
+  ast -> comparator [style=dashed, label="compare"];
+  oracle -> comparator [style=dashed, label="reference"];
+}

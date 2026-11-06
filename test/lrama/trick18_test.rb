@@ -19,6 +19,12 @@ class Trick18Test < Test::Unit::TestCase
     assert_nothing_raised { GeneratedRubyFrontend.parse(source) }
   end
 
+  test "keeps undef direct inside a begin expression" do
+    loop = GeneratedRubyFrontend.parse("break while begin undef do end").statements.first
+
+    assert_equal(GeneratedRubyFrontend::AST::Undef.new([:do].freeze), loop.condition)
+  end
+
   test "does not split equality after a receiver method" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("value.__id__ == __id__\n") }
   end
@@ -48,6 +54,13 @@ class Trick18Test < Test::Unit::TestCase
     assert_equal(:"$/", tokens.first.last)
   end
 
+  test "recognizes the comma special global variable" do
+    tokens = GeneratedRubyFrontend.const_get(:Lexer, false).new("$,\n").each.to_a
+
+    assert_equal(:tGVAR, tokens.first.first)
+    assert_equal(:"$,", tokens.first.last)
+  end
+
   test "uses indexing brackets for calls nested in arrays" do
     assert_nothing_raised { GeneratedRubyFrontend.parse("values = [first, second [item]]\n") }
     assert_nothing_raised { GeneratedRubyFrontend.parse("values = [first * index [0]]\n") }
@@ -74,5 +87,22 @@ class Trick18Test < Test::Unit::TestCase
     RUBY
 
     assert_nothing_raised { GeneratedRubyFrontend.parse(source) }
+  end
+
+  test "parses unary command arguments after invisible unicode method names" do
+    source = "return\u200b -tmp\n"
+    call = GeneratedRubyFrontend.parse(source).statements.first
+
+    assert_instance_of(GeneratedRubyFrontend::AST::Call, call)
+    assert_equal(:"return\u200b", call.name)
+    assert_instance_of(GeneratedRubyFrontend::AST::Unary, call.arguments.first)
+    assert_equal(:-, call.arguments.first.operator)
+  end
+
+  test "keeps ASCII command operators binary" do
+    expression = GeneratedRubyFrontend.parse("foo -tmp\n").statements.first
+
+    assert_instance_of(GeneratedRubyFrontend::AST::Binary, expression)
+    assert_equal(:-, expression.operator)
   end
 end

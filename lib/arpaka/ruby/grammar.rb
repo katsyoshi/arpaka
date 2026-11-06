@@ -4,9 +4,9 @@ require "lrama"
 require "json"
 require "digest"
 require_relative "actions"
-require_relative "profile/ruby"
+require_relative "profile"
 
-module Arpaka::RubyGrammar
+module Arpaka::Ruby::Grammar
   REVISION = "37d60dd3241d5fdb10ca43f36077f5d556ae1b8d"
   EXTENDED_RULES = {
     ["value_expr_command", ["command"]] => "tLBRACE_ARG"
@@ -110,7 +110,7 @@ module Arpaka::RubyGrammar
     end
     names = symbol_names(grammar)
     name = ->(symbol) { symbol.term ? symbol.id.s_value : names.fetch(symbol.id.s_value) }
-    profile = ::Arpaka::Profile::RUBY.select(grammar)
+    profile = ::Arpaka::Ruby::Profile.select(grammar)
     expected_conflicts = (grammar.expect || 0) + profile.fetch("additional_expected_conflicts", 0)
     lines = ["/* Generated from ruby/ruby #{REVISION}. See Arpaka Action mappings. */",
       "%no-stdlib", "%expect #{expected_conflicts}"]
@@ -140,7 +140,7 @@ module Arpaka::RubyGrammar
         ""
       end
       key = [rule.lhs.id.s_value, rule.rhs.map { |symbol| symbol.id.s_value }]
-      action = profile.fetch("actions")[rule.id] || profile.fetch("compatibility_actions", {})[key]
+      action = profile.fetch("compatibility_actions", {})[key] || profile.fetch("actions")[rule.id]
       expression = action&.last || "@builder.unsupported(#{rule.id})"
       lines << "/* upstream parse.y:#{metadata.fetch(rule.id).fetch('line')}: #{rule.as_comment} */"
       lines << "#{name.call(rule.lhs)}: #{rhs}#{precedence} { $$ = #{expression} };"
@@ -153,9 +153,8 @@ module Arpaka::RubyGrammar
     compact = rules.map do |rule|
       { id: rule.id, rule: rule.as_comment,
         line: metadata.fetch(rule.id).fetch("line"),
-        status: (profile.fetch("actions")[rule.id] ||
-          profile.fetch("compatibility_actions", {})[[rule.lhs.id.s_value,
-            rule.rhs.map { |symbol| symbol.id.s_value }]])&.first || "unsupported" }
+        status: (profile.fetch("compatibility_actions", {})[[rule.lhs.id.s_value,
+            rule.rhs.map { |symbol| symbol.id.s_value }]] || profile.fetch("actions")[rule.id])&.first || "unsupported" }
     end
     { "parse.y" => source, "rules.json" => JSON.pretty_generate(compact) + "\n",
       "runtime" => profile.fetch("runtime", {}),

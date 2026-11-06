@@ -2,21 +2,21 @@
 
 require "erb"
 require "json"
-require_relative "ruby_grammar"
+require_relative "grammar"
 
-module Arpaka
+module Arpaka::Ruby
   class Generator
     def generate(ruby_source: nil, parse_y: nil, class_name:)
       if ruby_source.nil? == parse_y.nil?
-        raise Error, "specify exactly one of ruby_source or parse_y"
+        raise ::Arpaka::Error, "specify exactly one of ruby_source or parse_y"
       end
       unless /\A[A-Z][a-zA-Z0-9_]*\z/.match?(class_name)
-        raise Error, "class_name must be a single Ruby constant name"
+        raise ::Arpaka::Error, "class_name must be a single Ruby constant name"
       end
       unless ::Ruby::Box.enabled?
-        raise Error, "Ruby Box is required for generation. Start Ruby with RUBY_BOX=1."
+        raise ::Arpaka::Error, "Ruby Box is required for generation. Start Ruby with RUBY_BOX=1."
       end
-      artifacts = RubyGrammar.artifacts(ruby_source: ruby_source, parse_y: parse_y)
+      artifacts = Grammar.artifacts(ruby_source: ruby_source, parse_y: parse_y)
       grammar_filename = parse_y || File.join(ruby_source, "parse.y")
       parser = Lrama::Ruby.generate(artifacts.fetch("parse.y"),
         filename: grammar_filename, class_name: "Parser", allow_error_rules: true)
@@ -27,7 +27,7 @@ module Arpaka
         template = File.read(File.join(__dir__, "runtime", "#{name}.rb.erb"))
         ERB.new(template, trim_mode: "-").result_with_hash(rules: rules, runtime: runtime_options)
       end.join("\n")
-      notices = [File.read(File.expand_path("../../LICENSE.txt", __dir__))]
+      notices = [File.read(File.expand_path("../../../LICENSE.txt", __dir__))]
       %w[COPYING BSDL].each do |name|
         path = ruby_source ? File.join(ruby_source, name) : File.join(__dir__, name)
         notices << File.read(path)
@@ -43,9 +43,9 @@ module Arpaka
       box.eval(source)
       source
     rescue SyntaxError => error
-      raise Error, "Invalid generated frontend: #{error.message}"
+      raise ::Arpaka::Error, "Invalid generated frontend: #{error.message}"
     rescue SystemCallError => error
-      raise Error, "Cannot read Ruby frontend inputs: #{error.message}"
+      raise ::Arpaka::Error, "Cannot read Ruby frontend inputs: #{error.message}"
     end
   end
 end
