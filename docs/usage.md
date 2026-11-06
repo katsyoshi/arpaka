@@ -381,6 +381,14 @@ which is useful for debugging but considerably slower on a large corpus.
 usage. `--timeout` controls the per-parser/file timeout and defaults to 10
 seconds.
 
+This runner option is separate from the repository test suite. The normal
+compatibility tests execute the Thread path. Tests that exercise Ruby
+Box/Ractor compatibility are currently omitted by default because of the Ruby
+4.0 Ruby Box/Ractor constraints; run them explicitly with
+`ARPAKA_RUN_RACTOR_TESTS=1`. That test setting does not enable the runner's
+`--parallel ractor` mode, and selecting `--parallel ractor` does not change
+which test-suite cases are omitted.
+
 The Rake wrapper accepts equivalent selections through environment variables:
 
 ```sh

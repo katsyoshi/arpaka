@@ -393,6 +393,13 @@ The normal test suite checks the comparison machinery and known semantic-loss
 examples. External corpus comparison is an explicit task, separate from the
 speed benchmark and the default CI checks.
 
+The normal compatibility tests run the Thread path. Ruby Box/Ractor
+compatibility tests are currently omitted by default because of Ruby 4.0's
+Ruby Box/Ractor constraints; opt into those tests with
+`ARPAKA_RUN_RACTOR_TESTS=1`. This test-suite setting is separate from the
+compatibility runner's `--parallel ractor` mode, which remains available as an
+experimental, explicitly selected benchmark mode.
+
 ## License
 
 [MIT](LICENSE.txt).
