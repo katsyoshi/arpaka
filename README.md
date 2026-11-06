@@ -53,6 +53,11 @@ gem "arpaka", git: "https://github.com/katsyoshi/arpaka"
 
 ## Usage
 
+For a detailed, task-oriented guide to the `Arpaka.generate` and
+`Arpaka.compile` APIs, the CLI, standalone frontend runtime, limitations, and
+the AST compatibility benchmark, see [docs/usage.md](docs/usage.md). The
+summary below keeps the main README focused on the supported workflow.
+
 Write a Yacc-style grammar with Ruby actions, such as
 [examples/calculator.y](examples/calculator.y):
 
