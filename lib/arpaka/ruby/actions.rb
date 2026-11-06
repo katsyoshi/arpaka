@@ -2,7 +2,7 @@
 
 # Rule IDs refer to upstream_rules.json, validated against the pinned source.
 # Each entry is [classification, Ruby expression used as the reduction value].
-module Arpaka::RubyGrammarActions
+module Arpaka::Ruby::Actions
   ACTIONS = {
     1 => ["empty", "nil"], 2 => ["empty", "nil"], 3 => ["empty", "nil"],
     4 => ["pass_through", "$1"], 5 => ["ported", "@builder.program($2)"],

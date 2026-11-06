@@ -3,11 +3,11 @@
 require "json"
 
 module Arpaka
-  module Profile
-    module RUBY
+  module Ruby
+    module Profile
       CURRENT = {
         "name" => "ruby-4.0",
-        "actions" => ::Arpaka::RubyGrammarActions::ACTIONS,
+        "actions" => ::Arpaka::Ruby::Actions::ACTIONS,
         "additional_expected_conflicts" => 0,
         "runtime" => {}.freeze
       }.freeze
@@ -27,11 +27,11 @@ module Arpaka
       end
 
       def self.legacy
-        @legacy ||= load("ruby_3_4.rb", "ruby-3.4")
+        @legacy ||= load("profiles/ruby_3_4.rb", "ruby-3.4")
       end
 
       def self.legacy_3_3
-        @legacy_3_3 ||= load("ruby_3_3.rb", "ruby-3.3")
+        @legacy_3_3 ||= load("profiles/ruby_3_3.rb", "ruby-3.3")
       end
 
       def self.load(filename, name)

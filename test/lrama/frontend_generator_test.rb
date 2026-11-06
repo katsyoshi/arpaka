@@ -82,7 +82,7 @@ class FrontendGeneratorTest < Test::Unit::TestCase
       id_def = File.join(directory, "id.def")
       File.write(id_def, '{ token_op: [["identifier", "", "tIDENTIFIER", 1], ["integer", "", "tINTEGER", 2]] }')
       assert_equal("%token 1 2\n%token RUBY_TOKEN(tUNKNOWN)\n",
-        Arpaka::RubyGrammar.preprocess(source, id_def))
+        Arpaka::Ruby::Grammar.preprocess(source, id_def))
     end
   end
 
@@ -126,6 +126,23 @@ class FrontendGeneratorTest < Test::Unit::TestCase
     assert_false(Object.const_defined?(:IsolatedRuby, false))
     assert_false(Arpaka.respond_to?(:parse))
     assert_false(Lrama::Ruby.respond_to?(:parse))
+  end
+
+  test "public API delegates to the Ruby frontend" do
+    options = { parse_y: File.join(RUBY_SOURCE, "parse.y"), class_name: "DelegatedRuby" }
+    assert_equal(Arpaka::Ruby.generate(**options), Arpaka.generate(**options))
+
+    frontend = Arpaka::Ruby.compile(**options)
+    assert_equal(42, frontend.parse("42").statements.first.value)
+  end
+
+  test "public CLI delegates to the Ruby frontend CLI" do
+    public_out, public_err = StringIO.new, StringIO.new
+    ruby_out, ruby_err = StringIO.new, StringIO.new
+    assert_equal(Arpaka::Ruby::CLI.run(["--help"], out: ruby_out, err: ruby_err),
+      Arpaka::CLI.run(["--help"], out: public_out, err: public_err))
+    assert_equal(ruby_out.string, public_out.string)
+    assert_equal(ruby_err.string, public_err.string)
   end
 
   test "CLI generates from parse.y" do
