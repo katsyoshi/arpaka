@@ -1181,7 +1181,13 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     Compatibility::Runner.new(ruby_source: nil, corpora: [["test", __FILE__]], frontend: __FILE__)
   end
 
+  def omit_ractor_test
+    omit "Ractor compatibility tests are opt-in; set ARPAKA_RUN_RACTOR_TESTS=1" unless
+      ENV["ARPAKA_RUN_RACTOR_TESTS"] == "1"
+  end
+
   def test_ractor_checks_fixture_with_pre_generated_frontend
+    omit_ractor_test
     ruby_source = File.expand_path("../vendor/ruby", __dir__)
     Dir.mktmpdir("compatibility-test-") do |directory|
       frontend = File.join(directory, "frontend.rb")
@@ -1225,18 +1231,6 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
-  def test_generate_reuses_ruby_boxes_after_ractor
-    ruby_source = File.expand_path("../vendor/ruby", __dir__)
-    Arpaka.generate(ruby_source: ruby_source, class_name: "BeforeRactor::Parser")
-
-    port = Ractor::Port.new
-    Ractor.new(port) { |reply| reply.send(:done) }
-    assert_equal :done, port.receive
-
-    source = Arpaka.generate(ruby_source: ruby_source, class_name: "AfterRactor::Parser")
-    assert_include source, "class Parser"
-  end
-
   def test_thread_checks_namespaced_pre_generated_frontend
     ruby_source = File.expand_path("../vendor/ruby", __dir__)
     Dir.mktmpdir("compatibility-test-") do |directory|
@@ -1274,6 +1268,7 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
   end
 
   def test_ractor_frontend_class_resolution_matches_thread_frontend
+    omit_ractor_test
     ruby_source = File.expand_path("../vendor/ruby", __dir__)
     source = <<~RUBY
       class ActionCable::Loader

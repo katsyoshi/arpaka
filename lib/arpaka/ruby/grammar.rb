@@ -61,9 +61,8 @@ module Arpaka::Ruby::Grammar
   # Ruby's id.def is Ruby code. Evaluate it in a Box so its temporary locals,
   # methods and constants cannot affect Arpaka or Lrama's process.
   def self.preprocess(source, id_def)
-    ids = ::Lrama::Ruby::BoxLifecycle.with(:arpaka_preprocess) do |box|
-      box.eval(File.read(id_def))
-    end
+    box = ::Ruby::Box.new
+    ids = box.eval(File.read(id_def))
     tokens = ids.fetch(:token_op).each_with_object({}) do |(_id, _op, token, id), result|
       result[token] = id if token
     end
