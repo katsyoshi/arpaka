@@ -1,5 +1,5 @@
 class Builder
-  BlockBody = Data.define(:parameters, :body, :outer_local_names)
+  BlockBody = Data.define(:parameters, :body, :outer_local_names, :style)
   BlockScope = Data.define(:outer_locals, :lambda_local_counts)
   private_constant :BlockBody
   private_constant :BlockScope
@@ -18,7 +18,7 @@ class Builder
   end
 
   def program(statements)
-    AST::Program.new(resolve_local_reads(body_nodes(statements), @locals.keys))
+    AST::Program.new(resolve_method_local_reads(body_nodes(statements), [], []))
   end
 
   def integer(value)
@@ -158,7 +158,7 @@ class Builder
       parameters = body.parameters
       implicit_names = []
       if parameters.is_a?(AST::BlockParameters) && parameters.kind == :none
-        implicit_names = implicit_block_parameter_names(body.body)
+        implicit_names = implicit_block_parameter_names(body.body, body.outer_local_names)
         unless implicit_names.empty?
           parameters = AST::BlockParameters.new(:required, implicit_names.freeze)
         end
@@ -168,14 +168,15 @@ class Builder
       local_names = outer_local_names + block_local_names
       resolved_call = rewrite_shadowed_local_reads(call, block_local_names)
       resolved_call = resolve_local_reads(resolved_call, outer_local_names)
-      resolved_body = resolve_local_reads(body.body, local_names)
-      AST::BlockCall.new(resolved_call, parameters, resolved_body)
+      resolved_body = resolve_local_reads(
+        rewrite_implicit_block_parameter_reads(body.body, implicit_names), local_names)
+      AST::BlockCall.new(resolved_call, parameters, resolved_body, body.style)
     else
-      AST::BlockCall.new(call, nil, resolve_local_reads(body_nodes(body), @locals.keys))
+      AST::BlockCall.new(call, nil, resolve_local_reads(body_nodes(body), @locals.keys), nil)
     end
   end
 
-  def block_body(parameters, body)
+  def block_body(parameters, body, style = nil)
     scope = @block_local_scopes.pop
     if scope
       @locals = scope.outer_locals
@@ -184,7 +185,7 @@ class Builder
     else
       outer_local_names = @locals.keys.freeze
     end
-    BlockBody.new(parameters, body_nodes(body), outer_local_names)
+    BlockBody.new(parameters, body_nodes(body), outer_local_names, style)
   end
 
   def begin_block_parameters(value, locals = nil)
@@ -262,7 +263,7 @@ class Builder
     end
   end
 
-  def implicit_block_parameter_names(value)
+  def implicit_block_parameter_names(value, outer_local_names = [])
     numbered = []
     visit = lambda do |current|
       case current
@@ -272,7 +273,9 @@ class Builder
         return unless data_node?(current)
 
         type = current.class.name.split("::").last
-        if type == "BareCall" && current.name.to_s.match?(/\A_[1-9][0-9]*\z/)
+        if type == "BareCall" && current.name == :it && !outer_local_names.include?(:it)
+          numbered << :it
+        elsif type == "BareCall" && current.name.to_s.match?(/\A_[1-9][0-9]*\z/)
           numbered << current.name.to_s.delete_prefix("_").to_i
         elsif type == "BlockCall"
           visit.call(current.call)
@@ -282,8 +285,31 @@ class Builder
       end
     end
     visit.call(value)
-    maximum = numbered.max
-    maximum ? (1..maximum).map { |index| "_#{index}".to_sym } : []
+    implicit_it = numbered.include?(:it) ? [:"<it>"] : []
+    indexes = numbered.grep(Integer)
+    maximum = indexes.max
+    implicit_it + (maximum ? (1..maximum).map { |index| "_#{index}".to_sym } : [])
+  end
+
+  def rewrite_implicit_block_parameter_reads(value, implicit_names)
+    return value unless implicit_names.include?(:"<it>")
+    case value
+    when Array
+      return value.map { |item| rewrite_implicit_block_parameter_reads(item, implicit_names) }
+    end
+    return value unless data_node?(value)
+
+    type = value.class.name.split("::").last
+    return AST::BareCall.new(:"<it>") if type == "BareCall" && value.name == :it
+    if type == "BlockCall"
+      return value.with(call: rewrite_implicit_block_parameter_reads(value.call, implicit_names))
+    end
+    return value if ["Def", "SingletonMethodDef", "Lambda", "ClassDef", "ModuleDef", "SingletonClassDef"].include?(type)
+
+    fields = value.members.to_h do |member|
+      [member, rewrite_implicit_block_parameter_reads(value.public_send(member), implicit_names)]
+    end
+    value.with(**fields)
   end
 
   def append_arguments(arguments, argument)
@@ -545,6 +571,7 @@ class Builder
 
   def lambda_node(arguments, body)
     parameter_names = lambda_parameter_names(arguments)
+    implicit_names = []
     if parameter_names.empty?
       implicit_names = implicit_block_parameter_names(body)
       unless implicit_names.empty?
@@ -555,7 +582,8 @@ class Builder
     inherited_names = (@locals.keys + parameter_names).uniq
     parameter_names.each { |name| @lambda_local_counts[name] += 1 }
     previous_state = @lambda_parameter_states.pop
-    node = AST::Lambda.new((arguments || []).freeze, resolve_local_reads(body_nodes(body), inherited_names))
+    resolved_body = rewrite_implicit_block_parameter_reads(body_nodes(body), implicit_names)
+    node = AST::Lambda.new((arguments || []).freeze, resolve_local_reads(resolved_body, inherited_names))
     @declaring_method_parameters = previous_state unless previous_state.nil?
     node
   end
@@ -830,7 +858,7 @@ class Builder
 
     assigned_names = Array(parameter_names).compact.uniq
     result = value.map do |statement|
-      names = (assigned_names + direct_assignment_names(statement)).uniq
+      names = (assigned_names + direct_assignment_names(statement) + for_target_names_in_scope(statement)).uniq
       rewritten = rewrite_local_reads(statement, names, for_target_names_in_scope(statement))
       assigned_names |= local_names_in_scope(statement)
       rewritten
@@ -858,7 +886,7 @@ class Builder
   def for_target_names_in_scope(value)
     case value
     when Array
-      value.flat_map { |item| for_target_names_in_scope(item) }
+      return value.flat_map { |item| for_target_names_in_scope(item) }
     end
     return [] unless data_node?(value)
 
@@ -920,11 +948,30 @@ class Builder
     return value unless data_node?(value)
 
     type = value.class.name.split("::").last
+    if type == "Call" && local_names.include?(value.name) &&
+        value.arguments.is_a?(Array) && value.arguments.length == 1 &&
+        value.arguments.first.is_a?(AST::ArrayLiteral)
+      arguments = rewrite_local_reads(value.arguments.first.elements, local_names, for_target_names)
+      return AST::ReceiverCall.new(AST::LocalRead.new(value.name), :".", :[], arguments)
+    end
     if type == "BareCall" && local_names.include?(value.name)
       return AST::LocalRead.new(value.name)
     end
-
     case type
+    when "For"
+      target_names = target_names(value.variable)
+      return value.with(
+        enumerable: rewrite_local_reads(value.enumerable, local_names - target_names, for_target_names),
+        body: rewrite_local_reads(value.body, local_names, for_target_names)
+      )
+    when "If"
+      condition_target_names = for_target_names_in_scope(value.condition)
+      branch_local_names = local_names - condition_target_names
+      return value.with(
+        condition: rewrite_local_reads(value.condition, local_names, for_target_names),
+        then_body: rewrite_local_reads(value.then_body, branch_local_names, for_target_names),
+        else_body: rewrite_local_reads(value.else_body, branch_local_names, for_target_names)
+      )
     when "ReceiverCall"
       receiver = value.receiver
       unless receiver.is_a?(AST::BareCall) && for_target_names.include?(receiver.name)
@@ -940,7 +987,18 @@ class Builder
       )
     when "SingletonMethodDef"
       return value.with(receiver: rewrite_local_reads(value.receiver, local_names, for_target_names))
-    when "Def", "Lambda", "ClassDef", "ModuleDef", "SingletonClassDef"
+    when "SingletonClassDef"
+      receiver = rewrite_local_reads(value.receiver, local_names, for_target_names)
+      shadowed_names = local_names
+      shadowed_names += [receiver.name] if receiver.is_a?(AST::LocalRead)
+      return value.with(
+        receiver: receiver,
+        body: rewrite_shadowed_local_reads(value.body, shadowed_names)
+      )
+    when "Lambda"
+      parameter_names = lambda_parameter_names(value.arguments)
+      return value.with(body: resolve_local_reads(value.body, local_names + parameter_names))
+    when "Def", "ClassDef", "ModuleDef"
       return value
     end
 

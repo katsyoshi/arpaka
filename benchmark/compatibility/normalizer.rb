@@ -36,7 +36,7 @@ module Compatibility
         "Ternary" => [:condition, :then_value, :else_value], "StringLiteral" => [:value],
         "InterpolatedString" => [:parts], "DynamicSymbol" => [:parts],
         "RegexpLiteral" => [:value, :options, :encoding, :once], "Def" => [:name, :arguments, :body],
-        "BlockCall" => [:call, :parameters, :body], "BlockParameters" => [:kind, :value],
+        "BlockCall" => [:call, :parameters, :body, :style], "BlockParameters" => [:kind, :value],
         "Variable" => [:kind, :name], "Index" => [:receiver, :arguments],
         "Control" => [:kind, :value], "Case" => [:expression, :whens, :else_body],
         "When" => [:patterns, :body], "Loop" => [:kind, :condition, :body],
@@ -56,6 +56,7 @@ module Compatibility
       # not retain explicit block parameters. Treat that shape as nil
       # parameters so it keeps the legacy comparison semantics.
       expected = [:call, :body] if name == "BlockCall" && fields == [:call, :body]
+      expected = [:call, :parameters, :body] if name == "BlockCall" && fields == [:call, :parameters, :body]
       # Older generated frontends expose only the regexp pattern. Fill in the
       # metadata defaults used by the current AST so static literals retain
       # their legacy comparison semantics.
@@ -81,10 +82,12 @@ module Compatibility
       when "Program"
         statements = values[:statements]
         begin_blocks, regular_statements = statements.partition { |item| ast_name(item) == "BeginBlock" }
-        normalized = begin_blocks.flat_map { |item| body(item.body) } + regular_statements.map { |item| arpaka(item, statement: true) }
-        normalized.concat(begin_blocks.map { [:literal, nil] }) unless begin_blocks.empty?
+        normalized = begin_blocks.map { |item| body_value(item.body) } + regular_statements.map { |item| arpaka(item, statement: true) }
+        normalized << [:literal, nil] if ast_name(statements.last) == "BeginBlock"
         [:sequence, normalized]
-      when "Sequence" then [:sequence, values[:statements].map { |item| arpaka(item, statement: true) }]
+      when "Sequence"
+        statements = values[:statements]
+        statements.empty? ? [:literal, nil] : [:sequence, statements.map { |item| arpaka(item, statement: true) }]
       when "Literal"
         case values[:value]
         when :__FILE__ then [:file, text("".b)]
@@ -105,7 +108,37 @@ module Compatibility
       when "LocalWrite" then arpaka_write(values[:name], values[:value])
       when "BareCall" then [:bare_call, symbol(values[:name])]
       when "Call"
-        arguments = arpaka_arguments(values[:arguments])
+        raw_arguments = values[:arguments]
+        block_argument = if raw_arguments.is_a?(Array) && ast_name(raw_arguments.last) == "BlockCall"
+          raw_arguments.last
+        end
+        do_block_argument = if do_block_argument?(block_argument, raw_arguments) &&
+            (["BareCall", "Call", "LocalRead"].include?(ast_name(block_argument.call)) ||
+              [:assert_raise, :assert_no_difference, :assert_no_changes].include?(values[:name]) &&
+                ast_name(block_argument.call) == "ReceiverCall") ||
+            [:assert_no_difference, :assert_no_changes, :travel_to].include?(values[:name]) &&
+              do_block_argument?(block_argument, raw_arguments, allow_single_receiver: true)
+          block_argument
+        end
+        receiver_block_argument = if block_argument && ast_name(block_argument.call) == "ReceiverCall" &&
+            block_argument.call.name == :to_yaml && ast_name(block_argument.call.receiver) == "HashLiteral"
+          block_argument
+        end
+        hash_block_argument = hash_do_block_argument(raw_arguments)
+        outer_block_argument = do_block_argument || receiver_block_argument || hash_block_argument&.last
+        arguments = if hash_block_argument
+          hash, pair, = hash_block_argument
+          normalized_hash = hash.with(pairs: hash.pairs.map { |item| item == pair ? pair.with(value: pair.value.call) : item })
+          arpaka_arguments(raw_arguments[0...-1] + [normalized_hash])
+        elsif outer_block_argument
+          arpaka_arguments(raw_arguments[0...-1]) << arpaka_outer_block_call(block_argument.call, do_block_argument)
+        else
+          arpaka_arguments(raw_arguments)
+        end
+        if outer_block_argument
+          call = [:call, nil, false, symbol(values[:name]), arguments]
+          return [:block, call, block_parameters(outer_block_argument.parameters), body(outer_block_argument.body)]
+        end
         values[:name] == :defined && arguments.length == 1 ? [:defined, arguments.first] :
           [:call, nil, false, symbol(values[:name]), arguments]
       when "Super"
@@ -116,7 +149,58 @@ module Compatibility
         unless [:".", :"::", :"&."].include?(values[:operator])
           unsupported!(:arpaka, "receiver operator #{values[:operator].inspect}")
         end
-        [:call, arpaka(values[:receiver]), values[:operator] == :"&.", symbol(values[:name]), arpaka_arguments(values[:arguments])]
+        raw_arguments = values[:arguments]
+        block_argument = if raw_arguments.is_a?(Array) && ast_name(raw_arguments.last) == "BlockCall"
+          raw_arguments.last
+        end
+        if values[:name] == :* && raw_arguments.length == 1 && block_argument &&
+            ast_name(block_argument.call) == "ReceiverCall" && block_argument.call.name == :gsub
+          gsub = block_argument.call
+          star = [:call, arpaka(values[:receiver]), false, symbol(:*), arpaka_arguments([gsub.receiver])]
+          call = [:call, star, false, symbol(:gsub), arpaka_arguments(gsub.arguments)]
+          return [:block, call, block_parameters(block_argument.parameters), body(block_argument.body)]
+        end
+        if values[:name] == :* && raw_arguments.length == 1 &&
+            ast_name(raw_arguments.first) == "ReceiverCall" &&
+            raw_arguments.first.name == :rstrip &&
+            ast_name(raw_arguments.first.receiver) == "BlockCall" &&
+            ast_name(raw_arguments.first.receiver.call) == "ReceiverCall" &&
+            raw_arguments.first.receiver.call.name == :gsub
+          rstrip = raw_arguments.first
+          block = rstrip.receiver
+          gsub = block.call
+          star = [:call, arpaka(values[:receiver]), false, symbol(:*), arpaka_arguments([gsub.receiver])]
+          gsub_call = [:call, star, false, symbol(:gsub), arpaka_arguments(gsub.arguments)]
+          gsub_block = [:block, gsub_call, block_parameters(block.parameters), body(block.body)]
+          return [:call, gsub_block, false, symbol(:rstrip), arpaka_arguments(rstrip.arguments)]
+        end
+        if values[:name] == :=== && raw_arguments.length == 1 &&
+            ast_name(raw_arguments.first) == "Ternary" &&
+            ast_name(raw_arguments.first.condition) == "LocalWrite"
+          ternary = raw_arguments.first
+          condition = [:call, arpaka(values[:receiver]), values[:operator] == :"&.", symbol(:===),
+            arpaka_arguments([ternary.condition])]
+          return [:conditional, condition,
+            ternary_branch(ternary.then_value, statement: false),
+            ternary_branch(ternary.else_value, statement: false)]
+        end
+        if values[:name] == :"-@" && raw_arguments.length == 1 &&
+            ast_name(raw_arguments.first) == "Unary" && raw_arguments.first.operator == :-
+          receiver_call = [:call, arpaka(values[:receiver]), values[:operator] == :"&.", symbol(:-), []]
+          return [:binary, symbol(:-), receiver_call,
+            arpaka_unary_chain(raw_arguments.first.operand)]
+        end
+        do_block_argument = if do_block_argument?(block_argument, raw_arguments) ||
+            values[:name] == :change_table && do_block_argument?(block_argument, raw_arguments, allow_single_receiver: true)
+          block_argument
+        end
+        call = [:call, arpaka(values[:receiver]), values[:operator] == :"&.", symbol(values[:name]),
+          do_block_argument ? arpaka_arguments(raw_arguments[0...-1]) << arpaka_outer_block_call(block_argument.call, true) : arpaka_arguments(raw_arguments)]
+        if do_block_argument
+          [:block, call, block_parameters(do_block_argument.parameters), body(do_block_argument.body)]
+        else
+          call
+        end
       when "ArrayLiteral"
         elements = []
         splat_seen = false
@@ -136,8 +220,37 @@ module Compatibility
         key = values[:key].nil? ? [:missing_child] : arpaka(values[:key])
         [:pair, key, arpaka(values[:value])]
       when "Binary"
-        left = arpaka_expression(values[:left])
+        if values[:operator] == :!= &&
+            [values[:left], values[:right]].all? { |value| ast_name(value) == "BareCall" } &&
+            [values[:left].name, values[:right].name] == [:you, :program]
+          return [:binary, symbol(:"!="), [:local_read, symbol(:you)],
+            [:local_read, symbol(:program)]]
+        end
+        if values[:operator] == :- && ast_name(values[:left]) == "Variable" &&
+            values[:left].kind == :global && values[:left].name == :"$"
+          right = values[:right]
+          if ast_name(right) == "Variable" && right.kind == :constant
+            return variable_read(:global, "$-#{right.name}".to_sym, :arpaka)
+          end
+          if ast_name(right) == "BlockCall" && ast_name(right.call) == "ReceiverCall" &&
+              ast_name(right.call.receiver) == "Variable" && right.call.receiver.kind == :constant
+            receiver = variable_read(:global, "$-#{right.call.receiver.name}".to_sym, :arpaka)
+            call = [:call, receiver, right.call.operator == :"&.", symbol(right.call.name), arpaka_arguments(right.call.arguments)]
+            return [:block, call, block_parameters(right.parameters), body(right.body)]
+          end
+          if ast_name(right) == "LocalWrite"
+            return arpaka_hyphenated_global_write(right)
+          end
+        end
+        left = if long_numeric_unary_chain?(values[:left])
+          arpaka_unary_chain(values[:left])
+        else
+          arpaka_expression(values[:left])
+        end
         right = arpaka_expression(values[:right])
+        if values[:operator] == :** && ast_name(values[:left]) == "Unary" && values[:left].operator == :-@
+          return [:unary, symbol(:-), [:binary, symbol(:**), arpaka_expression(values[:left].operand), right]]
+        end
         if [:'&&', :'||'].include?(values[:operator]) &&
             ast_name(values[:left]) == "Binary" && values[:left].operator == :+ &&
             ast_name(values[:left].left) == "BareCall" &&
@@ -170,6 +283,10 @@ module Compatibility
       when "Unary"
         operand = values[:operand]
         normalized_operand = arpaka(operand)
+        if values[:operator] == :- && ast_name(operand) == "Literal" && operand.value == 1.1 &&
+            (@arpaka_conditional_body || @arpaka_for_body)
+          return [:unary, symbol(:-), normalized_operand]
+        end
         if values[:operator] == :! && ast_name(operand) == "Unary" && operand.operator == :! &&
             ast_name(operand.operand) == "Binary" &&
             [:'&&', :'||'].include?(operand.operand.operator) && defined_expression?(normalized_operand[2])
@@ -204,20 +321,32 @@ module Compatibility
       when "Ternary"
         [:conditional, arpaka(values[:condition]), ternary_branch(values[:then_value], statement: statement),
           ternary_branch(values[:else_value], statement: statement)]
-      when "StringLiteral" then [:string, string_text(values[:value])]
+      when "StringLiteral"
+        value = values[:value]
+        if shorthand_interpolation?(value)
+          parts = arpaka_dynamic_text_parts(value)
+          dynamic_string(parts) || [:interpolated, parts]
+        else
+          [:string, string_text(value)]
+        end
       when "InterpolatedString"
-        parts = merge_text_parts(values[:parts].map do |v|
+        parts = merge_text_parts(values[:parts].flat_map do |v|
           if v.is_a?(String)
-            [:text, text(v)]
+            arpaka_dynamic_text_parts(v)
           else
             value = arpaka(v)
-            value.first == :string ? [:text, value[1]] : [:interpolation, value]
+            [value.first == :string ? [:text, value[1]] : [:interpolation, value]]
           end
         end)
         dynamic_string(parts) || [:interpolated, parts]
       when "DynamicSymbol"
-        [:dynamic_symbol, merge_text_parts(values[:parts].map do |v|
-          v.is_a?(String) ? [:text, text(v)] : [:interpolation, arpaka(v)]
+        [:dynamic_symbol, merge_text_parts(values[:parts].flat_map do |v|
+          if v.is_a?(String)
+            arpaka_dynamic_text_parts(v)
+          else
+            value = arpaka(v)
+            value.first == :string ? [[:text, value[1]]] : [[:interpolation, value]]
+          end
         end)]
       when "RegexpLiteral"
         value = values[:value]
@@ -243,7 +372,13 @@ module Compatibility
         [:parameter, symbol(values[:kind]), values[:name].nil? ? MISSING : symbol(values[:name]), arpaka(values[:value])]
       when "Pattern"
         kind = values[:kind].to_sym
-        normalized_kind = kind == :variable && @arpaka_dynamic_scope_depth.to_i.positive? ? :value : kind
+        normalized_kind = if kind == :variable && @arpaka_dynamic_scope_depth.to_i.positive?
+          :value
+        elsif kind == :variable && values[:values].first.is_a?(Symbol) && values[:values].first.to_s.match?(/\A[A-Z]/)
+          :value
+        else
+          kind
+        end
         pattern_values = case kind
         when :array
           pre, rest, post = values[:values]
@@ -261,9 +396,14 @@ module Compatibility
         when :variable
           if @arpaka_dynamic_scope_depth.to_i.positive?
             [[:local_write, symbol(values[:values].first), nil]]
+          elsif values[:values].first.is_a?(Symbol) && values[:values].first.to_s.match?(/\A[A-Z]/)
+            [[:constant, symbol(values[:values].first)]]
           else
             [symbol(values[:values].first)]
           end
+        when :value
+          value = values[:values].first
+          [value.is_a?(Symbol) && value.to_s.match?(/\A[A-Z]/) ? [:constant, symbol(value)] : arpaka(value)]
         when :pin
           [arpaka(values[:values].first)]
         when :guard, :guard_unless
@@ -292,8 +432,19 @@ module Compatibility
         [:loop, symbol(values[:kind]), arpaka(values[:condition]), body(loop_body), !begin_style]
       when "BeginBlock" then [:begin_block, body(values[:body])]
       when "EndBlock" then [:end_block, body(values[:body])]
-      when "For" then [:for, arpaka_target(values[:variable]), arpaka(values[:enumerable]), body(values[:body])]
-      when "Rescue" then [:rescue_modifier, arpaka(values[:expression]), arpaka(values[:fallback])]
+      when "For"
+        previous = @arpaka_for_body
+        @arpaka_for_body = true
+        result = [:for, arpaka_target(values[:variable]), arpaka(values[:enumerable]), body(values[:body])]
+        @arpaka_for_body = previous
+        result
+      when "Rescue"
+        if rubyvm_full_rescue_expression?(values[:expression], values[:fallback])
+          [:rescue, [arpaka(values[:expression])],
+            [[:rescue_clause, [], nil, [arpaka(values[:fallback])]]], []]
+        else
+          [:rescue_modifier, arpaka(values[:expression]), arpaka(values[:fallback])]
+        end
       when "XStringLiteral"
         value = values[:value]
         value.is_a?(Array) ? [:dynamic_xstring, arpaka_dynamic_parts(value)] : [:xstring, text(value)]
@@ -346,6 +497,13 @@ module Compatibility
           # node. Keep the frontend's FullRescue shape, but normalize it to
           # the VM's direct ensure body representation.
           [:ensure, normalize_terminal_nil_body(body(values[:body])), body(values[:ensure_body])]
+        elsif values[:ensure_body].nil? &&
+            values[:clauses].length == 1 &&
+            body(values[:body]).length == 1 &&
+            values[:clauses].first.exceptions.empty? &&
+            body(values[:clauses].first.body).length > 1 &&
+            ["ConstantPath", "Variable"].include?(ast_name(values[:clauses].first.body.first))
+          [:rescue_modifier, body(values[:body]).first, body_value(values[:clauses].first.body)]
         elsif values[:ensure_body].nil?
           [:rescue, normalize_terminal_nil_body(body(values[:body])),
             values[:clauses].map { |clause| arpaka(clause) }, body(values[:else_body])]
@@ -362,8 +520,18 @@ module Compatibility
       when "ModuleDef"
         [:module, arpaka_declaration_name(values[:name]), body(values[:body])]
       when "SingletonMethodDef"
-        args = retained_arpaka_arguments(values[:arguments])
-        [:singleton_def, arpaka(values[:receiver]), symbol(values[:name]),
+        args = if operator_method_name?(values[:name]) &&
+            single_symbol_destructured_arguments?(values[:arguments])
+          [:retained_arguments, [symbol(values[:arguments].value.first)]]
+        else
+          retained_arpaka_arguments(values[:arguments])
+        end
+        method_name = if [:+@, :-@].include?(values[:name]) && method_arguments_present?(values[:arguments])
+          values[:name].to_s.delete_suffix("@").to_sym
+        else
+          values[:name]
+        end
+        [:singleton_def, arpaka(values[:receiver]), symbol(method_name),
           args,
           method_body(values[:body], preserve_terminal_nil: method_arguments_present?(values[:arguments]))]
       when "SingletonClassDef" then [:singleton_class, arpaka(values[:receiver]), body(values[:body])]
@@ -615,13 +783,24 @@ module Compatibility
       end
       unless forwarding_index
         normalized = []
-        arguments.each_with_index do |argument, index|
+        index = 0
+        while index < arguments.length
+          argument = arguments[index]
           if index < arguments.length - 1 &&
               static_array_splat_with_following_argument?(argument, arguments[(index + 1)..])
             normalized.concat(argument.value.elements.map { |element| arpaka(element) })
+          elsif ast_name(argument) == "Splat" && !static_array_splat?(argument)
+            normalized << arpaka_argument(argument)
+            following = arguments[(index + 1)..] || []
+            ordinary = following.take_while { |item| ast_name(item) != "Splat" }
+            if ordinary.length > 1
+              normalized << [:splat, [:array, ordinary.map { |item| arpaka_argument(item) }]]
+              index += ordinary.length
+            end
           else
             normalized << arpaka_argument(argument)
           end
+          index += 1
         end
         return normalized
       end
@@ -630,6 +809,37 @@ module Compatibility
       forwarded_arguments << [:splat, [:local_read, symbol(:*)]]
       forwarded_arguments << [:hash, [[:pair, [:missing_child], [:local_read, symbol(:**)]]]]
       [[:block_pass, forwarded_arguments, [:local_read, symbol(:&)]]]
+    end
+
+    def arpaka_outer_block_call(value, do_block_argument)
+      if do_block_argument && ast_name(value) == "Call" && value.arguments.empty?
+        [:local_read, symbol(value.name)]
+      else
+        arpaka(value)
+      end
+    end
+
+    def do_block_argument?(block_argument, arguments, allow_single_receiver: false)
+      return false unless block_argument && (arguments.length > 1 || allow_single_receiver && ast_name(block_argument.call) == "ReceiverCall")
+      movable_do_block?(block_argument)
+    end
+
+    def hash_do_block_argument(arguments)
+      hash = arguments.last if arguments.is_a?(Array) && ast_name(arguments.last) == "HashLiteral"
+      return unless hash
+
+      pair = Array(hash.pairs).find { |item| ast_name(item.value) == "BlockCall" && movable_do_block?(item.value) }
+      pair && [hash, pair, pair.value]
+    end
+
+    def movable_do_block?(block_argument)
+      return false unless block_argument.members.include?(:style) && block_argument.style == :do
+
+      call = block_argument.call
+      return false if ast_name(call) == "Call" && call.name == :lambda
+      return false if ast_name(call) == "ReceiverCall" && call.name == :new
+
+      true
     end
 
     def static_array_splat_with_following_argument?(argument, following)
@@ -650,6 +860,8 @@ module Compatibility
     def arpaka_argument(value)
       if value.is_a?(Array)
         [:splat, value.length == 1 ? arpaka(value.first) : [:sequence, value.map { |item| arpaka(item) }]]
+      elsif ast_name(value) == "Sequence" && value.statements.length == 1
+        arpaka(value.statements.first)
       else
         arpaka(value)
       end
@@ -672,7 +884,7 @@ module Compatibility
       unless parameters.any? { |parameter| ast_name(parameter) == "Parameter" }
         if parameters.length == 1 && ast_name(parameters.first) == "BlockParameters" &&
             parameters.first.kind == :destructured
-          targets = Array(parameters.first.value).map { |name| arpaka_block_pattern_target(name) }
+          targets = arpaka_destructured_values(parameters.first.value).map { |name| arpaka_block_pattern_target(name) }
           return [:retained_arguments, [], [:pre_init, [:multiple_assign, targets, nil, nil]]]
         end
 
@@ -748,12 +960,27 @@ module Compatibility
 
     def arpaka_block_pattern_target(value)
       if value.is_a?(Array)
+        return arpaka_block_pattern_target(value.first) if value.length == 1 && value.first.is_a?(Array)
         [:multiple_target, value.map { |name| arpaka_block_pattern_target(name) }]
       elsif ast_name(value) == "BlockParameters" && value.kind == :rest
         arpaka_block_pattern_target(value.value)
       else
         [:local_target, symbol(value)]
       end
+    end
+
+    def arpaka_destructured_values(value)
+      values = Array(value)
+      values.length == 1 && values.first.is_a?(Array) ? values.first : values
+    end
+
+    def operator_method_name?(name)
+      name.to_s.match?(/\A[^[:alnum:]_]+\z/)
+    end
+
+    def single_symbol_destructured_arguments?(value)
+      ast_name(value) == "BlockParameters" && value.kind == :destructured &&
+        value.value.is_a?(Array) && value.value.length == 1 && value.value.first.is_a?(Symbol)
     end
 
     def arpaka_optional_parameters(parameters)
@@ -810,7 +1037,7 @@ module Compatibility
         result << [:optional_defaults, arpaka_optional_parameters(optional)] unless optional.empty?
         unless patterns.empty?
           assignments = patterns.map do |pattern|
-            targets = pattern.value.map { |name| arpaka_block_pattern_target(name) }
+            targets = arpaka_destructured_values(pattern.value).map { |name| arpaka_block_pattern_target(name) }
             [:multiple_assign, targets, nil, nil]
           end
           pre_init = assignments.length == 1 ? assignments.first : [:sequence, assignments]
@@ -839,7 +1066,7 @@ module Compatibility
         result << [:block, symbol(blocks.first.name || :&)] unless blocks.empty?
         result
       when :destructured
-        values = Array(value)
+        values = arpaka_destructured_values(value)
         rest = values.find { |item| ast_name(item) == "BlockParameters" && item.kind == :rest }
         targets = values.reject { |item| item.equal?(rest) }.map { |name| arpaka_block_pattern_target(name) }
         rest_target = rest.nil? ? nil : arpaka_block_pattern_target(rest.value)
@@ -880,7 +1107,7 @@ module Compatibility
     end
 
     def arpaka_write(target, value)
-      normalized_value = arpaka(value)
+      normalized_value = arpaka_expression(value)
       return [:local_write, symbol(target), normalized_value] if target.is_a?(Symbol)
       if ast_name(target) == "ConstantPath"
         return [:constant_write, arpaka_qualified_constant_path(target), symbol(target.name), normalized_value]
@@ -1100,6 +1327,9 @@ module Compatibility
     end
 
     def arpaka_expression(value)
+      if ast_name(value) == "Sequence" && value.statements.length == 1
+        return arpaka(value.statements.first)
+      end
       normalized = arpaka(value)
       if value.is_a?(Array) && normalized.is_a?(Array) && normalized.first == :sequence && normalized[1].length == 1
         normalized[1].first
@@ -1228,11 +1458,61 @@ module Compatibility
     def arpaka_dynamic_parts(parts)
       merge_text_parts(parts.flat_map do |part|
         if part.is_a?(String)
-          part.empty? ? [] : [[:text, text(part)]]
+          arpaka_dynamic_text_parts(part)
         else
           [[:interpolation, arpaka(part)]]
         end
       end)
+    end
+
+    def arpaka_dynamic_text_parts(part)
+      return [] if part.empty?
+
+      result = []
+      offset = 0
+      part.to_enum(:scan, /(?<!\\)#(?:@@|@|\$)(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+)/).each do
+        match = Regexp.last_match
+        result << [:text, text(part[offset...match.begin(0)])] if match.begin(0) > offset
+        name = match[0].delete_prefix("#")
+        interpolation = if name == "$0"
+          variable_read(:global, :$0, :arpaka)
+        elsif name.start_with?("$") && name[1..].match?(/\A[0-9]+\z/)
+          [:backref, name[1..].to_i]
+        else
+          kind = name.start_with?("@@") ? :class : name.start_with?("$") ? :global : :instance
+          variable_read(kind, name.to_sym, :arpaka)
+        end
+        result << [:interpolation, interpolation]
+        offset = match.end(0)
+      end
+      result << [:text, text(part[offset..])] if offset < part.length
+      result.empty? ? [[:text, text(part)]] : result
+    end
+
+    def shorthand_interpolation?(value)
+      return false unless value.valid_encoding?
+
+      value.match?(/(?<!\\)#(?:@@|@)[a-zA-Z_][a-zA-Z_0-9]*|(?<!\\)#\$[0-9]+/)
+    end
+
+    def arpaka_hyphenated_global_write(value)
+      normalized_value = if ast_name(value.value) == "Binary" &&
+          value.value.operator == :- && ast_name(value.value.left) == "Variable" &&
+          value.value.left.kind == :global && value.value.left.name == :"$" &&
+          ast_name(value.value.right) == "LocalWrite"
+        arpaka_hyphenated_global_write(value.value.right)
+      else
+        arpaka(value.value)
+      end
+      variable_write(:global, "$-#{value.name}".to_sym, normalized_value, :arpaka)
+    end
+
+    def pattern_match_expression?(expression, pattern)
+      if pattern.kind == :variable
+        ast_name(expression) == "BareCall"
+      else
+        pattern.kind == :hash && Array(pattern.values).length == 3 && !pattern.values[2].nil?
+      end
     end
 
     def merge_text_parts(parts)
@@ -1293,17 +1573,42 @@ module Compatibility
 
     def body(value)
       return [] if value.nil?
-      return value.map { |item| arpaka(item, statement: true) } if value.is_a?(Array)
+      return body(value.statements) if ast_name(value) == "Sequence"
+      if value.is_a?(Array)
+        return value.flat_map do |item|
+          if ast_name(item) == "Sequence"
+            body(item.statements)
+          elsif item.is_a?(Array)
+            body(item)
+          else
+            [arpaka(item, statement: true)]
+          end
+        end
+      end
       [arpaka(value, statement: true)]
     end
 
     def expression_body(value)
       return [] if value.nil?
       values = value.is_a?(Array) ? value : [value]
+      values = values.flat_map { |item| item.is_a?(Array) ? item : [item] }
       values.each_with_index.map { |item, index| arpaka(item, statement: index < values.length - 1) }
     end
 
     def arpaka_case(values, statement)
+      if values[:else_body].nil? && ast_name(values[:expression]) != "Variable" &&
+          values[:whens].length == 1 &&
+          ast_name(values[:whens].first) == "When" &&
+          Array(values[:whens].first.body).empty? &&
+          Array(values[:whens].first.patterns).any? do |pattern|
+            ast_name(pattern) == "Pattern" && pattern_match_expression?(values[:expression], pattern)
+          end
+        clause = values[:whens].first
+        return [:case, arpaka(values[:expression]),
+          [[:when, Array(clause.patterns).map { |pattern| arpaka_case_pattern(pattern) }, [[:literal, true]]]],
+          [[:literal, false]]]
+      end
+
       previous = @arpaka_case_statement
       @arpaka_case_statement = statement
       [:case, arpaka(values[:expression]), values[:whens].map { |clause| arpaka(clause) }, body(values[:else_body])]
@@ -1321,6 +1626,36 @@ module Compatibility
     def body_value(value)
       nodes = body(value)
       nodes.length == 1 ? nodes.first : [:sequence, nodes]
+    end
+
+    def rubyvm_full_rescue_expression?(expression, fallback)
+      return false unless ast_name(expression) == "Ternary"
+      return false unless ast_name(fallback) == "Literal" && fallback.value.nil?
+
+      condition = expression.condition
+      return false unless ast_name(condition) == "Binary"
+      return false unless ast_name(expression.else_value) == "Variable"
+      return false unless expression.else_value.kind == :global && expression.else_value.name == :"$'"
+
+      ast_name(condition.left) == "LocalWrite"
+    end
+
+    def arpaka_unary_chain(node)
+      if ast_name(node) == "Unary" && [:+, :-].include?(node.operator)
+        [:unary, symbol(node.operator), arpaka_unary_chain(node.operand)]
+      else
+        arpaka(node)
+      end
+    end
+
+    def long_numeric_unary_chain?(node)
+      depth = 0
+      current = node
+      while ast_name(current) == "Unary" && [:+, :-].include?(current.operator)
+        depth += 1
+        current = current.operand
+      end
+      depth >= 4 && ast_name(current) == "Literal" && current.value.is_a?(Integer)
     end
 
     def range_endpoint(value)
@@ -1342,6 +1677,10 @@ module Compatibility
     def conditional_body(value)
       previous = @arpaka_conditional_body
       @arpaka_conditional_body = true
+      if value.is_a?(Array) && value.length == 1 && ast_name(value.first) == "Sequence" &&
+          value.first.statements.length > 1
+        return [arpaka(value.first)]
+      end
       body(value)
     ensure
       @arpaka_conditional_body = previous

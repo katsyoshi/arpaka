@@ -249,6 +249,7 @@ class Lexer
     @heredoc_newline_pending = false
     @class_superclass = false
     @local_variables = {}
+    @source_local_variables = source_local_variable_names
   end
 
   def source_encoding_for(source)
@@ -613,6 +614,10 @@ class Lexer
       advance
     end
     word = @source.byteslice(start, @index - start).force_encoding(Encoding::UTF_8)
+    if word == "__END__" && end_data_marker?(start)
+      @index = @source.bytesize
+      return nil
+    end
     command_start = @context.command_start ||
       ["=", :tASSOC, :tOP_ASGN].include?(@previous)
     if command_start
@@ -658,8 +663,9 @@ class Lexer
       advance
       return [:tIDENTIFIER, (word + "=").to_sym]
     end
-    @local_variables[word.to_sym] = true if byte == 61 && byte(1) != 61 &&
-      ![".", :tCOLON2, :tANDDOT].include?(@previous)
+    @local_variables[word.to_sym] = true if @context.lambda_pending ||
+      (byte == 61 && byte(1) != 61 &&
+      ![".", :tCOLON2, :tANDDOT].include?(@previous))
     label_in_ternary = ["(", "[", :tLPAREN, :tLPAREN_ARG, :tLBRACK, ","].include?(@previous)
     if byte == 58 && byte(1) != 58 &&
         (@context.ternary_depth.zero? || label_in_ternary) &&
@@ -989,9 +995,14 @@ class Lexer
         expression = read_interpolation_source(start)
         inner = self.class.new(expression, filename: @filename, initial_line: expression_line).each.to_a
         inner.pop if inner.last == [0, nil]
+        inner.map! { |token| token.first == "\n" ? [";", nil] : token }
         tokens << [:tSTRING_DBEG, nil]
         tokens.concat(inner)
         tokens << [:tSTRING_DEND, nil]
+      elsif value == 35 && (length = shorthand_interpolation_length)
+        tokens << [:tSTRING_CONTENT, content] unless content.empty?
+        content = source_string
+        tokens.concat(shorthand_interpolation_tokens(start, length))
       else
         append_source_character(content)
       end
@@ -1234,9 +1245,15 @@ class Lexer
         expression = read_interpolation_source(start)
         inner = self.class.new(expression, filename: @filename, initial_line: expression_line).each.to_a
         inner.pop if inner.last == [0, nil]
+        inner.map! { |token| token.first == "\n" ? [";", nil] : token }
         tokens << [:tSTRING_DBEG, nil]
         tokens.concat(inner)
         tokens << [:tSTRING_DEND, nil]
+      elsif value == 35 && (length = shorthand_interpolation_length)
+        tokens << [:tSTRING_CONTENT, result.dup.force_encoding(@source_encoding)] unless result.empty?
+        result = +""
+        interpolated = true
+        tokens.concat(shorthand_interpolation_tokens(start, length))
       elsif value == 47 && !in_class
         advance
         metadata = read_regexp_options
@@ -1360,6 +1377,7 @@ class Lexer
         expression = read_interpolation_source(start)
         inner = self.class.new(expression, filename: @filename, initial_line: expression_line).each.to_a
         inner.pop if inner.last == [0, nil]
+        inner.map! { |token| token.first == "\n" ? [";", nil] : token }
         tokens << [:tSTRING_DBEG, nil]
         tokens.concat(inner)
         tokens << [:tSTRING_DEND, nil]
@@ -1417,6 +1435,7 @@ class Lexer
         expression = read_interpolation_source(start)
         inner = self.class.new(expression, filename: @filename).each.to_a
         inner.pop if inner.last == [0, nil]
+        inner.map! { |token| token.first == "\n" ? [";", nil] : token }
         tokens << [:tSTRING_DBEG, nil]
         tokens.concat(inner)
         tokens << [:tSTRING_DEND, nil]
@@ -1452,16 +1471,76 @@ class Lexer
         expression = read_interpolation_source(start)
         inner = self.class.new(expression, filename: @filename).each.to_a
         inner.pop if inner.last == [0, nil]
+        inner.map! { |token| token.first == "\n" ? [";", nil] : token }
         tokens << [:tSTRING_DBEG, nil]
         tokens.concat(inner)
         tokens << [:tSTRING_DEND, nil]
         literal = source_string
+      elsif value == 35 && (length = shorthand_interpolation_length)
+        tokens << [:tSTRING_CONTENT, literal] unless literal.empty?
+        literal = source_string
+        tokens.concat(shorthand_interpolation_tokens(start, length))
       else
         append_source_character(literal)
       end
     end
     tokens << [:tSTRING_CONTENT, literal] unless literal.empty?
     tokens
+  end
+
+  def shorthand_interpolation_tokens(start, length)
+    expression_line = @line
+    expression = @source.byteslice(@index + 1, length).force_encoding(Encoding::UTF_8)
+    advance(length + 1)
+    inner = self.class.new(expression, filename: @filename, initial_line: expression_line).each.to_a
+    inner.pop if inner.last == [0, nil]
+    [[:tSTRING_DBEG, nil], *inner, [:tSTRING_DEND, nil]]
+  end
+
+  def shorthand_interpolation_length
+    return unless byte == 35
+
+    case byte(1)
+    when 64
+      offset = 2
+      offset += 1 if byte(offset) == 64
+      return unless identifier_start_byte?(byte(offset))
+      offset += 1 while identifier_byte?(byte(offset))
+      offset - 1
+    when 36
+      offset = 2
+      if byte(offset) == 45
+        return unless identifier_start_byte?(byte(offset + 1))
+        offset += 2
+        offset += 1 while identifier_byte?(byte(offset))
+      elsif digit_byte?(byte(offset), 10)
+        offset += 1
+        offset += 1 while digit_byte?(byte(offset), 10)
+      elsif identifier_start_byte?(byte(offset))
+        offset += 1
+        offset += 1 while identifier_byte?(byte(offset))
+      elsif [33, 36, 38, 39, 42, 43, 44, 45, 46, 47, 58, 59, 60, 61, 62, 63, 64, 92, 96, 126].include?(byte(offset))
+        offset += 1
+      else
+        return
+      end
+      offset - 1
+    end
+  end
+
+  def identifier_start_byte?(value)
+    value && (value == 95 || value.between?(65, 90) || value.between?(97, 122) || value >= 128)
+  end
+
+  def source_local_variable_names
+    @source.scan(/(?<![.@:$])([a-z_][a-zA-Z0-9_]*)[ \t\r\n]*[+\-*\/%]?=(?!=)/).flatten.map(&:to_sym).uniq
+  end
+
+  def end_data_marker?(start)
+    line_start = @source.rindex("\n".b, start - 1)
+    line_start = line_start ? line_start + 1 : 0
+    prefix = @source.byteslice(line_start, start - line_start)
+    prefix.bytes.all? { |value| [9, 13, 32].include?(value) }
   end
 
   def heredoc_or_operator(start)
@@ -1704,12 +1783,14 @@ class Lexer
       return [:tUMINUS, :-]
     elsif value == "+" && @previous == :tSYMBEG
       return [:tUPLUS, :+]
-    elsif value == "-" && (@context.begin_expression || unicode_identifier_command_argument?(start)) && !super_binary_operator?(start, 1)
+    elsif value == "-" && (@context.begin_expression || unicode_identifier_command_argument?(start) || unary_argument_without_space?(start)) && !super_binary_operator?(start, 1)
       token = numeric_literal_follows? ? :tUMINUS_NUM : :tUMINUS
       return [token, @previous == :keyword_def || @context.alias_context ? value : nil]
-    elsif value == "+" && (@context.begin_expression || unicode_identifier_command_argument?(start)) && !super_binary_operator?(start, 1)
+    elsif value == "+" && (@context.begin_expression || unicode_identifier_command_argument?(start) || unary_argument_without_space?(start)) && !super_binary_operator?(start, 1)
       return [:tUPLUS, @previous == :keyword_def || @context.alias_context ? value : nil]
     elsif value == "*" && @context.begin_expression && !super_binary_operator?(start, 1)
+      return [:tSTAR, nil]
+    elsif value == "*" && splat_argument_without_space?(start)
       return [:tSTAR, nil]
     elsif value == "&" && @previous == :tSYMBEG
       return [value, nil]
@@ -1753,6 +1834,19 @@ class Lexer
   def numeric_literal_follows?
     value = byte
     value && value.between?(48, 57)
+  end
+
+  def splat_argument_without_space?(start)
+    return false unless whitespace_byte?(@source.getbyte(start - 1))
+    return false if whitespace_byte?(@source.getbyte(start + 1))
+    return false if @previous == :tIDENTIFIER &&
+      (@local_variables.key?(@previous_value) || @source_local_variables.include?(@previous_value))
+    [:tIDENTIFIER, :tCONSTANT, :tFID].include?(@previous)
+  end
+
+  def unary_argument_without_space?(start)
+    return false if whitespace_byte?(@source.getbyte(start + 1))
+    splat_argument_without_space?(start)
   end
 
   def begin_expression?

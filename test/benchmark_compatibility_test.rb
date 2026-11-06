@@ -50,6 +50,30 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     assert_equal expected, actual
   end
 
+  def test_begin_block_with_multiple_statements_matches_rubyvm
+    normalizer = Compatibility::Normalizer.new
+    sources = [
+      <<~RUBY,
+        BEGIN {
+          def first
+            1
+          end
+          def second
+            2
+          end
+        }
+        first
+      RUBY
+      "first\nBEGIN { 2 }"
+    ]
+    sources.each do |source|
+      expected = normalizer.rubyvm(RubyVM::AbstractSyntaxTree.parse(source).children.fetch(2))
+      actual = normalizer.arpaka(GeneratedRubyFrontend.parse(source))
+
+      assert_equal expected, actual, source
+    end
+  end
+
   def test_multiple_assignment_preserves_anonymous_rest
     normalizer = Compatibility::Normalizer.new
     ["first, * = values", "first, *, last = values", "* = values", "*, last = values"].each do |source|
@@ -143,6 +167,15 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     assert_equal "a/", regexp.value.first
   end
 
+  def test_interpolated_regexp_supports_shorthand_references
+    normalizer = Compatibility::Normalizer.new
+    source = %q{/^#$`\K(\S)/x}
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0), source
+  end
+
   def test_repeated_defined_queries_preserve_logical_associativity
     normalizer = Compatibility::Normalizer.new
     [
@@ -230,6 +263,25 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_no_space_splat_arguments_match_rubyvm
+    normalizer = Compatibility::Normalizer.new
+    ['"Ruby".unpack *"ao"', '$ruby.object_id.coerce +2018', '->x { x +1 }'].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+      assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+        normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0), source
+    end
+    source = 's = ""; s *""'
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source
+
+    source = 's = 1; ->x { x +1; s +3 }'
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)), source
+  end
+
   def test_numbered_parameters_in_lambdas_match_rubyvm
     normalizer = Compatibility::Normalizer.new
     ["-> { _1 }", "-> { _1 + _2 }"].each do |source|
@@ -239,6 +291,131 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
 
       assert_equal rubyvm, arpaka, source
     end
+  end
+
+  def test_lambdas_capture_outer_local_reads
+    normalizer = Compatibility::Normalizer.new
+    source = "i = 1; f = [[i]]; -> { f[0] }"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source))
+  end
+
+  def test_lambdas_resolve_implicit_it_reads
+    normalizer = Compatibility::Normalizer.new
+    source = "CONTEXT = -> { it }"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_singleton_class_bodies_do_not_capture_outer_block_locals
+    normalizer = Compatibility::Normalizer.new
+    source = "values.each { |singleton_class| class << singleton_class; singleton_class.send(:value); end }"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_empty_parenthesized_expression_is_nil
+    normalizer = Compatibility::Normalizer.new
+    source = "value = ()"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_receiver_case_equality_keeps_outer_ternary
+    normalizer = Compatibility::Normalizer.new
+    source = "String.===(value = 1) ? value : nil"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_unwraps_single_command_expression_arguments
+    normalizer = Compatibility::Normalizer.new
+    source = "defined? x = (abort exit exit!)"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_flattens_sequence_nodes_in_conditional_bodies
+    normalizer = Compatibility::Normalizer.new
+    source = "if condition; first; second; end"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_preserves_parenthesized_sequence_in_conditional_bodies
+    normalizer = Compatibility::Normalizer.new
+    ["(first; second) if condition", "begin first; second; end if condition"].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+      assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+        normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0), source
+    end
+  end
+
+  def test_for_targets_are_local_in_the_containing_postfix_if
+    normalizer = Compatibility::Normalizer.new
+    source = <<~RUBY
+      begin
+        for you, program in values
+          use you
+        end
+        ultimate program
+      end if you != program
+    RUBY
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_for_targets_do_not_leak_into_a_sibling_unless_branch
+    normalizer = Compatibility::Normalizer.new
+    source = <<~RUBY
+      begin
+        a program unless for you, program in values
+          use you
+        end
+      end if you != program
+    RUBY
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_named_implicit_block_parameter_matches_rubyvm
+    normalizer = Compatibility::Normalizer.new
+    ["values.map { it }", "values.map { @it[+it] }", "it { it(it) { it } }"].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+      rubyvm = normalizer.rubyvm(tree.children.fetch(2))
+      arpaka = normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+
+      assert_equal rubyvm, arpaka, source
+    end
+  end
+
+  def test_top_level_local_reads_before_assignment_remain_bare_calls
+    normalizer = Compatibility::Normalizer.new
+    source = "*It = *it; it, it = it"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+    rubyvm = normalizer.rubyvm(tree.children.fetch(2))
+    arpaka = normalizer.arpaka(GeneratedRubyFrontend.parse(source))
+
+    assert_equal rubyvm, arpaka
   end
 
   def test_program_name_is_a_global_variable_not_a_regexp_capture
@@ -471,6 +648,15 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
   end
 
+  def test_nested_destructured_block_targets_match_rubyvm
+    normalizer = Compatibility::Normalizer.new
+    source = "values.each_with_object([[], {}]).with_index { |(c, (s, b)), i| [c, s, b, i] }"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
   def test_preserves_single_destructured_block_parameter
     normalizer = Compatibility::Normalizer.new
     source = "rows.map { |(value)| type.deserialize(value) }"
@@ -478,6 +664,206 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
 
     assert_equal normalizer.rubyvm(tree.children.fetch(2)),
       normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_preserves_unary_minus_exponent_precedence
+    normalizer = Compatibility::Normalizer.new
+    ["-2 ** 63", "(-2) ** 63", "-(2 ** 63)"].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+      assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+        normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0), source
+    end
+  end
+
+  def test_attaches_argument_receiver_blocks_to_the_outer_call
+    normalizer = Compatibility::Normalizer.new
+    source = 'tmp_yaml ["empty", "yml"], { "_fixture" => { "class_name" => "Foo" } }.to_yaml do |t| t end'
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_groups_arguments_after_dynamic_splats_like_rubyvm
+    normalizer = Compatibility::Normalizer.new
+    source = 'draw self.class.ffmpeg_path, *Shellwords.split(input), "-i", file.path, *Shellwords.split(output), "-", &block'
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_flattens_begin_statements_inside_block_bodies
+    normalizer = Compatibility::Normalizer.new
+    source = "fork do\n  before\n  begin\n    inside\n    after\n  end\n  finish\nend"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_normalizes_hyphenated_global_variables
+    normalizer = Compatibility::Normalizer.new
+    source = "$-I.each do |path| path end"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_normalizes_hyphenated_global_variable_writes
+    normalizer = Compatibility::Normalizer.new
+    source = "$-v = $-w = false"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_normalizes_pattern_match_expressions_as_boolean_cases
+    normalizer = Compatibility::Normalizer.new
+    source = "value in Integer"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_normalizes_shorthand_instance_variable_interpolation_in_regexps
+    normalizer = Compatibility::Normalizer.new
+    source = %q{/\A#{file}:#@line\z/}
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_normalizes_shorthand_backreference_interpolation
+    normalizer = Compatibility::Normalizer.new
+    source = %q{"wrap_#$1"}
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_normalizes_shorthand_program_name_interpolation
+    normalizer = Compatibility::Normalizer.new
+    source = %q{"Usage: #$0"}
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_normalizes_shorthand_global_interpolation_in_strings
+    normalizer = Compatibility::Normalizer.new
+    source = %q{"prefix #$o.#$/"}
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_normalizes_special_global_interpolation_in_strings
+    normalizer = Compatibility::Normalizer.new
+    source = %q{?0?"\\\\#$&$|":""}
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_dynamic_symbols_merge_static_string_parts
+    normalizer = Compatibility::Normalizer.new
+    source = %q{:"#{?c}h#{value}"}
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_multiline_interpolation_preserves_statement_sequence
+    normalizer = Compatibility::Normalizer.new
+    source = %q{"#{ p
+      s}"}
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_end_data_marker_stops_frontend_parsing
+    normalizer = Compatibility::Normalizer.new
+    source = "puts 1\n__END__\nputs 2\n"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_normalizes_shorthand_instance_interpolation_in_strings
+    normalizer = Compatibility::Normalizer.new
+    source = %q{"#@tmp/foo"}
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_attaches_do_blocks_to_the_outer_call_but_keeps_brace_blocks_as_arguments
+    normalizer = Compatibility::Normalizer.new
+    [
+      "def f\n" \
+        "  yaml1 = \"leaky\"\n" \
+        "  yaml2 = \"curious\"\n" \
+        "  tmp_yaml [\"leaky\", \"yml\"], yaml1 do |t1|\n" \
+        "  tmp_yaml [\"curious\", \"yml\"], yaml2 do |t2|\n" \
+        "    t2\n" \
+        "  end\n" \
+        "  end\n" \
+        "end",
+      "def f\n" \
+        "  items.each do\n" \
+        "    assert_no_difference object.num do\n" \
+        "      work\n" \
+        "    end\n" \
+        "  end\n" \
+        "end",
+      "def f\n" \
+        "  items.each do\n" \
+        "    assert_no_changes object.num do\n" \
+        "      work\n" \
+        "    end\n" \
+        "  end\n" \
+        "end",
+      "def f\n" \
+        "  wrapper do\n" \
+        "    travel_to 5.minutes.ago do\n" \
+        "      work\n" \
+        "    end\n" \
+        "  end\n" \
+        "end",
+      "instance.change_table Astronaut.table_name do |table| table end",
+      "pubsub.subscribe(broadcasting, handler, lambda do; work; end)",
+      "Sneakers.const_set(worker_klass, Class.new(JobWrapper) do; from_queue q; end)",
+      "AuditLog.create(3.times.map do; work; end)",
+      "instrument :preview, key: blob.key do; capture; end",
+      "def f\n" \
+        "  patterns.each do |pattern|\n" \
+        "    assert_raise Error, pattern.inspect do\n" \
+        "      work\n" \
+        "    end\n" \
+        "  end\n" \
+        "end",
+      'outer inner() { work }'
+    ].each do |source|
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+      assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+        normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0), source
+    end
   end
 
   def test_normalizes_static_interpolated_strings_as_strings
@@ -563,6 +949,69 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
 
       assert_equal rubyvm, arpaka, source
     end
+  end
+
+  def test_normalizes_multiline_bare_rescue_shape_as_rubyvm_modifier
+    normalizer = Compatibility::Normalizer.new
+    source = "begin i=STDIN.read_nonblock(1000);;rescue\nIO::WaitReadable;i=nil;end"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_normalizes_multiline_ternary_rescue_as_a_full_rescue
+    normalizer = Compatibility::Normalizer.new
+    source = "values.map { |value| (((time = Time.iso8601(value)) > Time.now) ? time.to_i:\n$')rescue nil }"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_attaches_gsub_block_after_character_multiplication
+    normalizer = Compatibility::Normalizer.new
+    source = %q{?.. *(b.size).gsub(/./) { b }.rstrip}
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_parses_receiver_operator_method_with_adjacent_argument
+    normalizer = Compatibility::Normalizer.new
+    source = "l=[]; def l.-a; a; end; def l.+a; a; end"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source))
+  end
+
+  def test_normalizes_receiver_minus_call_before_unary_minus
+    normalizer = Compatibility::Normalizer.new
+    source = "Description from Ky.\n----------\nWhat"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
+  end
+
+  def test_preserves_long_unary_chains_before_date_like_binary_expressions
+    normalizer = Compatibility::Normalizer.new
+    source = "Description from Ky.\n----------\nWhat\n\nDemo\n----------\n\n    2020-03-25"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source))
+  end
+
+  def test_preserves_unary_float_after_a_conditional_separator
+    normalizer = Compatibility::Normalizer.new
+    source = "How to Get Demo Started if not for path in ENV\n-\n1.1\nnext __LINE__\nend"
+    tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+
+    assert_equal normalizer.rubyvm(tree.children.fetch(2)),
+      normalizer.arpaka(GeneratedRubyFrontend.parse(source)).fetch(1).fetch(0)
   end
 
   def test_normalizes_terminal_nil_in_rescue_body_conditionals
