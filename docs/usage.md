@@ -357,6 +357,22 @@ bundle exec ruby -Ilib benchmark/compatibility.rb \
   --report local/tmp/arpaka-compatibility.jsonl
 ```
 
+If the frontend was generated with a namespace, pass its complete constant
+path with `--frontend-class`:
+
+```sh
+RUBY_BOX=1 bundle exec ruby -Ilib benchmark/compatibility.rb \
+  --frontend local/tmp/a_b_parser.rb \
+  --frontend-class A::B::Parser \
+  --corpus fixture=benchmark/fixtures \
+  --reference-cache local/tmp/fixture-reference.jsonl \
+  --threads 32 --parallel thread
+```
+
+The runner and worker resolve each component of this path with `const_get`, so
+the frontend can define `A::B::Parser` directly. The default remains
+`CompatibilityFrontend`, preserving existing commands and generated frontends.
+
 For self-hosted runs, `--threads 32 --parallel thread` is the recommended
 starting point for the large Rails/Trick corpus. The default is one Thread,
 which is useful for debugging but considerably slower on a large corpus.

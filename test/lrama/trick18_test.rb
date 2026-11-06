@@ -99,10 +99,17 @@ class Trick18Test < Test::Unit::TestCase
     assert_equal(:-, call.arguments.first.operator)
   end
 
-  test "keeps ASCII command operators binary" do
+  test "keeps command operators unary when their argument has no space" do
     expression = GeneratedRubyFrontend.parse("foo -tmp\n").statements.first
 
-    assert_instance_of(GeneratedRubyFrontend::AST::Binary, expression)
-    assert_equal(:-, expression.operator)
+    assert_instance_of(GeneratedRubyFrontend::AST::Call, expression)
+    assert_equal(:foo, expression.name)
+    assert_equal(GeneratedRubyFrontend::AST::Unary.new(:-, GeneratedRubyFrontend::AST::BareCall.new(:tmp)),
+      expression.arguments.first)
+
+    expression = GeneratedRubyFrontend.parse("foo +2018\n").statements.first
+    assert_instance_of(GeneratedRubyFrontend::AST::Call, expression)
+    assert_equal(GeneratedRubyFrontend::AST::Unary.new(:+, GeneratedRubyFrontend::AST::Literal.new(2018)),
+      expression.arguments.first)
   end
 end

@@ -344,10 +344,16 @@ enabled; the comparison runs in a separate process with Ruby Box disabled:
 
 ```sh
 RUBY_BOX=1 bundle exec ruby -Ilib benchmark/compatibility.rb \
+  --frontend local/tmp/compatibility-frontend.rb \
+  --frontend-class CompatibilityFrontend \
   --corpus rails=/path/to/rails \
   --corpus trick13=/path/to/trick13 \
-  --report /tmp/arpaka-compatibility.jsonl
+  --report local/tmp/arpaka-compatibility.jsonl
 ```
+
+For a generated frontend named `A::B::Parser`, pass
+`--frontend-class A::B::Parser`. The default `CompatibilityFrontend` remains
+available for existing top-level frontends.
 
 The Rake entry point accepts the same corpus selections through `CORPORA`,
 with optional `REPORT` and `RUBY_SOURCE`:
