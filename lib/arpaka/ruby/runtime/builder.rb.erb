@@ -18,7 +18,7 @@ class Builder
   end
 
   def program(statements)
-    AST::Program.new(resolve_method_local_reads(body_nodes(statements), [], []))
+    AST::Program.new(resolve_local_reads(body_nodes(statements), []))
   end
 
   def integer(value)

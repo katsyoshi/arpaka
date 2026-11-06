@@ -1846,6 +1846,7 @@ class Lexer
 
   def unary_argument_without_space?(start)
     return false if whitespace_byte?(@source.getbyte(start + 1))
+    return false if @previous == :tIDENTIFIER && @previous_value.to_s.ascii_only?
     splat_argument_without_space?(start)
   end
 
