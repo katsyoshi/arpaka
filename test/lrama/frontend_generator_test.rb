@@ -53,6 +53,25 @@ class FrontendGeneratorTest < Test::Unit::TestCase
     assert_equal(1, first.parse("1").statements.first.value)
   end
 
+  test "namespaced generated classes define namespaces and compile returns the class" do
+    class_name = "A::B::Parser"
+    source = Arpaka.generate(ruby_source: RUBY_SOURCE, class_name: class_name)
+    assert_include(source, "module A")
+    assert_include(source, "module B")
+    assert_include(source, "class Parser")
+
+    host = Module.new
+    host.module_eval(source)
+    generated = host.const_get(:A).const_get(:B).const_get(:Parser)
+    assert_equal("Parser", generated.name.split("::").last)
+    assert_equal(42, generated.parse("42").statements.first.value)
+
+    frontend = Arpaka.compile(ruby_source: RUBY_SOURCE, class_name: class_name)
+    assert_equal(class_name, frontend.name)
+    assert_equal(42, frontend.parse("42").statements.first.value)
+    assert_false(Object.const_defined?(:A, false))
+  end
+
   test "generation is deterministic and preserves provenance and notices" do
     assert_equal(generated_source, Arpaka.generate(ruby_source: RUBY_SOURCE, class_name: "StandaloneRuby"))
     assert_include(generated_source, "parse.y SHA256:")
@@ -61,7 +80,19 @@ class FrontendGeneratorTest < Test::Unit::TestCase
   end
 
   test "missing inputs and invalid class names produce generation errors" do
-    assert_raise(Arpaka::Error) { Arpaka.generate(ruby_source: RUBY_SOURCE, class_name: "A::B") }
+    invalid_names = {
+      "A::b" => "component 2 must start with an uppercase letter",
+      "A:::B" => "component 2 is empty",
+      "A::1" => "component 2 must start with an uppercase letter",
+      "A::" => "component 2 is empty",
+      "::A::B" => "component 1 is empty",
+      "parser" => "component 1 must start with an uppercase letter",
+      "" => "component 1 is empty"
+    }
+    invalid_names.each do |class_name, message|
+      error = assert_raise(Arpaka::Error) { Arpaka.generate(ruby_source: RUBY_SOURCE, class_name: class_name) }
+      assert_include(error.message, message)
+    end
     Dir.mktmpdir do |directory|
       error = assert_raise(Arpaka::Error) { Arpaka.generate(ruby_source: directory) }
       assert_include(error.message, "parse.y")
@@ -117,6 +148,20 @@ class FrontendGeneratorTest < Test::Unit::TestCase
       bad = ["generate", "--ruby-source", directory, "--output", path, "--force"]
       assert_equal(1, Arpaka::CLI.run(bad, out: out, err: err))
       assert_equal("keep on failure\n", File.read(path))
+    end
+  end
+
+  test "CLI writes namespaced frontend definitions" do
+    Dir.mktmpdir do |directory|
+      path = File.join(directory, "frontend.rb")
+      out, err = StringIO.new, StringIO.new
+      args = ["generate", "--ruby-source", RUBY_SOURCE, "--class-name", "A::B::Parser", "--output", path]
+
+      assert_equal(0, Arpaka::CLI.run(args, out: out, err: err), err.string)
+      source = File.read(path)
+      assert_include(source, "module A")
+      assert_include(source, "module B")
+      assert_include(source, "class Parser")
     end
   end
 

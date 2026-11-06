@@ -18,7 +18,7 @@ class Builder
   end
 
   def program(statements)
-    AST::Program.new(resolve_local_reads(body_nodes(statements), []))
+    AST::Program.new(resolve_local_reads(body_nodes(statements), [], [:it]))
   end
 
   def integer(value)
@@ -848,8 +848,8 @@ class Builder
   # lexical scope. The parser reduces a reference before it necessarily sees
   # a later assignment, so read_local cannot make that decision on its own.
   # Resolve the remaining BareCall nodes once a scope's AST is complete.
-  def resolve_local_reads(value, inherited_names)
-    local_names = (Array(inherited_names) + local_names_in_scope(value)).uniq
+  def resolve_local_reads(value, inherited_names, excluded_names = [])
+    local_names = ((Array(inherited_names) + local_names_in_scope(value)).uniq - excluded_names)
     rewrite_local_reads(value, local_names, for_target_names_in_scope(value))
   end
 

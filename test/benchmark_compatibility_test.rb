@@ -1181,7 +1181,13 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     Compatibility::Runner.new(ruby_source: nil, corpora: [["test", __FILE__]], frontend: __FILE__)
   end
 
+  def omit_ractor_test
+    omit "Ractor compatibility tests are opt-in; set ARPAKA_RUN_RACTOR_TESTS=1" unless
+      ENV["ARPAKA_RUN_RACTOR_TESTS"] == "1"
+  end
+
   def test_ractor_checks_fixture_with_pre_generated_frontend
+    omit_ractor_test
     ruby_source = File.expand_path("../vendor/ruby", __dir__)
     Dir.mktmpdir("compatibility-test-") do |directory|
       frontend = File.join(directory, "frontend.rb")
@@ -1193,7 +1199,8 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       FileUtils.mkdir_p(corpus)
       source_files.each { |path| FileUtils.cp(path, corpus) }
 
-      File.write(frontend, Arpaka.generate(ruby_source: ruby_source, class_name: "CompatibilityFrontend"))
+      File.write(frontend, Arpaka.generate(
+        ruby_source: ruby_source, class_name: "CompatibilityFrontend"))
       records = source_files.map do |source_file|
         source = File.binread(source_file).force_encoding(Encoding::UTF_8)
         tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
@@ -1224,7 +1231,44 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
-  def test_ractor_frontend_class_rewrite_matches_thread_frontend
+  def test_thread_checks_namespaced_pre_generated_frontend
+    ruby_source = File.expand_path("../vendor/ruby", __dir__)
+    Dir.mktmpdir("compatibility-test-") do |directory|
+      frontend = File.join(directory, "frontend.rb")
+      reference = File.join(directory, "reference.jsonl")
+      source_file = File.expand_path("../benchmark/fixtures/basic_match.rb", __dir__)
+      corpus = File.join(directory, "corpus")
+      FileUtils.mkdir_p(corpus)
+      FileUtils.cp(source_file, File.join(corpus, "basic_match.rb"))
+
+      class_name = "A::B::Parser"
+      File.write(frontend, Arpaka.generate(ruby_source: ruby_source, class_name: class_name))
+      source = File.binread(source_file).force_encoding(Encoding::UTF_8)
+      tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
+      normalized = Compatibility::Normalizer.new.rubyvm(tree.children.fetch(2))
+      normalized = [:sequence, normalized.nil? ? [] : [normalized]] unless normalized.is_a?(Array) && normalized.first == :sequence
+      File.write(reference, JSON.generate(
+        "type" => "reference", "corpus" => "fixture", "path" => "basic_match.rb",
+        "sha256" => Digest::SHA256.hexdigest(source), "status" => "ok",
+        "elapsed_seconds" => 0.0, "tree" => normalized) + "\n")
+
+      results, = Compatibility::Runner.new(
+        ruby_source: ruby_source,
+        corpora: [["fixture", corpus]],
+        frontend: frontend,
+        frontend_class: class_name,
+        reference_cache: reference,
+        parallel: :thread,
+        threads: 2
+      ).run
+
+      assert_equal ["match"], results.map { |result| result.fetch("status") }
+      assert_equal "ok", results.first.fetch("outcomes").fetch("arpaka").fetch("status")
+    end
+  end
+
+  def test_ractor_frontend_class_resolution_matches_thread_frontend
+    omit_ractor_test
     ruby_source = File.expand_path("../vendor/ruby", __dir__)
     source = <<~RUBY
       class ActionCable::Loader
@@ -1243,8 +1287,8 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       reference = File.join(directory, "reference.jsonl")
       corpus = File.join(directory, "corpus")
       FileUtils.mkdir_p(corpus)
-      generated = File.read(File.expand_path("../lrama_ruby_parser.rb", __dir__))
-      File.write(frontend, generated.sub("class LramaRubyParser\n", "class CompatibilityFrontend\n"))
+      File.write(frontend, Arpaka.generate(
+        ruby_source: ruby_source, class_name: "CompatibilityFrontend"))
       File.write(file, source)
       FileUtils.cp(file, File.join(corpus, "loader.rb"))
       normalized = Compatibility::Normalizer.new.rubyvm(
@@ -1264,7 +1308,7 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
         results.fetch(1).map { |result| result.fetch("status") }
       assert_equal results.fetch(0).first.fetch("outcomes").fetch("arpaka").fetch("status"),
         results.fetch(1).first.fetch("outcomes").fetch("arpaka").fetch("status")
-      assert_equal results.fetch(0).first.fetch("difference"), results.fetch(1).first.fetch("difference")
+      assert_equal results.fetch(0).first.fetch("difference", nil), results.fetch(1).first.fetch("difference", nil)
     end
   end
 end

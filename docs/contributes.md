@@ -9,8 +9,12 @@ Pull request CI is the fast, required check for the repository itself. It
 verifies that the generated frontend and the test suite still work on the
 supported Ruby versions.
 
-The Ractor compatibility mode is experimental. Generate a frontend first in a
-Ruby Box, then run the compatibility check without a Ruby Box:
+The compatibility runner's Ractor mode is experimental. It is separate from
+the repository test suite: ordinary tests execute the Thread compatibility
+path, while Ruby Box/Ractor compatibility test cases are currently omitted by
+default. To opt into those test cases, set
+`ARPAKA_RUN_RACTOR_TESTS=1`. Generate a frontend first in a Ruby Box, then run
+the runner without a Ruby Box:
 
 ```sh
 RUBY_BOX=1 OUTPUT=/tmp/arpaka-frontend.rb bundle exec rake ruby:generate
@@ -24,8 +28,10 @@ bundle exec ruby benchmark/compatibility.rb \
   --parallel ractor
 ```
 
-The default mode remains Thread-based. Ractor checks should not make ordinary
-pull request validation depend on large external repositories.
+The runner's default mode remains Thread-based. Ractor checks should not make
+ordinary pull request validation depend on large external repositories, and
+the test-suite omission is not a change to the runner's `--parallel ractor`
+option.
 
 ## Weekly compatibility inspection
 

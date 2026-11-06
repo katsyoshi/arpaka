@@ -67,9 +67,17 @@ code = Arpaka.generate(
 File.write("local/tmp/my_ruby_parser.rb", code)
 ```
 
-`class_name` defaults to `RubyParser` and must be one Ruby constant name,
-matching `\A[A-Z][a-zA-Z0-9_]*\z`. Generation validates the generated source in
-an isolated Ruby Box before returning it.
+`class_name` defaults to `RubyParser` and accepts either one Ruby constant name
+or a namespace path such as `MyLibrary::RubyParser`. Arpaka parses the name as
+one or more constant components separated by exactly `::`; each component must
+start with an uppercase ASCII letter and may continue with ASCII letters,
+digits, or underscores. Empty components, malformed separators, numeric or
+lowercase components raise `Arpaka::Error` with the invalid component described.
+Arpaka emits the required nested modules. Generation validates the generated
+source in an isolated Ruby Box before returning it.
+For example, `class_name: "A::B::Parser"` generates `module A`, nested
+`module B`, and the `Parser` class. The returned source can be loaded normally,
+and `Arpaka.compile` returns the leaf `A::B::Parser` class from its isolated Box.
 
 ### Compile in memory
 
@@ -79,7 +87,7 @@ It returns the generated parser class:
 ```ruby
 frontend = Arpaka.compile(
   ruby_source: "/path/to/ruby",
-  class_name: "MyRubyParser"
+  class_name: "A::B::Parser"
 )
 
 tree = frontend.parse("value = 1\nvalue + 2", filename: "example.rb")
@@ -96,7 +104,7 @@ The generated class exposes:
 ```ruby
 require_relative "local/tmp/my_ruby_parser"
 
-tree = MyRubyParser.parse("a = 1\na + 2", filename: "example.rb")
+tree = MyLibrary::RubyParser.parse("a = 1\na + 2", filename: "example.rb")
 ```
 
 `parse(source, filename:)` accepts Ruby source text and returns an AST rooted
@@ -125,7 +133,7 @@ output path:
 ```sh
 RUBY_BOX=1 bundle exec arpaka generate \
   --ruby-source /path/to/ruby \
-  --class-name MyRubyParser \
+  --class-name MyLibrary::RubyParser \
   --output lib/my_library/ruby_parser.rb
 ```
 
@@ -349,6 +357,22 @@ bundle exec ruby -Ilib benchmark/compatibility.rb \
   --report local/tmp/arpaka-compatibility.jsonl
 ```
 
+If the frontend was generated with a namespace, pass its complete constant
+path with `--frontend-class`:
+
+```sh
+RUBY_BOX=1 bundle exec ruby -Ilib benchmark/compatibility.rb \
+  --frontend local/tmp/a_b_parser.rb \
+  --frontend-class A::B::Parser \
+  --corpus fixture=benchmark/fixtures \
+  --reference-cache local/tmp/fixture-reference.jsonl \
+  --threads 32 --parallel thread
+```
+
+The runner and worker resolve each component of this path with `const_get`, so
+the frontend can define `A::B::Parser` directly. The default remains
+`CompatibilityFrontend`, preserving existing commands and generated frontends.
+
 For self-hosted runs, `--threads 32 --parallel thread` is the recommended
 starting point for the large Rails/Trick corpus. The default is one Thread,
 which is useful for debugging but considerably slower on a large corpus.
@@ -356,6 +380,14 @@ which is useful for debugging but considerably slower on a large corpus.
 `--disable-gc` is an opt-in experiment that can substantially increase heap
 usage. `--timeout` controls the per-parser/file timeout and defaults to 10
 seconds.
+
+This runner option is separate from the repository test suite. The normal
+compatibility tests execute the Thread path. Tests that exercise Ruby
+Box/Ractor compatibility are currently omitted by default because of the Ruby
+4.0 Ruby Box/Ractor constraints; run them explicitly with
+`ARPAKA_RUN_RACTOR_TESTS=1`. That test setting does not enable the runner's
+`--parallel ractor` mode, and selecting `--parallel ractor` does not change
+which test-suite cases are omitted.
 
 The Rake wrapper accepts equivalent selections through environment variables:
 

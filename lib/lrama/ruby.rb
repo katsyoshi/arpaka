@@ -26,3 +26,4 @@ module Lrama
 end
 
 require_relative "ruby/generator"
+

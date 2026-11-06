@@ -5,8 +5,14 @@ require_relative "normalizer"
 
 GC.disable if ENV["ARPAKA_DISABLE_GC"] == "1"
 
-mode, frontend_path, input_path, filename = ARGV
-abort "usage: worker.rb MODE FRONTEND INPUT [FILENAME]" unless %w[arpaka rubyvm].include?(mode) && input_path
+mode, frontend_path, *arguments = ARGV
+frontend_class_name = "CompatibilityFrontend"
+if arguments.first == "--frontend-class"
+  arguments.shift
+  frontend_class_name = arguments.shift
+end
+input_path, filename = arguments
+abort "usage: worker.rb MODE FRONTEND [--frontend-class NAME] INPUT [FILENAME]" unless %w[arpaka rubyvm].include?(mode) && input_path
 inputs = if filename == "--manifest"
   File.foreach(input_path).map { |line| JSON.parse(line) }
 else
@@ -23,13 +29,16 @@ end
 
 raise "comparison worker must run with Ruby Box disabled" if Ruby::Box.enabled?
 require frontend_path if mode == "arpaka"
+frontend_class = frontend_class_name.split("::").reduce(Object) do |namespace, component|
+  namespace.const_get(component, false)
+end if mode == "arpaka"
 
 inputs.each do |input|
   started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
   source = File.binread(input.fetch("path")).force_encoding(Encoding::UTF_8).gsub("\r\n", "\n")
   begin
     tree = if mode == "arpaka"
-      Object.const_get(:CompatibilityFrontend).parse(source, filename: input.fetch("filename"))
+      frontend_class.parse(source, filename: input.fetch("filename"))
     else
       RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
     end

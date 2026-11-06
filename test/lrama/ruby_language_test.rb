@@ -940,6 +940,9 @@ class ArpakaTest < Test::Unit::TestCase
 
     method = GeneratedRubyFrontend.parse("def read\n  p value\n  value = 1\n  p value\nend").statements.first
     assert_equal(AST::LocalRead.new(:value), method.body.last.arguments.first)
+
+    it_reference = GeneratedRubyFrontend.parse("p it\nit = 1")
+    assert_equal(AST::BareCall.new(:it), it_reference.statements.first.arguments.first)
   end
 
   test "attribute assignments preserve their receiver and setter name" do

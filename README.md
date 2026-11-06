@@ -157,10 +157,11 @@ RUBY_BOX=1 bundle exec arpaka generate \
 ```
 
 The output directory must already exist. `--class-name` defaults to
-`RubyParser` and must be a single Ruby constant name. Existing output files are
-preserved unless `--force` is supplied. A failed generation leaves the previous
-file intact. The output includes its source profile, generator version and
-copyright/license notices.
+`RubyParser` and accepts a constant name or a namespace path such as
+`MyLibrary::RubyParser`; each component must be a valid Ruby constant name.
+Existing output files are preserved unless `--force` is supplied. A failed
+generation leaves the previous file intact. The output includes its source
+profile, generator version and copyright/license notices.
 
 When only `parse.y` is available, Arpaka can replace its `RUBY_TOKEN(NAME)`
 declarations with token names and generate a frontend without the rest of the
@@ -343,10 +344,16 @@ enabled; the comparison runs in a separate process with Ruby Box disabled:
 
 ```sh
 RUBY_BOX=1 bundle exec ruby -Ilib benchmark/compatibility.rb \
+  --frontend local/tmp/compatibility-frontend.rb \
+  --frontend-class CompatibilityFrontend \
   --corpus rails=/path/to/rails \
   --corpus trick13=/path/to/trick13 \
-  --report /tmp/arpaka-compatibility.jsonl
+  --report local/tmp/arpaka-compatibility.jsonl
 ```
+
+For a generated frontend named `A::B::Parser`, pass
+`--frontend-class A::B::Parser`. The default `CompatibilityFrontend` remains
+available for existing top-level frontends.
 
 The Rake entry point accepts the same corpus selections through `CORPORA`,
 with optional `REPORT` and `RUBY_SOURCE`:
@@ -385,6 +392,13 @@ corpora are not downloaded or included in the gem.
 The normal test suite checks the comparison machinery and known semantic-loss
 examples. External corpus comparison is an explicit task, separate from the
 speed benchmark and the default CI checks.
+
+The normal compatibility tests run the Thread path. Ruby Box/Ractor
+compatibility tests are currently omitted by default because of Ruby 4.0's
+Ruby Box/Ractor constraints; opt into those tests with
+`ARPAKA_RUN_RACTOR_TESTS=1`. This test-suite setting is separate from the
+compatibility runner's `--parallel ractor` mode, which remains available as an
+experimental, explicitly selected benchmark mode.
 
 ## License
 

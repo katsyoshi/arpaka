@@ -20,7 +20,7 @@ module Compatibility
     STATUSES = %w[match accepted_mismatch mismatch unverified parse_failure timeout error].freeze
     VERSION = 2
 
-    def initialize(ruby_source:, corpora:, timeout: 10, ruby: RbConfig.ruby, progress: nil, reference_cache: nil, threads: 1, parallel: :thread, disable_gc: false, frontend: nil)
+    def initialize(ruby_source:, corpora:, timeout: 10, ruby: RbConfig.ruby, progress: nil, reference_cache: nil, threads: 1, parallel: :thread, disable_gc: false, frontend: nil, frontend_class: "CompatibilityFrontend")
       @ruby_source = ruby_source && File.expand_path(ruby_source)
       @corpora = corpora.map { |name, path| [name, File.expand_path(path)] }
       @timeout = timeout
@@ -32,6 +32,8 @@ module Compatibility
       @parallel = parallel.to_sym
       @disable_gc = disable_gc
       @frontend = frontend && File.expand_path(frontend)
+      @frontend_class_name = frontend_class
+      @frontend_class_parts = parse_frontend_class(frontend_class)
     end
 
     def run
@@ -44,7 +46,7 @@ module Compatibility
         results = run_comparison(@frontend)
         [results, metadata(@frontend, results)]
       else
-        generated = Arpaka.generate(ruby_source: @ruby_source, class_name: "CompatibilityFrontend")
+        generated = Arpaka.generate(ruby_source: @ruby_source, class_name: @frontend_class_name)
         Dir.mktmpdir("arpaka-compatibility-") do |directory|
           frontend = File.join(directory, "frontend.rb")
           File.write(frontend, generated)
@@ -154,28 +156,15 @@ module Compatibility
       batches = files.each_slice((files.length.fdiv(@threads)).ceil).to_a
       port = Ractor::Port.new
       workers = batches.each_with_index.map do |batch, index|
-        Ractor.new(port, index, name, root, batch, frontend, @disable_gc) do |result_port, job_index, job_name, job_root, job_files, job_frontend, disable_gc|
+        Ractor.new(port, index, name, root, batch, frontend, @frontend_class_name, @disable_gc) do |result_port, job_index, job_name, job_root, job_files, job_frontend, job_frontend_class_name, disable_gc|
           begin
             GC.disable if disable_gc
-            verbose = $VERBOSE
-            begin
-              # Each Ractor owns its frontend class, but the generated source
-              # defines the same constants in every worker. Avoid noisy
-              # redefinition warnings while loading those isolated copies.
-              $VERBOSE = nil
-              # Constants are shared between Ractors. Give each loaded
-              # frontend a private top-level name so singleton methods that
-              # close over a constructor Proc stay owned by this Ractor.
-              # Constant tables are shared between Ractors, so the name must
-              # also be unique across successive Runner invocations.
-              job_class_name = "CompatibilityFrontend#{Process.pid}#{Ractor.current.object_id}#{job_index}"
-              source = File.read(job_frontend, encoding: Encoding::UTF_8).gsub(
-                /\bCompatibilityFrontend\b/, job_class_name)
-              eval(source, binding, job_frontend)
-            ensure
-              $VERBOSE = verbose
+            source = File.read(job_frontend, encoding: Encoding::UTF_8)
+            frontend_namespace = Module.new
+            frontend_namespace.module_eval(source, job_frontend)
+            job_frontend_class = job_frontend_class_name.split("::").reduce(frontend_namespace) do |namespace, component|
+              namespace.const_get(component, false)
             end
-            job_frontend_class = eval(job_class_name, binding, job_frontend)
             normalizer = Compatibility::Normalizer.new
             batch_results = job_files.to_h do |file|
               started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -236,7 +225,10 @@ module Compatibility
     end
 
     def load_frontend(frontend = @frontend)
-      @frontend_class = load(frontend).then { Object.const_get(:CompatibilityFrontend) }
+      load(frontend)
+      @frontend_class = @frontend_class_parts.reduce(Object) do |namespace, component|
+        namespace.const_get(component, false)
+      end
     end
 
     def compare_batch(name, root, files, frontend)
@@ -339,7 +331,8 @@ module Compatibility
       err = Tempfile.new("compatibility-batch-err")
       env = { "RUBY_BOX" => nil, "RUBYOPT" => nil }
       env["ARPAKA_DISABLE_GC"] = "1" if @disable_gc
-      command = [@ruby, "--disable-gems", File.expand_path("compatibility/worker.rb", __dir__), mode, frontend, manifest, "--manifest"]
+      command = [@ruby, "--disable-gems", File.expand_path("compatibility/worker.rb", __dir__), mode, frontend,
+        "--frontend-class", @frontend_class_name, manifest, "--manifest"]
       pid = Process.spawn(env, *command, out: out, err: err)
       deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + (@timeout * files.length)
       loop do
@@ -629,6 +622,12 @@ module Compatibility
       keys.to_h { |key| [key.to_s, after.fetch(key) - before.fetch(key, 0)] }
     end
 
+    def parse_frontend_class(value)
+      Arpaka::Ruby::ClassNameParser.parse(value).components
+    rescue Arpaka::Error => error
+      raise ConfigurationError, error.message
+    end
+
     def git(*args, directory: File.expand_path("..", __dir__))
       output, status = Open3.capture2("git", *args, chdir: directory, err: File::NULL)
       status.success? ? output.strip : nil
@@ -640,7 +639,8 @@ module Compatibility
   class CLI
     def self.run(argv)
       corpora = []
-      options = { ruby_source: nil, timeout: 10, threads: 1, parallel: :thread, disable_gc: false, frontend: nil }
+      options = { ruby_source: nil, timeout: 10, threads: 1, parallel: :thread, disable_gc: false,
+        frontend: nil, frontend_class: "CompatibilityFrontend" }
       parser = OptionParser.new do |opts|
         opts.banner = "Usage: RUBY_BOX=1 bundle exec ruby benchmark/compatibility.rb --corpus NAME=PATH [options]"
         opts.on("--corpus NAME=PATH", "Corpus directory or Ruby file; repeatable") do |value|
@@ -651,6 +651,9 @@ module Compatibility
         opts.on("--report PATH", "Write per-file JSONL and summary to PATH (default: stdout)") { |value| options[:report] = value }
         opts.on("--reference-cache PATH", "Read/write RubyVM normalized AST JSONL cache") { |value| options[:reference_cache] = value }
         opts.on("--frontend PATH", "Use a pre-generated frontend instead of generating one") { |value| options[:frontend] = value }
+        opts.on("--frontend-class NAME", "Frontend class constant path (default: CompatibilityFrontend)") do |value|
+          options[:frontend_class] = value
+        end
         opts.on("--threads N", Integer, "Number of concurrent comparisons (default: 1)") { |value| options[:threads] = value }
         opts.on("--parallel MODE", %w[thread ractor], "Parallel mode (default: thread)") { |value| options[:parallel] = value.to_sym }
         opts.on("--disable-gc", "Disable GC in Ractor workers (default: enabled)") { options[:disable_gc] = true }
@@ -666,6 +669,7 @@ module Compatibility
         parallel: options[:parallel],
         disable_gc: options[:disable_gc],
         frontend: options[:frontend],
+        frontend_class: options[:frontend_class],
         progress: ->(message) { warn message }).run
       Runner.emit(results, metadata, report_path: options[:report])
     rescue ConfigurationError, OptionParser::ParseError => error
