@@ -67,9 +67,13 @@ code = Arpaka.generate(
 File.write("local/tmp/my_ruby_parser.rb", code)
 ```
 
-`class_name` defaults to `RubyParser` and must be one Ruby constant name,
-matching `\A[A-Z][a-zA-Z0-9_]*\z`. Generation validates the generated source in
-an isolated Ruby Box before returning it.
+`class_name` defaults to `RubyParser` and accepts either one Ruby constant name
+or a namespace path such as `MyLibrary::RubyParser`. Every component must match
+`\A[A-Z][a-zA-Z0-9_]*\z`; Arpaka emits the required nested modules. Generation
+validates the generated source in an isolated Ruby Box before returning it.
+For example, `class_name: "A::B::Parser"` generates `module A`, nested
+`module B`, and the `Parser` class. The returned source can be loaded normally,
+and `Arpaka.compile` returns the leaf `A::B::Parser` class from its isolated Box.
 
 ### Compile in memory
 
@@ -79,7 +83,7 @@ It returns the generated parser class:
 ```ruby
 frontend = Arpaka.compile(
   ruby_source: "/path/to/ruby",
-  class_name: "MyRubyParser"
+  class_name: "A::B::Parser"
 )
 
 tree = frontend.parse("value = 1\nvalue + 2", filename: "example.rb")
@@ -96,7 +100,7 @@ The generated class exposes:
 ```ruby
 require_relative "local/tmp/my_ruby_parser"
 
-tree = MyRubyParser.parse("a = 1\na + 2", filename: "example.rb")
+tree = MyLibrary::RubyParser.parse("a = 1\na + 2", filename: "example.rb")
 ```
 
 `parse(source, filename:)` accepts Ruby source text and returns an AST rooted
@@ -125,7 +129,7 @@ output path:
 ```sh
 RUBY_BOX=1 bundle exec arpaka generate \
   --ruby-source /path/to/ruby \
-  --class-name MyRubyParser \
+  --class-name MyLibrary::RubyParser \
   --output lib/my_library/ruby_parser.rb
 ```
 

@@ -10,7 +10,7 @@ module Arpaka
       source = generate(ruby_source: ruby_source, parse_y: parse_y, class_name: class_name)
       box = ::Ruby::Box.new
       box.eval(source)
-      box.const_get(class_name, false)
+      class_name.split("::").reduce(box) { |namespace, name| namespace.const_get(name, false) }
     end
   end
 end

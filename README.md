@@ -157,10 +157,11 @@ RUBY_BOX=1 bundle exec arpaka generate \
 ```
 
 The output directory must already exist. `--class-name` defaults to
-`RubyParser` and must be a single Ruby constant name. Existing output files are
-preserved unless `--force` is supplied. A failed generation leaves the previous
-file intact. The output includes its source profile, generator version and
-copyright/license notices.
+`RubyParser` and accepts a constant name or a namespace path such as
+`MyLibrary::RubyParser`; each component must be a valid Ruby constant name.
+Existing output files are preserved unless `--force` is supplied. A failed
+generation leaves the previous file intact. The output includes its source
+profile, generator version and copyright/license notices.
 
 When only `parse.y` is available, Arpaka can replace its `RUBY_TOKEN(NAME)`
 declarations with token names and generate a frontend without the rest of the
