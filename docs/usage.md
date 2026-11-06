@@ -68,9 +68,13 @@ File.write("local/tmp/my_ruby_parser.rb", code)
 ```
 
 `class_name` defaults to `RubyParser` and accepts either one Ruby constant name
-or a namespace path such as `MyLibrary::RubyParser`. Every component must match
-`\A[A-Z][a-zA-Z0-9_]*\z`; Arpaka emits the required nested modules. Generation
-validates the generated source in an isolated Ruby Box before returning it.
+or a namespace path such as `MyLibrary::RubyParser`. Arpaka parses the name as
+one or more constant components separated by exactly `::`; each component must
+start with an uppercase ASCII letter and may continue with ASCII letters,
+digits, or underscores. Empty components, malformed separators, numeric or
+lowercase components raise `Arpaka::Error` with the invalid component described.
+Arpaka emits the required nested modules. Generation validates the generated
+source in an isolated Ruby Box before returning it.
 For example, `class_name: "A::B::Parser"` generates `module A`, nested
 `module B`, and the `Parser` class. The returned source can be loaded normally,
 and `Arpaka.compile` returns the leaf `A::B::Parser` class from its isolated Box.

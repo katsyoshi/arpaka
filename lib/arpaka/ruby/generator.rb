@@ -3,6 +3,7 @@
 require "erb"
 require "json"
 require_relative "grammar"
+require_relative "class_name_parser"
 
 module Arpaka::Ruby
   class Generator
@@ -10,7 +11,7 @@ module Arpaka::Ruby
       if ruby_source.nil? == parse_y.nil?
         raise ::Arpaka::Error, "specify exactly one of ruby_source or parse_y"
       end
-      class_name_parts = validate_class_name(class_name)
+      class_name = ClassNameParser.parse(class_name)
       unless ::Ruby::Box.enabled?
         raise ::Arpaka::Error, "Ruby Box is required for generation. Start Ruby with RUBY_BOX=1."
       end
@@ -35,7 +36,7 @@ module Arpaka::Ruby
         "# Ruby source profile: #{ruby_source ? artifacts.fetch('source_profile') : 'parse.y only'}\n" \
         "# parse.y SHA256: #{Digest::SHA256.file(grammar_filename).hexdigest}\n" \
         "#{notices.join("\n").lines.map { |line| "# #{line}" }.join}\n"
-      source << wrap_class(class_name_parts, parser, runtime)
+      source << wrap_class(class_name, parser, runtime)
       # Compile in an isolated box to validate syntax without executing actions.
       box = ::Ruby::Box.new
       box.eval(source)
@@ -48,18 +49,9 @@ module Arpaka::Ruby
 
     private
 
-    def validate_class_name(class_name)
-      valid = class_name.is_a?(String) &&
-        /\A[A-Z][a-zA-Z0-9_]*(?:::[A-Z][a-zA-Z0-9_]*)*\z/.match?(class_name)
-      unless valid
-        raise ::Arpaka::Error, "class_name must be a Ruby constant name or namespace path"
-      end
-      class_name.split("::")
-    end
-
-    def wrap_class(parts, parser, runtime)
-      definition = "class #{parts.last}\n#{parser}\n#{runtime}\nend\n"
-      parts[0...-1].reverse_each do |namespace|
+    def wrap_class(class_name, parser, runtime)
+      definition = "class #{class_name.constant}\n#{parser}\n#{runtime}\nend\n"
+      class_name.namespaces.reverse_each do |namespace|
         body = definition.lines.map { |line| "  #{line}" }.join
         definition = "module #{namespace}\n#{body}end\n"
       end

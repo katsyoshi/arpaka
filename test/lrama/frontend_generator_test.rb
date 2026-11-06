@@ -80,8 +80,18 @@ class FrontendGeneratorTest < Test::Unit::TestCase
   end
 
   test "missing inputs and invalid class names produce generation errors" do
-    ["A::b", "A:::B", "A::", "::A::B"].each do |class_name|
-      assert_raise(Arpaka::Error) { Arpaka.generate(ruby_source: RUBY_SOURCE, class_name: class_name) }
+    invalid_names = {
+      "A::b" => "component 2 must start with an uppercase letter",
+      "A:::B" => "component 2 is empty",
+      "A::1" => "component 2 must start with an uppercase letter",
+      "A::" => "component 2 is empty",
+      "::A::B" => "component 1 is empty",
+      "parser" => "component 1 must start with an uppercase letter",
+      "" => "component 1 is empty"
+    }
+    invalid_names.each do |class_name, message|
+      error = assert_raise(Arpaka::Error) { Arpaka.generate(ruby_source: RUBY_SOURCE, class_name: class_name) }
+      assert_include(error.message, message)
     end
     Dir.mktmpdir do |directory|
       error = assert_raise(Arpaka::Error) { Arpaka.generate(ruby_source: directory) }
