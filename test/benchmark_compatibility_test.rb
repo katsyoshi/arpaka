@@ -2,8 +2,6 @@
 
 require "json"
 require "fileutils"
-require "open3"
-require "rbconfig"
 require "tmpdir"
 
 require_relative "test_helper"
@@ -1183,19 +1181,6 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     Compatibility::Runner.new(ruby_source: nil, corpora: [["test", __FILE__]], frontend: __FILE__)
   end
 
-  def generate_frontend_in_subprocess(path, ruby_source, class_name)
-    script = <<~'RUBY'
-      require "arpaka"
-      File.write(ARGV.fetch(0), Arpaka.generate(
-        ruby_source: ARGV.fetch(1), class_name: ARGV.fetch(2)))
-    RUBY
-    output, error, status = Open3.capture3(
-      { "RUBY_BOX" => "1", "RUBYOPT" => nil, "RUBYLIB" => nil },
-      RbConfig.ruby, "-I", File.expand_path("../lib", __dir__), "-e", script,
-      path, ruby_source, class_name, chdir: File.expand_path("..", __dir__))
-    assert_predicate(status, :success?, output + error)
-  end
-
   def test_ractor_checks_fixture_with_pre_generated_frontend
     ruby_source = File.expand_path("../vendor/ruby", __dir__)
     Dir.mktmpdir("compatibility-test-") do |directory|
@@ -1208,7 +1193,8 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       FileUtils.mkdir_p(corpus)
       source_files.each { |path| FileUtils.cp(path, corpus) }
 
-      generate_frontend_in_subprocess(frontend, ruby_source, "CompatibilityFrontend")
+      File.write(frontend, Arpaka.generate(
+        ruby_source: ruby_source, class_name: "CompatibilityFrontend"))
       records = source_files.map do |source_file|
         source = File.binread(source_file).force_encoding(Encoding::UTF_8)
         tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
@@ -1239,6 +1225,18 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
     end
   end
 
+  def test_generate_reuses_ruby_boxes_after_ractor
+    ruby_source = File.expand_path("../vendor/ruby", __dir__)
+    Arpaka.generate(ruby_source: ruby_source, class_name: "BeforeRactor::Parser")
+
+    port = Ractor::Port.new
+    Ractor.new(port) { |reply| reply.send(:done) }
+    assert_equal :done, port.receive
+
+    source = Arpaka.generate(ruby_source: ruby_source, class_name: "AfterRactor::Parser")
+    assert_include source, "class Parser"
+  end
+
   def test_thread_checks_namespaced_pre_generated_frontend
     ruby_source = File.expand_path("../vendor/ruby", __dir__)
     Dir.mktmpdir("compatibility-test-") do |directory|
@@ -1250,7 +1248,7 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       FileUtils.cp(source_file, File.join(corpus, "basic_match.rb"))
 
       class_name = "A::B::Parser"
-      generate_frontend_in_subprocess(frontend, ruby_source, class_name)
+      File.write(frontend, Arpaka.generate(ruby_source: ruby_source, class_name: class_name))
       source = File.binread(source_file).force_encoding(Encoding::UTF_8)
       tree = RubyVM::AbstractSyntaxTree.parse(source, keep_script_lines: false)
       normalized = Compatibility::Normalizer.new.rubyvm(tree.children.fetch(2))
@@ -1294,7 +1292,8 @@ class BenchmarkCompatibilityTest < Test::Unit::TestCase
       reference = File.join(directory, "reference.jsonl")
       corpus = File.join(directory, "corpus")
       FileUtils.mkdir_p(corpus)
-      generate_frontend_in_subprocess(frontend, ruby_source, "CompatibilityFrontend")
+      File.write(frontend, Arpaka.generate(
+        ruby_source: ruby_source, class_name: "CompatibilityFrontend"))
       File.write(file, source)
       FileUtils.cp(file, File.join(corpus, "loader.rb"))
       normalized = Compatibility::Normalizer.new.rubyvm(

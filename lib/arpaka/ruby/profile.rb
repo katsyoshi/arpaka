@@ -115,8 +115,9 @@ module Arpaka
       end
 
       def self.load(filename, name)
-        box = ::Ruby::Box.new
-        profile = box.eval(File.read(File.join(__dir__, filename)))
+        profile = ::Lrama::Ruby::BoxLifecycle.with(:arpaka_profile) do |box|
+          box.eval(File.read(File.join(__dir__, filename)))
+        end
         unless profile.is_a?(Hash) && profile["name"] == name
           raise ::Arpaka::Error, "Invalid #{name} profile"
         end

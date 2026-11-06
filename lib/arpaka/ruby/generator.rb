@@ -38,8 +38,13 @@ module Arpaka::Ruby
         "#{notices.join("\n").lines.map { |line| "# #{line}" }.join}\n"
       source << wrap_class(class_name, parser, runtime)
       # Compile in an isolated box to validate syntax without executing actions.
-      box = ::Ruby::Box.new
-      box.eval(source)
+      ::Lrama::Ruby::BoxLifecycle.with(:arpaka_validation) do |box|
+        begin
+          box.eval(source)
+        ensure
+          ::Lrama::Ruby::BoxLifecycle.remove_constant(box, class_name.components)
+        end
+      end
       source
     rescue SyntaxError => error
       raise ::Arpaka::Error, "Invalid generated frontend: #{error.message}"

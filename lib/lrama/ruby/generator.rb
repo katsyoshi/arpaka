@@ -20,17 +20,18 @@ module Lrama
           raise Error, "mode must be :parser or :recognizer"
         end
 
-        box = ::Ruby::Box.new
-        # A new box does not inherit Bundler's activated load paths.
-        box.load_path.replace($LOAD_PATH)
-        box.require(File.expand_path("backend.rb", __dir__))
-        box.require(File.expand_path("action_code.rb", __dir__)) if mode == :parser
-        begin
-          box::Lrama::Ruby::Backend.new.generate(source,
-            filename: filename, class_name: class_name, mode: mode,
-            allow_error_rules: allow_error_rules)
-        rescue box::Lrama::Ruby::Backend::Error => e
-          raise Error, e.message
+        BoxLifecycle.with(:"lrama_backend_#{mode}") do |box|
+          # A new box does not inherit Bundler's activated load paths.
+          box.load_path.replace($LOAD_PATH)
+          box.require(File.expand_path("backend.rb", __dir__))
+          box.require(File.expand_path("action_code.rb", __dir__)) if mode == :parser
+          begin
+            box::Lrama::Ruby::Backend.new.generate(source,
+              filename: filename, class_name: class_name, mode: mode,
+              allow_error_rules: allow_error_rules)
+          rescue box::Lrama::Ruby::Backend::Error => e
+            raise Error, e.message
+          end
         end
       end
     end
