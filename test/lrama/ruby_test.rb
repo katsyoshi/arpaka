@@ -65,6 +65,16 @@ class Lrama::RubyTest < Test::Unit::TestCase
     assert_nil(parser.lookahead_state)
   end
 
+  test "generated reductions omit per-rule comments" do
+    grammar = "%token NUMBER\n%%\nstart: NUMBER { $$ = $1 };"
+    source = Lrama::Ruby.generate(grammar, class_name: "CommentFreeParser")
+    assert_include(source, "when 2\n")
+    assert_not_match(/when \d+ #/, source)
+
+    parser = Lrama::Ruby.compile(grammar, class_name: "CommentFreeParser").new
+    assert_equal(7, parser.parse([[:NUMBER, 7]]))
+  end
+
   test "numeric token IDs, aliases, and explicit EOF" do
     parser = compile('%token NUMBER 300 "number"' + "\n%%\nstart: NUMBER;").new
     assert_equal(false, parser.parse([[300, false], [0, nil]]))

@@ -30,8 +30,7 @@ module Lrama
         tokens = token_names(grammar)
         actions = grammar.rules.filter_map do |rule|
           next if recognizer || !rule.token_code
-          # Preserve whitespace inside multiline strings and heredocs.
-          "    when #{rule.id + 1} # #{rule.as_comment.gsub(/[\r\n]/, ' ')}\n#{translate_action(rule)}\n"
+          "    when #{rule.id + 1}\n#{translate_action(rule)}\n"
         end.join
         ParserEmitter.new.emit(class_name: class_name, context: context, tokens: tokens,
           actions: actions, recognizer: recognizer)
