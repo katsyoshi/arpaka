@@ -1,0 +1,68 @@
+module StructuredAST
+  Source = Data.define(:filename, :children)
+  ClassDef = Data.define(:name, :superclass, :children)
+  ModuleDef = Data.define(:name, :children)
+  MethodDef = Data.define(:name, :kind, :receiver, :children)
+
+  def self.project(detailed_ast, filename:)
+    Source.new(filename, definitions_in(detailed_ast).freeze)
+  end
+
+  def self.definitions_in(value, method_kind: :instance, receiver: nil)
+    case value
+    when Array
+      value.flat_map { |item| definitions_in(item, method_kind: method_kind, receiver: receiver) }
+    when AST::ClassDef
+      [ClassDef.new(static_name(value.name), static_name(value.superclass),
+        definitions_in(value.body).freeze)]
+    when AST::ModuleDef
+      [ModuleDef.new(static_name(value.name), definitions_in(value.body).freeze)]
+    when AST::Def
+      [MethodDef.new(value.name, method_kind, receiver, definitions_in(value.body).freeze)]
+    when AST::SingletonMethodDef
+      [MethodDef.new(value.name, :singleton, receiver_name(value.receiver),
+        definitions_in(value.body).freeze)]
+    when AST::SingletonClassDef
+      definitions_in(value.body, method_kind: :singleton, receiver: receiver_name(value.receiver))
+    else
+      return [] unless ast_node?(value)
+
+      value.members.flat_map do |member|
+        definitions_in(value.public_send(member), method_kind: method_kind, receiver: receiver)
+      end
+    end
+  end
+  private_class_method :definitions_in
+
+  def self.ast_node?(value)
+    value.is_a?(Data) && value.class.name&.start_with?("#{AST.name}::")
+  end
+  private_class_method :ast_node?
+
+  def self.static_name(value)
+    case value
+    when Symbol
+      value
+    when AST::Variable
+      value.name if value.kind == :constant
+    when AST::AbsoluteConstant
+      "::#{value.name}"
+    when AST::ConstantPath
+      receiver = static_name(value.receiver)
+      "#{receiver}::#{value.name}" if receiver
+    end
+  end
+  private_class_method :static_name
+
+  def self.receiver_name(value)
+    return :self if defined?(AST::Self) && value.is_a?(AST::Self)
+
+    case value
+    when AST::LocalRead, AST::BareCall
+      value.name
+    else
+      static_name(value)
+    end
+  end
+  private_class_method :receiver_name
+end

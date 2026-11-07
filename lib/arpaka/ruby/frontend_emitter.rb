@@ -10,14 +10,18 @@ module Arpaka::Ruby
     DETAILED_RUNTIME_BUNDLE = RuntimeBundle.new(
       %w[frontend detailed/ast detailed/builder lexer].freeze
     ).freeze
+    STRUCTURED_RUNTIME_BUNDLE = RuntimeBundle.new(
+      %w[frontend detailed/ast detailed/builder lexer structured].freeze
+    ).freeze
 
     def emit(parser:, artifacts:, class_name:, grammar_filename:, ruby_source:,
-      runtime_bundle: DETAILED_RUNTIME_BUNDLE)
+      runtime_bundle: DETAILED_RUNTIME_BUNDLE, ast_type: :detailed)
       rules = JSON.parse(artifacts.fetch("rules.json"))
       runtime_options = artifacts.fetch("runtime", {})
       runtime = runtime_bundle.templates.map do |template_name|
         template = File.read(File.join(__dir__, "runtime", "#{template_name}.rb.erb"))
-        ERB.new(template, trim_mode: "-").result_with_hash(rules: rules, runtime: runtime_options)
+        ERB.new(template, trim_mode: "-").result_with_hash(rules: rules, runtime: runtime_options,
+          ast_type: ast_type)
       end.join("\n")
       notices = [File.read(File.expand_path("../../../LICENSE.txt", __dir__))]
       %w[COPYING BSDL].each do |name|

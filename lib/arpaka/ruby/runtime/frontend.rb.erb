@@ -22,7 +22,12 @@ class LexerError < Error; end
 
 def self.parse(source, filename: "(ruby)")
   lexer = Lexer.new(source, filename: filename)
-  parse_tokens(lexer.each, lexical_context: lexer.context, source_encoding: lexer.source_encoding)
+  result = parse_tokens(lexer.each, lexical_context: lexer.context, source_encoding: lexer.source_encoding)
+<% if ast_type == :structured -%>
+  StructuredAST.project(result, filename: filename)
+<% else -%>
+  result
+<% end -%>
 end
 
 def self.parse_tokens(tokens, lexical_context: nil, source_encoding: Encoding::UTF_8.name)
