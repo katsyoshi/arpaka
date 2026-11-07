@@ -11,11 +11,12 @@ module Arpaka::Ruby
       force = false
       help = false
       parser = OptionParser.new do |opts|
-        opts.banner = "Usage: arpaka generate (--ruby-source DIR | --parse-y FILE) --output FILE [--class-name NAME] [--force]"
+        opts.banner = "Usage: arpaka generate (--ruby-source DIR | --parse-y FILE) --output FILE [--class-name NAME] [--ast-type detailed|structured] [--force]"
         opts.on("--ruby-source DIR", "Ruby source tree (provided by the user)") { |v| options[:ruby_source] = v }
         opts.on("--parse-y FILE", "parse.y file (use Arpaka's token definitions)") { |v| options[:parse_y] = v }
         opts.on("--output FILE", "Write a standalone Ruby frontend") { |v| options[:output] = v }
         opts.on("--class-name NAME", "Generated class name (default: RubyParser)") { |v| options[:class_name] = v }
+        opts.on("--ast-type TYPE", %w[detailed structured], "AST output type (default: detailed)") { |v| options[:ast_type] = v }
         opts.on("--force", "Replace an existing output file") { force = true }
         opts.on("-h", "--help", "Show usage") { help = true }
       end

@@ -202,6 +202,14 @@ internal; callers do not need to supply tokens. Each call has fresh parsing and
 local-variable state. No Arpaka/Lrama gem, Ruby Box, grammar files, network access
 or filesystem writes are needed at runtime.
 
+For a lightweight tree of lexical definitions, add `--ast-type structured` to
+`arpaka generate`, or pass `ast_type: :structured` to `Arpaka.generate` or
+`Arpaka.compile`. The generated class name stays the same. Its `parse` method
+returns `AST::Source` with a filename and children for class, module,
+instance method, and singleton method declarations. Reopened classes and modules
+remain separate occurrences. See [the usage guide](docs/usage.md#structured-ast-output)
+for the node fields and limitations.
+
 For generation from Ruby, `Arpaka.generate` returns that same standalone source.
 To try a frontend in memory, use `Arpaka.compile`; both require `RUBY_BOX=1`:
 

@@ -22,7 +22,13 @@ class LexerError < Error; end
 
 def self.parse(source, filename: "(ruby)")
   lexer = Lexer.new(source, filename: filename)
-  parse_tokens(lexer.each, lexical_context: lexer.context, source_encoding: lexer.source_encoding)
+  result = parse_tokens(lexer.each, lexical_context: lexer.context, source_encoding: lexer.source_encoding)
+<% if ast_type == :structured -%>
+  detailed_ast, modifier_nodes = result
+  AST.project(detailed_ast, filename: filename, modifier_nodes: modifier_nodes)
+<% else -%>
+  result
+<% end -%>
 end
 
 def self.parse_tokens(tokens, lexical_context: nil, source_encoding: Encoding::UTF_8.name)
@@ -31,7 +37,12 @@ def self.parse_tokens(tokens, lexical_context: nil, source_encoding: Encoding::U
   builder.instance_variable_set(:@source_encoding, source_encoding)
   parser.instance_variable_set(:@builder, builder)
   parser.lexical_context = lexical_context
-  parser.parse(tokens)
+  result = parser.parse(tokens)
+<% if ast_type == :structured -%>
+  [result, builder.modifier_nodes]
+<% else -%>
+  result
+<% end -%>
 rescue Parser::ParseError => error
   raise ParseError.new(error)
 end

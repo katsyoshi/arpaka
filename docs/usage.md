@@ -113,6 +113,53 @@ at `MyRubyParser::AST::Program`; the generated runtime defaults `filename` to
 implementation details; callers do not provide tokens. Parsing state is not
 shared between calls.
 
+### Structured AST output
+
+Pass `ast_type: :structured` to `Arpaka.generate` or `Arpaka.compile`, or use
+`--ast-type structured` with `arpaka generate`. The default is `:detailed`.
+Both modes use the same `class_name` and generated frontend class.
+
+```ruby
+frontend = Arpaka.compile(ruby_source: "/path/to/ruby",
+  class_name: "MyRubyParser", ast_type: :structured)
+tree = frontend.parse("class Widget < Base; def self.build; end; end",
+  filename: "widget.rb")
+
+tree.filename                         # => "widget.rb"
+tree.children.first.name              # => :Widget
+tree.children.first.superclass        # => :Base
+tree.children.first.children.first.kind # => :singleton
+```
+
+The generated `MyRubyParser::AST` module defines these immutable
+`Data` nodes:
+
+| Node | Fields |
+| --- | --- |
+| `Source` | `filename`, `children` |
+| `Class` | `name`, `superclass`, `children` |
+| `Module` | `name`, `children` |
+| `Method` | `name`, `kind`, `receiver`, `children` |
+
+The detailed parser nodes (`AST::Program`, `AST::ClassDef`, `AST::ModuleDef`,
+and others) remain defined in the same module; `parse` returns the structured
+nodes in this mode.
+
+`kind` is `:instance` or `:singleton`. `receiver` is `nil` for an instance
+method; for a singleton method it is `:self`, a simple receiver name, or `nil`
+when the receiver is an expression. Simple class, module, and superclass names
+are symbols; qualified constant paths are strings such as `"A::B"` or
+`"::A::B"`. A dynamic superclass is `nil`. The superclass is separate from
+`children`, which holds lexically nested definitions in source order. Each
+class or module reopen is a separate node. The source root carries the supplied
+filename, defaulting to `"(ruby)"`; definition nodes do not carry locations.
+
+Structured output includes declarations inside control flow and method bodies,
+but excludes calls such as `define_method`, mixins, reference resolution, and
+expression details. Use the default detailed AST for deeper analysis. The
+structured frontend includes the detailed AST runtime to build its projection,
+so its generated Ruby file is larger than the default detailed frontend.
+
 Generated frontends raise these generated error classes:
 
 - `MyRubyParser::ParseError` for syntax errors; it exposes `token` and `state`.

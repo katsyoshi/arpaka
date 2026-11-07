@@ -1,4 +1,6 @@
 class Builder
+  attr_reader :modifier_nodes
+
   BlockBody = Data.define(:parameters, :body, :outer_local_names, :style)
   BlockScope = Data.define(:outer_locals, :lambda_local_counts)
   private_constant :BlockBody
@@ -10,6 +12,7 @@ class Builder
   private_constant :RULES
 
   def initialize
+    @modifier_nodes = {}.compare_by_identity
     @locals = {}
     @block_local_scopes = []
     @method_local_scopes = []
@@ -311,7 +314,7 @@ class Builder
     fields = value.members.to_h do |member|
       [member, rewrite_implicit_block_parameter_reads(value.public_send(member), implicit_names)]
     end
-    value.with(**fields)
+    preserve_modifier_if(value, value.with(**fields))
   end
 
   def append_arguments(arguments, argument)
@@ -511,6 +514,12 @@ class Builder
 
   def loop(kind, condition, body)
     AST::Loop.new(kind, condition, body)
+  end
+
+  def modifier_loop(kind, condition, body)
+    node = loop(kind, condition, body)
+    @modifier_nodes[node] = true
+    node
   end
 
   def control(kind, arguments = nil)
@@ -722,8 +731,25 @@ class Builder
     AST::If.new(condition, then_body, else_body)
   end
 
+  def modifier_if_node(condition, body)
+    node = if_node(condition, body, nil)
+    @modifier_nodes[node] = true
+    node
+  end
+
   def unless_node(condition, then_body, else_body)
     AST::If.new(AST::Unary.new(:!, condition), then_body, else_body)
+  end
+
+  def modifier_unless_node(condition, body)
+    node = unless_node(condition, body, nil)
+    @modifier_nodes[node] = true
+    node
+  end
+
+  def preserve_modifier_if(original, rewritten)
+    @modifier_nodes[rewritten] = true if @modifier_nodes.key?(original)
+    rewritten
   end
 
   def elsif_node(condition, then_body, else_body)
@@ -974,11 +1000,11 @@ class Builder
     when "If"
       condition_target_names = for_target_names_in_scope(value.condition)
       branch_local_names = local_names - condition_target_names
-      return value.with(
+      return preserve_modifier_if(value, value.with(
         condition: rewrite_local_reads(value.condition, local_names, for_target_names),
         then_body: rewrite_local_reads(value.then_body, branch_local_names, for_target_names),
         else_body: rewrite_local_reads(value.else_body, branch_local_names, for_target_names)
-      )
+      ))
     when "ReceiverCall"
       receiver = value.receiver
       unless receiver.is_a?(AST::BareCall) && for_target_names.include?(receiver.name)
@@ -1012,7 +1038,7 @@ class Builder
     fields = value.members.to_h do |member|
       [member, rewrite_local_reads(value.public_send(member), local_names, for_target_names)]
     end
-    value.with(**fields)
+    preserve_modifier_if(value, value.with(**fields))
   end
 
   def rewrite_shadowed_local_reads(value, local_names)
@@ -1037,7 +1063,7 @@ class Builder
     fields = value.members.to_h do |member|
       [member, rewrite_shadowed_local_reads(value.public_send(member), local_names)]
     end
-    value.with(**fields)
+    preserve_modifier_if(value, value.with(**fields))
   end
 
   def data_node?(value)
