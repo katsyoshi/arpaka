@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "lrama"
-require "erb"
+require_relative "parser_emitter"
 
 module Lrama
   module Ruby
@@ -33,12 +33,8 @@ module Lrama
           # Preserve whitespace inside multiline strings and heredocs.
           "    when #{rule.id + 1} # #{rule.as_comment.gsub(/[\r\n]/, ' ')}\n#{translate_action(rule)}\n"
         end.join
-        template = File.read(File.expand_path("parser.rb.erb", __dir__))
-        result = ::ERB.new(template, trim_mode: "-").result_with_hash(
-          class_name: class_name, context: context, tokens: tokens, actions: actions,
-          recognizer: recognizer
-        )
-        result
+        ParserEmitter.new.emit(class_name: class_name, context: context, tokens: tokens,
+          actions: actions, recognizer: recognizer)
       end
 
       private
