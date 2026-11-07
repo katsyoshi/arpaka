@@ -6,7 +6,8 @@ require_relative "frontend_emitter"
 
 module Arpaka::Ruby
   class Generator
-    def generate(ruby_source: nil, parse_y: nil, class_name:)
+    def generate(ruby_source: nil, parse_y: nil, class_name:,
+      runtime_bundle: FrontendEmitter::DETAILED_RUNTIME_BUNDLE)
       if ruby_source.nil? == parse_y.nil?
         raise ::Arpaka::Error, "specify exactly one of ruby_source or parse_y"
       end
@@ -20,7 +21,7 @@ module Arpaka::Ruby
         filename: grammar_filename, class_name: "Parser", allow_error_rules: true)
       parser = parser.delete_prefix("# frozen_string_literal: true\n")
       FrontendEmitter.new.emit(parser: parser, artifacts: artifacts, class_name: class_name,
-        grammar_filename: grammar_filename, ruby_source: ruby_source)
+        grammar_filename: grammar_filename, ruby_source: ruby_source, runtime_bundle: runtime_bundle)
     rescue SyntaxError => error
       raise ::Arpaka::Error, "Invalid generated frontend: #{error.message}"
     rescue SystemCallError => error

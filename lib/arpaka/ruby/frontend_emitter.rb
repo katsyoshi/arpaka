@@ -6,17 +6,16 @@ require "json"
 
 module Arpaka::Ruby
   class FrontendEmitter
-    RUNTIME_TEMPLATE_MANIFEST = %w[
-      frontend
-      detailed/ast
-      detailed/builder
-      lexer
-    ].freeze
+    RuntimeBundle = Data.define(:templates)
+    DETAILED_RUNTIME_BUNDLE = RuntimeBundle.new(
+      %w[frontend detailed/ast detailed/builder lexer].freeze
+    ).freeze
 
-    def emit(parser:, artifacts:, class_name:, grammar_filename:, ruby_source:)
+    def emit(parser:, artifacts:, class_name:, grammar_filename:, ruby_source:,
+      runtime_bundle: DETAILED_RUNTIME_BUNDLE)
       rules = JSON.parse(artifacts.fetch("rules.json"))
       runtime_options = artifacts.fetch("runtime", {})
-      runtime = RUNTIME_TEMPLATE_MANIFEST.map do |template_name|
+      runtime = runtime_bundle.templates.map do |template_name|
         template = File.read(File.join(__dir__, "runtime", "#{template_name}.rb.erb"))
         ERB.new(template, trim_mode: "-").result_with_hash(rules: rules, runtime: runtime_options)
       end.join("\n")
