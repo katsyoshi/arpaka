@@ -10,7 +10,7 @@ require "tmpdir"
 class StructuredAstTest < Test::Unit::TestCase
   Frontend = Arpaka.compile(ruby_source: RUBY_SOURCE,
     class_name: "StructuredFrontend", ast_type: :structured)
-  Structured = Frontend::StructuredAST
+  Structured = Frontend::AST
 
   test "projects nested definitions and keeps reopen occurrences separate" do
     tree = Frontend.parse(<<~RUBY, filename: "definitions.rb")
@@ -27,15 +27,21 @@ class StructuredAstTest < Test::Unit::TestCase
     RUBY
 
     assert_instance_of(Structured::Source, tree)
+    assert_equal("StructuredFrontend::AST::Source", tree.class.name)
+    assert_false(Frontend.const_defined?(:StructuredAST, false))
+    assert_true(Structured.const_defined?(:Program, false))
     assert_equal("definitions.rb", tree.filename)
     outer = tree.children.fetch(0)
-    assert_instance_of(Structured::ModuleDef, outer)
+    assert_instance_of(Structured::Module, outer)
+    assert_equal("StructuredFrontend::AST::Module", outer.class.name)
     assert_equal(:Outer, outer.name)
     first, second = outer.children
     assert_equal([:Inner, :Inner], outer.children.map(&:name))
+    assert_equal("StructuredFrontend::AST::Class", first.class.name)
     assert_equal(:Base, first.superclass)
     assert_equal("Other::Base", second.superclass)
     assert_equal([:work, :build, :call], first.children.map(&:name))
+    assert_equal("StructuredFrontend::AST::Method", first.children.first.class.name)
     assert_equal([:instance, :singleton, :singleton], first.children.map(&:kind))
     assert_equal([nil, :self, :object], first.children.map(&:receiver))
     assert_equal([:reopened], second.children.map(&:name))
@@ -76,6 +82,12 @@ class StructuredAstTest < Test::Unit::TestCase
     assert_equal([], first.children)
     assert_equal([], second.children)
     assert_not_same(first.children, second.children)
+  end
+
+  test "structured parser resolves forwarded splat through its detailed builder" do
+    tree = Frontend.parse("def forward(*); call(*); end")
+    assert_equal([:forward], tree.children.map(&:name))
+    assert_equal("StructuredFrontend::AST::Method", tree.children.first.class.name)
   end
 
   test "recognizes the Ruby 3.3 literal representation of self" do
@@ -127,7 +139,9 @@ class StructuredAstTest < Test::Unit::TestCase
 
     tree = frontend.parse("module Outer; class Inner; def work; end; end; end",
       filename: "nested.rb")
-    assert_instance_of(frontend::StructuredAST::Source, tree)
+    assert_instance_of(frontend::AST::Source, tree)
+    assert_equal("A::B::Parser::AST::Source", frontend::AST::Source.name)
+    assert_equal("A::B::Parser::AST::Source", tree.class.name)
     assert_equal("nested.rb", tree.filename)
     assert_equal(:Outer, tree.children.first.name)
     assert_equal(:Inner, tree.children.first.children.first.name)
@@ -136,7 +150,7 @@ class StructuredAstTest < Test::Unit::TestCase
     ast = frontend::AST
     detailed = ast::Program.new([ast::ClassDef.new(:Direct, nil,
       [ast::Def.new(:example, [], [])])])
-    projected = frontend::StructuredAST.project(detailed, filename: "direct.rb")
+    projected = frontend::AST.project(detailed, filename: "direct.rb")
     assert_equal(:Direct, projected.children.first.name)
     assert_equal(:example, projected.children.first.children.first.name)
   end
@@ -150,7 +164,8 @@ class StructuredAstTest < Test::Unit::TestCase
     assert_equal(default_source, detailed_source)
     assert_include(default_source, "class Parser")
     assert_not_include(default_source, "module StructuredAST")
-    assert_include(structured_source, "module StructuredAST")
+    assert_not_include(structured_source, "module DetailedAST")
+    assert_match(/module AST\n\s+Source = Data\.define/, structured_source)
     assert_operator(structured_source.bytesize, :>, default_source.bytesize)
 
     detailed_frontend = Arpaka.compile(**options)
@@ -170,8 +185,8 @@ class StructuredAstTest < Test::Unit::TestCase
     source = Arpaka.generate(parse_y: File.join(RUBY_SOURCE, "parse.y"),
       class_name: "GeneratedStructured", ast_type: "structured")
     assert_include(source, "class GeneratedStructured")
-    assert_include(source, "module StructuredAST")
-    assert_include(source, "StructuredAST.project(detailed_ast, filename: filename, modifier_if_nodes: modifier_if_nodes)")
+    assert_include(source, "module AST\n  Source = Data.define")
+    assert_include(source, "AST.project(detailed_ast, filename: filename, modifier_if_nodes: modifier_if_nodes)")
   end
 
   test "CLI emits a standalone structured frontend" do
@@ -187,6 +202,9 @@ class StructuredAstTest < Test::Unit::TestCase
         tree = CliStructured.parse("module A; def example; end; end", filename: "standalone.rb")
         abort "wrong projection" unless tree.filename == "standalone.rb" &&
           tree.children.first.name == :A && tree.children.first.children.first.name == :example
+        abort "wrong AST namespace" unless tree.class.name == "CliStructured::AST::Source" &&
+          tree.children.first.class.name == "CliStructured::AST::Module" &&
+          tree.children.first.children.first.class.name == "CliStructured::AST::Method"
         puts tree.class.name
       RUBY
       stdout, stderr, status = Open3.capture3(
@@ -194,7 +212,7 @@ class StructuredAstTest < Test::Unit::TestCase
         RbConfig.ruby, "-e", script, path
       )
       assert(status.success?, stderr)
-      assert_equal("CliStructured::StructuredAST::Source\n", stdout)
+      assert_equal("CliStructured::AST::Source\n", stdout)
 
       invalid_err = StringIO.new
       assert_equal(1, Arpaka::CLI.run(args + ["--ast-type", "unknown"],

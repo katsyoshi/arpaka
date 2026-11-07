@@ -89,9 +89,12 @@ Dir.mktmpdir("arpaka-package-") do |directory|
     require ARGV.fetch(0)
     abort "unexpected dependencies" if defined?(Arpaka) || defined?(Lrama)
     tree = PackagedStructured.parse("class Example; def run; end; end", filename: "package.rb")
-    abort "Wrong packaged StructuredAST" unless tree.filename == "package.rb" &&
+    abort "Wrong packaged structured AST" unless tree.filename == "package.rb" &&
+      tree.class.name == "PackagedStructured::AST::Source" &&
+      tree.children.first.class.name == "PackagedStructured::AST::Class" &&
+      tree.children.first.children.first.class.name == "PackagedStructured::AST::Method" &&
       tree.children.first.name == :Example && tree.children.first.children.first.name == :run
-    puts "Generated frontend: standalone StructuredAST parse OK"
+    puts "Generated frontend: standalone structured AST parse OK"
   RUBY
   env["RUBY_BOX"] = nil
   puts run.call(env, RbConfig.ruby, "--disable-gems", "-e", script, structured, chdir: install)

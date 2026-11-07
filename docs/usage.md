@@ -131,15 +131,19 @@ tree.children.first.superclass        # => :Base
 tree.children.first.children.first.kind # => :singleton
 ```
 
-The generated `MyRubyParser::StructuredAST` module defines these immutable
+The generated `MyRubyParser::AST` module defines these immutable
 `Data` nodes:
 
 | Node | Fields |
 | --- | --- |
 | `Source` | `filename`, `children` |
-| `ClassDef` | `name`, `superclass`, `children` |
-| `ModuleDef` | `name`, `children` |
-| `MethodDef` | `name`, `kind`, `receiver`, `children` |
+| `Class` | `name`, `superclass`, `children` |
+| `Module` | `name`, `children` |
+| `Method` | `name`, `kind`, `receiver`, `children` |
+
+The detailed parser nodes (`AST::Program`, `AST::ClassDef`, `AST::ModuleDef`,
+and others) remain defined in the same module; `parse` returns the structured
+nodes in this mode.
 
 `kind` is `:instance` or `:singleton`. `receiver` is `nil` for an instance
 method; for a singleton method it is `:self`, a simple receiver name, or `nil`

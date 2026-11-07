@@ -1,8 +1,8 @@
-module StructuredAST
+module AST
   Source = Data.define(:filename, :children)
-  ClassDef = Data.define(:name, :superclass, :children)
-  ModuleDef = Data.define(:name, :children)
-  MethodDef = Data.define(:name, :kind, :receiver, :children)
+  Class = Data.define(:name, :superclass, :children)
+  Module = Data.define(:name, :children)
+  Method = Data.define(:name, :kind, :receiver, :children)
 
   def self.project(detailed_ast, filename:, modifier_if_nodes: nil)
     Source.new(filename, definitions_in(detailed_ast, modifier_if_nodes: modifier_if_nodes).freeze)
@@ -16,19 +16,19 @@ module StructuredAST
           method_kind: method_kind, receiver: receiver)
       end
     when AST::ClassDef
-      [ClassDef.new(static_name(value.name), static_name(value.superclass),
+      [Class.new(static_name(value.name), static_name(value.superclass),
         definitions_in(value.body, modifier_if_nodes: modifier_if_nodes).freeze)]
     when AST::ModuleDef
-      [ModuleDef.new(static_name(value.name),
+      [Module.new(static_name(value.name),
         definitions_in(value.body, modifier_if_nodes: modifier_if_nodes).freeze)]
     when AST::Def
       children = definitions_in(value.arguments, modifier_if_nodes: modifier_if_nodes) +
         definitions_in(value.body, modifier_if_nodes: modifier_if_nodes)
-      [MethodDef.new(value.name, method_kind, receiver, children.freeze)]
+      [Method.new(value.name, method_kind, receiver, children.freeze)]
     when AST::SingletonMethodDef
       children = definitions_in(value.arguments, modifier_if_nodes: modifier_if_nodes) +
         definitions_in(value.body, modifier_if_nodes: modifier_if_nodes)
-      [MethodDef.new(value.name, :singleton, receiver_name(value.receiver),
+      [Method.new(value.name, :singleton, receiver_name(value.receiver),
         children.freeze)]
     when AST::SingletonClassDef
       definitions_in(value.body, modifier_if_nodes: modifier_if_nodes,
