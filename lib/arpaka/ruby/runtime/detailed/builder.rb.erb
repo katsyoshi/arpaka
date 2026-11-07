@@ -4,7 +4,9 @@ class Builder
   private_constant :BlockBody
   private_constant :BlockScope
 
-  RULES = <%= rules.inspect %>.to_h { |rule| [rule.fetch("id"), rule.freeze] }.freeze
+  RULES = <%= rules.select { |rule| rule.fetch("status") == "unsupported" }.inspect %>.to_h do |rule|
+    [rule.fetch("id"), [rule.fetch("rule"), rule.fetch("line")].freeze]
+  end.freeze
   private_constant :RULES
 
   def initialize
@@ -1142,8 +1144,8 @@ class Builder
   end
 
   def unsupported(id)
-    rule = RULES.fetch(id)
-    raise UnsupportedSyntax.new(rule.fetch("rule"), rule.fetch("line"))
+    rule, line = RULES.fetch(id)
+    raise UnsupportedSyntax.new(rule, line)
   end
 end
 private_constant :Builder

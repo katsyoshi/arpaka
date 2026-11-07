@@ -4,12 +4,45 @@ require "test_helper"
 require "open3"
 require "rbconfig"
 require "tmpdir"
+require "lrama/ruby/table_codec"
+require "lrama/ruby/parser_emitter"
 
 class Lrama::RubyTest < Test::Unit::TestCase
   CALCULATOR = File.read(File.expand_path("../../examples/calculator.y", __dir__))
 
   test "VERSION" do
     assert(::Lrama::Ruby.const_defined?(:VERSION))
+  end
+
+  test "parser table codec round trips signed integers" do
+    values = [0, -1, 1, -127, 127, -128, 128, -(1 << 63), 1 << 63, -(1 << 200), 1 << 200]
+    encoded = Lrama::Ruby::TableCodec.encode(values)
+    compressed = Lrama::Ruby::TableCodec.compress(values)
+    assert_equal(encoded, Zlib::Inflate.inflate(compressed.unpack1("m0")))
+    assert_equal(values, Lrama::Ruby::TableCodec.decode(compressed))
+    assert_predicate(Lrama::Ruby::TableCodec.decode(compressed), :frozen?)
+  end
+
+  test "table generation is deterministic, compressed where useful, and frozen" do
+    source = Lrama::Ruby.generate(CALCULATOR, class_name: "CompressedCalculator")
+    assert_equal(source, Lrama::Ruby.generate(CALCULATOR, class_name: "CompressedCalculator"))
+    assert_operator(source.scan(/= __decode_table/).length, :>, 0)
+    parser = compile(CALCULATOR, class_name: "CompressedCalculator")
+    %i[YYTRANSLATE YYPACT YYDEFACT YYPGOTO YYDEFGOTO YYTABLE YYCHECK YYR1 YYR2].each do |name|
+      assert_predicate(parser.const_get(name), :frozen?)
+    end
+
+    small = Lrama::Ruby.generate("%%\nstart: %empty;", class_name: "SmallParser")
+    assert_equal(small, Lrama::Ruby.generate("%%\nstart: %empty;", class_name: "SmallParser"))
+
+    names = %i[yytranslate yypact yydefact yypgoto yydefgoto yytable yycheck yyr1 yyr2]
+    context_class = Struct.new(*names, :yyfinal, :yyntokens, :yypact_ninf, :yytable_ninf)
+    context = context_class.new(*Array.new(names.length) { [0] }, 0, 1, -1, -1)
+    literal = Lrama::Ruby::ParserEmitter.new.emit(class_name: "LiteralParser", context:, tokens: {},
+      actions: "", recognizer: false)
+    assert_not_include(literal, "require \"zlib\"")
+    assert_not_include(literal, "__decode_table")
+    assert_include(literal, "YYTRANSLATE = [0].freeze")
   end
 
   test "arithmetic precedence, associativity and parentheses" do
