@@ -45,6 +45,16 @@ class Lrama::RubyTest < Test::Unit::TestCase
     assert_include(literal, "YYTRANSLATE = [0].freeze")
   end
 
+  test "generated parser methods precede table definitions" do
+    source = Lrama::Ruby.generate("%token NUMBER\n%%\nstart: NUMBER;", class_name: "LayoutParser")
+    assert_operator(source.index("  def parse(tokens)"), :<, source.index("  TOKENS ="))
+    assert_operator(source.index("  def reduce(rule, values, length)"), :<, source.index("  YYTRANSLATE ="))
+
+    parser = compile("%token NUMBER\n%%\nstart: NUMBER;", class_name: "LayoutParser")
+    assert_equal(7, parser.new.parse([[:NUMBER, 7]]))
+    assert_equal(parser::YYFINAL, parser.const_get(:YYFINAL))
+  end
+
   test "arithmetic precedence, associativity and parentheses" do
     parser = compile(CALCULATOR).new
     assert_equal(14, parser.parse([[:NUMBER, 2], ["+", nil], [:NUMBER, 3], ["*", nil], [:NUMBER, 4]]))

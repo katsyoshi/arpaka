@@ -42,15 +42,6 @@ class <%= class_name %>
     end
   end
 
-  TOKENS = <%= tokens.inspect %>.freeze
-<% %i[yytranslate yypact yydefact yypgoto yydefgoto yytable yycheck yyr1 yyr2].each do |name| -%>
-  <%= name.upcase %> = <%= tables.fetch(name) %>
-<% end -%>
-  YYFINAL = <%= context.yyfinal %>
-  YYNTOKENS = <%= context.yyntokens %>
-  YYPACT_NINF = <%= context.yypact_ninf %>
-  YYTABLE_NINF = <%= context.yytable_ninf %>
-
   attr_accessor :lexical_context
   attr_reader :parse_trace, :lookahead_token, :lookahead_value, :lookahead_state
 
@@ -150,4 +141,13 @@ class <%= class_name %>
 <% end -%>
     yyval
   end
+
+  TOKENS = <%= tokens.inspect %>.freeze
+<% %i[yytranslate yypact yydefact yypgoto yydefgoto yytable yycheck yyr1 yyr2].each do |name| -%>
+  <%= name.upcase %> = <%= tables.fetch(name) %>
+<% end -%>
+  YYFINAL = <%= context.yyfinal %>
+  YYNTOKENS = <%= context.yyntokens %>
+  YYPACT_NINF = <%= context.yypact_ninf %>
+  YYTABLE_NINF = <%= context.yytable_ninf %>
 end
