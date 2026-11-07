@@ -131,6 +131,64 @@ class StructuredAstTest < Test::Unit::TestCase
       :regular_condition, :regular_body], tree.children.map(&:name))
   end
 
+  test "projects modifier loops and regular loops in source order" do
+    tree = Frontend.parse(<<~RUBY)
+      (def while_body; end) while (def while_condition; end)
+      (def until_body; end) until (def until_condition; end)
+      while (def regular_condition; end)
+        (def regular_body; end)
+      end
+    RUBY
+
+    assert_equal([:while_body, :while_condition, :until_body, :until_condition,
+      :regular_condition, :regular_body], tree.children.map(&:name))
+  end
+
+  test "projects declarations in headers before their enclosing definitions" do
+    parsed = Frontend.parse("class C < (def hidden; end); def visible; end; end")
+    assert_equal([:hidden, :C], parsed.children.map(&:name))
+    assert_equal([:visible], parsed.children.last.children.map(&:name))
+
+    ast = Frontend::AST
+    nested = ast::Program.new([
+      ast::ClassDef.new(:C, ast::Def.new(:superclass_header, [], []),
+        [ast::Def.new(:class_body, [], [])]),
+      ast::SingletonClassDef.new(ast::Def.new(:singleton_class_receiver, [], []),
+        [ast::Def.new(:singleton_class_body, [], [])]),
+      ast::SingletonMethodDef.new(ast::Def.new(:method_receiver, [], []), :call, [],
+        [ast::Def.new(:method_body, [], [])])
+    ])
+
+    nodes = Structured.project(nested, filename: "headers.rb").children
+    assert_equal([:superclass_header, :C, :singleton_class_receiver,
+      :singleton_class_body, :method_receiver, :call], nodes.map(&:name))
+    assert_equal([:class_body], nodes[1].children.map(&:name))
+    assert_equal([:method_body], nodes.last.children.map(&:name))
+  end
+
+  test "keeps singleton class context through nested method declarations" do
+    tree = Frontend.parse(<<~RUBY)
+      class A
+        class << self
+          def outer(x = (def in_default; end))
+            def inner; end
+            def self.explicit
+              def inside_explicit; end
+            end
+          end
+        end
+      end
+    RUBY
+
+    outer = tree.children.first.children.first
+    assert_equal([:singleton, :self], [outer.kind, outer.receiver])
+    assert_equal([:in_default, :inner, :explicit], outer.children.map(&:name))
+    assert_equal([:singleton, :singleton, :singleton], outer.children.map(&:kind))
+    assert_equal([:self, :self, :self], outer.children.map(&:receiver))
+    assert_equal([:singleton, :self],
+      [outer.children.last.children.first.kind, outer.children.last.children.first.receiver])
+  end
+
   test "namespaced frontend projects its own detailed AST nodes" do
     frontend = Arpaka.compile(ruby_source: RUBY_SOURCE,
       class_name: "A::B::Parser", ast_type: :structured)
@@ -186,7 +244,7 @@ class StructuredAstTest < Test::Unit::TestCase
       class_name: "GeneratedStructured", ast_type: "structured")
     assert_include(source, "class GeneratedStructured")
     assert_include(source, "module AST\n  Source = Data.define")
-    assert_include(source, "AST.project(detailed_ast, filename: filename, modifier_if_nodes: modifier_if_nodes)")
+    assert_include(source, "AST.project(detailed_ast, filename: filename, modifier_nodes: modifier_nodes)")
   end
 
   test "CLI emits a standalone structured frontend" do

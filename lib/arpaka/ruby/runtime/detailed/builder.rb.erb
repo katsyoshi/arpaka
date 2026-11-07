@@ -1,5 +1,5 @@
 class Builder
-  attr_reader :modifier_if_nodes
+  attr_reader :modifier_nodes
 
   BlockBody = Data.define(:parameters, :body, :outer_local_names, :style)
   BlockScope = Data.define(:outer_locals, :lambda_local_counts)
@@ -12,7 +12,7 @@ class Builder
   private_constant :RULES
 
   def initialize
-    @modifier_if_nodes = {}.compare_by_identity
+    @modifier_nodes = {}.compare_by_identity
     @locals = {}
     @block_local_scopes = []
     @method_local_scopes = []
@@ -516,6 +516,12 @@ class Builder
     AST::Loop.new(kind, condition, body)
   end
 
+  def modifier_loop(kind, condition, body)
+    node = loop(kind, condition, body)
+    @modifier_nodes[node] = true
+    node
+  end
+
   def control(kind, arguments = nil)
     arguments = arguments.nil? ? [] : arguments.is_a?(Array) ? arguments : [arguments]
     value = case arguments.length
@@ -727,7 +733,7 @@ class Builder
 
   def modifier_if_node(condition, body)
     node = if_node(condition, body, nil)
-    @modifier_if_nodes[node] = true
+    @modifier_nodes[node] = true
     node
   end
 
@@ -737,12 +743,12 @@ class Builder
 
   def modifier_unless_node(condition, body)
     node = unless_node(condition, body, nil)
-    @modifier_if_nodes[node] = true
+    @modifier_nodes[node] = true
     node
   end
 
   def preserve_modifier_if(original, rewritten)
-    @modifier_if_nodes[rewritten] = true if @modifier_if_nodes.key?(original)
+    @modifier_nodes[rewritten] = true if @modifier_nodes.key?(original)
     rewritten
   end
 

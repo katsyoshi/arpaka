@@ -24,8 +24,8 @@ def self.parse(source, filename: "(ruby)")
   lexer = Lexer.new(source, filename: filename)
   result = parse_tokens(lexer.each, lexical_context: lexer.context, source_encoding: lexer.source_encoding)
 <% if ast_type == :structured -%>
-  detailed_ast, modifier_if_nodes = result
-  AST.project(detailed_ast, filename: filename, modifier_if_nodes: modifier_if_nodes)
+  detailed_ast, modifier_nodes = result
+  AST.project(detailed_ast, filename: filename, modifier_nodes: modifier_nodes)
 <% else -%>
   result
 <% end -%>
@@ -39,7 +39,7 @@ def self.parse_tokens(tokens, lexical_context: nil, source_encoding: Encoding::U
   parser.lexical_context = lexical_context
   result = parser.parse(tokens)
 <% if ast_type == :structured -%>
-  [result, builder.modifier_if_nodes]
+  [result, builder.modifier_nodes]
 <% else -%>
   result
 <% end -%>
