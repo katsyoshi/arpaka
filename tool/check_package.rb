@@ -54,7 +54,8 @@ Dir.mktmpdir("arpaka-package-") do |directory|
        lib/arpaka/ruby/source.json lib/arpaka/ruby/profile.rb
        lib/arpaka/ruby/profiles/ruby_3_3.rb
        lib/arpaka/ruby/profiles/ruby_3_4.rb
-       lib/arpaka/ruby/runtime/lexer.rb.erb].each do |file|
+       lib/arpaka/ruby/runtime/lexer.rb.erb
+       lib/arpaka/ruby/runtime/structured.rb.erb].each do |file|
       unless files.include?(file) && File.file?(File.join(spec.full_gem_path, file))
         abort "Missing generation support: #{file}"
       end
@@ -79,4 +80,19 @@ Dir.mktmpdir("arpaka-package-") do |directory|
       "--tmpfs", root, "--tmpfs", checkout, "--chdir", install, *command]
   end
   puts run.call(env, *command, chdir: install)
+  structured = File.join(directory, "structured_frontend.rb")
+  env["RUBY_BOX"] = "1"
+  run.call(env, RbConfig.ruby, File.join(install, "bin/arpaka"), "generate",
+    "--ruby-source", File.join(root, "vendor/ruby"), "--output", structured,
+    "--class-name", "PackagedStructured", "--ast-type", "structured", chdir: directory)
+  script = <<~'RUBY'
+    require ARGV.fetch(0)
+    abort "unexpected dependencies" if defined?(Arpaka) || defined?(Lrama)
+    tree = PackagedStructured.parse("class Example; def run; end; end", filename: "package.rb")
+    abort "Wrong packaged StructuredAST" unless tree.filename == "package.rb" &&
+      tree.children.first.name == :Example && tree.children.first.children.first.name == :run
+    puts "Generated frontend: standalone StructuredAST parse OK"
+  RUBY
+  env["RUBY_BOX"] = nil
+  puts run.call(env, RbConfig.ruby, "--disable-gems", "-e", script, structured, chdir: install)
 end

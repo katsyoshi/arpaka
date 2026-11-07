@@ -1,0 +1,89 @@
+module StructuredAST
+  Source = Data.define(:filename, :children)
+  ClassDef = Data.define(:name, :superclass, :children)
+  ModuleDef = Data.define(:name, :children)
+  MethodDef = Data.define(:name, :kind, :receiver, :children)
+
+  def self.project(detailed_ast, filename:, modifier_if_nodes: nil)
+    Source.new(filename, definitions_in(detailed_ast, modifier_if_nodes: modifier_if_nodes).freeze)
+  end
+
+  def self.definitions_in(value, modifier_if_nodes:, method_kind: :instance, receiver: nil)
+    case value
+    when Array
+      value.flat_map do |item|
+        definitions_in(item, modifier_if_nodes: modifier_if_nodes,
+          method_kind: method_kind, receiver: receiver)
+      end
+    when AST::ClassDef
+      [ClassDef.new(static_name(value.name), static_name(value.superclass),
+        definitions_in(value.body, modifier_if_nodes: modifier_if_nodes).freeze)]
+    when AST::ModuleDef
+      [ModuleDef.new(static_name(value.name),
+        definitions_in(value.body, modifier_if_nodes: modifier_if_nodes).freeze)]
+    when AST::Def
+      children = definitions_in(value.arguments, modifier_if_nodes: modifier_if_nodes) +
+        definitions_in(value.body, modifier_if_nodes: modifier_if_nodes)
+      [MethodDef.new(value.name, method_kind, receiver, children.freeze)]
+    when AST::SingletonMethodDef
+      children = definitions_in(value.arguments, modifier_if_nodes: modifier_if_nodes) +
+        definitions_in(value.body, modifier_if_nodes: modifier_if_nodes)
+      [MethodDef.new(value.name, :singleton, receiver_name(value.receiver),
+        children.freeze)]
+    when AST::SingletonClassDef
+      definitions_in(value.body, modifier_if_nodes: modifier_if_nodes,
+        method_kind: :singleton, receiver: receiver_name(value.receiver))
+    when AST::If
+      members = if modifier_if_nodes&.key?(value)
+        [value.then_body, value.condition, value.else_body]
+      else
+        [value.condition, value.then_body, value.else_body]
+      end
+      members.flat_map do |member|
+        definitions_in(member, modifier_if_nodes: modifier_if_nodes,
+          method_kind: method_kind, receiver: receiver)
+      end
+    else
+      return [] unless ast_node?(value)
+
+      value.members.flat_map do |member|
+        definitions_in(value.public_send(member), modifier_if_nodes: modifier_if_nodes,
+          method_kind: method_kind, receiver: receiver)
+      end
+    end
+  end
+  private_class_method :definitions_in
+
+  def self.ast_node?(value)
+    value.is_a?(Data) && value.class.name&.start_with?("#{AST.name}::")
+  end
+  private_class_method :ast_node?
+
+  def self.static_name(value)
+    case value
+    when Symbol
+      value
+    when AST::Variable
+      value.name if value.kind == :constant
+    when AST::AbsoluteConstant
+      "::#{value.name}"
+    when AST::ConstantPath
+      receiver = static_name(value.receiver)
+      "#{receiver}::#{value.name}" if receiver
+    end
+  end
+  private_class_method :static_name
+
+  def self.receiver_name(value)
+    return :self if defined?(AST::Self) && value.is_a?(AST::Self)
+    return :self if value.is_a?(AST::Literal) && value.value == :self
+
+    case value
+    when AST::LocalRead, AST::BareCall
+      value.name
+    else
+      static_name(value)
+    end
+  end
+  private_class_method :receiver_name
+end

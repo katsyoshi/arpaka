@@ -3,12 +3,17 @@ module Arpaka
     def statements: () -> Array[untyped]
   end
 
-  interface _Frontend
-    def parse: (String source, ?filename: String) -> _Program
+  interface _StructuredSource
+    def filename: () -> String
+    def children: () -> Array[untyped]
   end
 
-  def self.generate: (?ruby_source: String?, ?parse_y: String?, ?class_name: String) -> String
-  def self.compile: (?ruby_source: String?, ?parse_y: String?, ?class_name: String) -> _Frontend
+  interface _Frontend
+    def parse: (String source, ?filename: String) -> (_Program | _StructuredSource)
+  end
+
+  def self.generate: (?ruby_source: String?, ?parse_y: String?, ?class_name: String, ?ast_type: (:detailed | :structured | String)) -> String
+  def self.compile: (?ruby_source: String?, ?parse_y: String?, ?class_name: String, ?ast_type: (:detailed | :structured | String)) -> _Frontend
 
   class Error < ::Lrama::Ruby::Error
   end
