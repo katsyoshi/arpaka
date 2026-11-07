@@ -72,6 +72,49 @@ class FrontendGeneratorTest < Test::Unit::TestCase
     assert_false(Object.const_defined?(:A, false))
   end
 
+  test "namespaced frontend preserves nested definition occurrences" do
+    frontend = Arpaka.compile(ruby_source: RUBY_SOURCE,
+      class_name: "DefinitionBaseline::RubyFrontend")
+    ast = frontend::AST
+    tree = frontend.parse(<<~RUBY)
+      module Outer
+        class Inner < Base
+          def instance_method
+            1
+          end
+
+          def self.singleton_method
+            2
+          end
+        end
+
+        class Inner < OtherBase
+          def reopened
+            3
+          end
+        end
+      end
+    RUBY
+
+    outer = tree.statements.fetch(0)
+    assert_instance_of(ast::ModuleDef, outer)
+    assert_equal(:Outer, outer.name)
+
+    first_class, reopened_class = outer.body
+    assert_equal(:Inner, first_class.name)
+    assert_equal(ast::Variable.new(:constant, :Base), first_class.superclass)
+    assert_equal(
+      [ast::Def.new(:instance_method, [], [ast::Literal.new(1)]),
+       ast::SingletonMethodDef.new(ast::Self.new, :singleton_method, [], [ast::Literal.new(2)])],
+      first_class.body
+    )
+
+    assert_equal(:Inner, reopened_class.name)
+    assert_equal(ast::Variable.new(:constant, :OtherBase), reopened_class.superclass)
+    assert_equal([ast::Def.new(:reopened, [], [ast::Literal.new(3)])], reopened_class.body)
+    assert_equal("DefinitionBaseline::RubyFrontend", frontend.name)
+  end
+
   test "generation is deterministic and preserves provenance and notices" do
     assert_equal(generated_source, Arpaka.generate(ruby_source: RUBY_SOURCE, class_name: "StandaloneRuby"))
     assert_include(generated_source, "parse.y SHA256:")
