@@ -8,6 +8,7 @@ require "fileutils"
 require "open3"
 require "rbconfig"
 require "stringio"
+require "erb"
 
 class FrontendGeneratorTest < Test::Unit::TestCase
   def generated_source
@@ -120,6 +121,38 @@ class FrontendGeneratorTest < Test::Unit::TestCase
     assert_include(generated_source, "parse.y SHA256:")
     assert_include(generated_source, "Yukihiro Matsumoto")
     assert_include(generated_source, "Redistribution and use in source and binary forms")
+  end
+
+  test "generated frontend stays within its size budget" do
+    # Keep the generated frontend near half the size of the unpruned metadata output.
+    assert_operator(generated_source.bytesize, :<, 225_000)
+  end
+
+  test "generated builder retains unsupported rule metadata without supported rules" do
+    rules = [
+      { "id" => 1, "rule" => "supported: x", "line" => 10, "status" => "ported" },
+      { "id" => 7, "rule" => "unsupported: y", "line" => 20, "status" => "unsupported" }
+    ]
+    template = File.read(File.expand_path("../../lib/arpaka/ruby/runtime/detailed/builder.rb.erb", __dir__))
+    builder_source = ERB.new(template, trim_mode: "-").result_with_hash(
+      rules: rules, runtime: {})
+    namespace = Module.new
+    namespace.const_set(:UnsupportedSyntax, Class.new(StandardError) do
+      attr_reader :rule, :line
+
+      def initialize(rule, line)
+        @rule, @line = rule, line
+      end
+    end)
+    namespace.module_eval(builder_source)
+    builder = namespace.const_get(:Builder, false).new
+    error = assert_raise(namespace::UnsupportedSyntax) { builder.unsupported(7) }
+    assert_equal("unsupported: y", error.rule)
+    assert_equal(20, error.line)
+    assert_not_include(builder_source, "supported: x")
+    assert_include(builder_source, "unsupported: y")
+    assert_raise(KeyError) { builder.unsupported(1) }
+    assert_raise(KeyError) { builder.unsupported(-1) }
   end
 
   test "missing inputs and invalid class names produce generation errors" do

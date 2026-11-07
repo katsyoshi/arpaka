@@ -23,9 +23,9 @@ class ArpakaTest < Test::Unit::TestCase
     assert_false(Object.const_defined?(:RubyParser))
   end
 
-  test "generated reductions retain readable rules and named actions" do
+  test "generated reductions omit per-rule comments and retain named actions" do
     source = Arpaka.generate(ruby_source: RUBY_SOURCE)
-    assert_include(source, "# arg: arg '+' arg")
+    assert_not_include(source, "# arg: arg '+' arg")
     assert_include(source, "@builder.binary(:+, ")
     assert_not_include(source, "@builder.reduce(")
   end

@@ -4,7 +4,9 @@ class Builder
   private_constant :BlockBody
   private_constant :BlockScope
 
-  RULES = <%= rules.inspect %>.to_h { |rule| [rule.fetch("id"), rule.freeze] }.freeze
+  RULES = <%= rules.select { |rule| rule.fetch("status") == "unsupported" }.inspect %>.to_h do |rule|
+    [rule.fetch("id"), [rule.fetch("rule"), rule.fetch("line")].freeze]
+  end.freeze
   private_constant :RULES
 
   def initialize
@@ -388,13 +390,7 @@ class Builder
   end
 
   def def_node(name, arguments, body)
-    body = resolve_method_local_reads(
-      method_body_nodes(body, preserve_terminal_nil: method_arguments_present?(arguments)),
-      @locals.keys, block_parameter_names(arguments)
-    )
-    node = AST::Def.new(name.to_sym, (arguments || []).freeze, body)
-    end_method_scope
-    node
+    method_node(nil, name, arguments, body)
   end
 <% if runtime.fetch("builder_methods", []).include?("singleton_method") -%>
   def singleton_method_node(receiver, name, arguments, body)
@@ -404,16 +400,27 @@ class Builder
         arguments = arguments.value
       end
     end
+    method_node(receiver, name, arguments, body)
+  end
+<% end -%>
+
+  private
+
+  def method_node(receiver, name, arguments, body)
     body = resolve_method_local_reads(
       method_body_nodes(body, preserve_terminal_nil: method_arguments_present?(arguments)),
       @locals.keys, block_parameter_names(arguments)
     )
-    node = AST::SingletonMethodDef.new(receiver, name.to_sym, (arguments || []).freeze,
-      body)
+    node = if receiver
+      AST::SingletonMethodDef.new(receiver, name.to_sym, (arguments || []).freeze, body)
+    else
+      AST::Def.new(name.to_sym, (arguments || []).freeze, body)
+    end
     end_method_scope
     node
   end
-<% end -%>
+
+  public
 
   def class_node(name, superclass, body)
     AST::ClassDef.new(declaration_name(name), superclass, body_nodes(body))
@@ -1137,8 +1144,8 @@ class Builder
   end
 
   def unsupported(id)
-    rule = RULES.fetch(id)
-    raise UnsupportedSyntax.new(rule.fetch("rule"), rule.fetch("line"))
+    rule, line = RULES.fetch(id)
+    raise UnsupportedSyntax.new(rule, line)
   end
 end
 private_constant :Builder

@@ -4,12 +4,55 @@ require "test_helper"
 require "open3"
 require "rbconfig"
 require "tmpdir"
+require "lrama/ruby/table_codec"
+require "lrama/ruby/parser_emitter"
 
 class Lrama::RubyTest < Test::Unit::TestCase
   CALCULATOR = File.read(File.expand_path("../../examples/calculator.y", __dir__))
 
   test "VERSION" do
     assert(::Lrama::Ruby.const_defined?(:VERSION))
+  end
+
+  test "parser table codec round trips signed integers" do
+    values = [0, -1, 1, -127, 127, -128, 128, -(1 << 63), 1 << 63, -(1 << 200), 1 << 200]
+    encoded = Lrama::Ruby::TableCodec.encode(values)
+    compressed = Lrama::Ruby::TableCodec.compress(values)
+    assert_equal(encoded, Zlib::Inflate.inflate(compressed.unpack1("m0")))
+    assert_equal(values, Lrama::Ruby::TableCodec.decode(compressed))
+    assert_predicate(Lrama::Ruby::TableCodec.decode(compressed), :frozen?)
+  end
+
+  test "table generation is deterministic, compressed where useful, and frozen" do
+    source = Lrama::Ruby.generate(CALCULATOR, class_name: "CompressedCalculator")
+    assert_equal(source, Lrama::Ruby.generate(CALCULATOR, class_name: "CompressedCalculator"))
+    assert_operator(source.scan(/= __decode_table/).length, :>, 0)
+    parser = compile(CALCULATOR, class_name: "CompressedCalculator")
+    %i[YYTRANSLATE YYPACT YYDEFACT YYPGOTO YYDEFGOTO YYTABLE YYCHECK YYR1 YYR2].each do |name|
+      assert_predicate(parser.const_get(name), :frozen?)
+    end
+
+    small = Lrama::Ruby.generate("%%\nstart: %empty;", class_name: "SmallParser")
+    assert_equal(small, Lrama::Ruby.generate("%%\nstart: %empty;", class_name: "SmallParser"))
+
+    names = %i[yytranslate yypact yydefact yypgoto yydefgoto yytable yycheck yyr1 yyr2]
+    context_class = Struct.new(*names, :yyfinal, :yyntokens, :yypact_ninf, :yytable_ninf)
+    context = context_class.new(*Array.new(names.length) { [0] }, 0, 1, -1, -1)
+    literal = Lrama::Ruby::ParserEmitter.new.emit(class_name: "LiteralParser", context:, tokens: {},
+      actions: "", recognizer: false)
+    assert_not_include(literal, "require \"zlib\"")
+    assert_not_include(literal, "__decode_table")
+    assert_include(literal, "YYTRANSLATE = [0].freeze")
+  end
+
+  test "generated parser methods precede table definitions" do
+    source = Lrama::Ruby.generate("%token NUMBER\n%%\nstart: NUMBER;", class_name: "LayoutParser")
+    assert_operator(source.index("  def parse(tokens)"), :<, source.index("  TOKENS ="))
+    assert_operator(source.index("  def reduce(rule, values, length)"), :<, source.index("  YYTRANSLATE ="))
+
+    parser = compile("%token NUMBER\n%%\nstart: NUMBER;", class_name: "LayoutParser")
+    assert_equal(7, parser.new.parse([[:NUMBER, 7]]))
+    assert_equal(parser::YYFINAL, parser.const_get(:YYFINAL))
   end
 
   test "arithmetic precedence, associativity and parentheses" do
@@ -30,6 +73,16 @@ class Lrama::RubyTest < Test::Unit::TestCase
     assert_nil(parser.lookahead_token)
     assert_nil(parser.lookahead_value)
     assert_nil(parser.lookahead_state)
+  end
+
+  test "generated reductions omit per-rule comments" do
+    grammar = "%token NUMBER\n%%\nstart: NUMBER { $$ = $1 };"
+    source = Lrama::Ruby.generate(grammar, class_name: "CommentFreeParser")
+    assert_include(source, "when 2\n")
+    assert_not_match(/when \d+ #/, source)
+
+    parser = Lrama::Ruby.compile(grammar, class_name: "CommentFreeParser").new
+    assert_equal(7, parser.parse([[:NUMBER, 7]]))
   end
 
   test "numeric token IDs, aliases, and explicit EOF" do
