@@ -78,6 +78,47 @@ class StructuredAstTest < Test::Unit::TestCase
     assert_not_same(first.children, second.children)
   end
 
+  test "recognizes the Ruby 3.3 literal representation of self" do
+    ast = Frontend::AST
+    detailed = ast::Program.new([
+      ast::SingletonMethodDef.new(ast::Literal.new(:self), :direct, [], []),
+      ast::SingletonClassDef.new(ast::Literal.new(:self), [ast::Def.new(:nested, [], [])])
+    ])
+
+    methods = Structured.project(detailed, filename: "legacy.rb").children
+    assert_equal([:direct, :nested], methods.map(&:name))
+    assert_equal([:singleton, :singleton], methods.map(&:kind))
+    assert_equal([:self, :self], methods.map(&:receiver))
+  end
+
+  test "projects definitions in method defaults before method bodies" do
+    tree = Frontend.parse(<<~RUBY)
+      def outer(x = (def first; end), y: (def second; end))
+        def last; end
+      end
+      def self.singleton(x = (def before; end))
+        def after; end
+      end
+    RUBY
+
+    instance_method, singleton_method = tree.children
+    assert_equal([:first, :second, :last], instance_method.children.map(&:name))
+    assert_equal([:before, :after], singleton_method.children.map(&:name))
+  end
+
+  test "projects modifier conditions after their bodies and regular if in source order" do
+    tree = Frontend.parse(<<~RUBY)
+      (def if_body; end) if (def if_condition; end)
+      (def unless_body; end) unless (def unless_condition; end)
+      if (def regular_condition; end)
+        (def regular_body; end)
+      end
+    RUBY
+
+    assert_equal([:if_body, :if_condition, :unless_body, :unless_condition,
+      :regular_condition, :regular_body], tree.children.map(&:name))
+  end
+
   test "namespaced frontend projects its own detailed AST nodes" do
     frontend = Arpaka.compile(ruby_source: RUBY_SOURCE,
       class_name: "A::B::Parser", ast_type: :structured)
@@ -130,7 +171,7 @@ class StructuredAstTest < Test::Unit::TestCase
       class_name: "GeneratedStructured", ast_type: "structured")
     assert_include(source, "class GeneratedStructured")
     assert_include(source, "module StructuredAST")
-    assert_include(source, "StructuredAST.project(result, filename: filename)")
+    assert_include(source, "StructuredAST.project(detailed_ast, filename: filename, modifier_if_nodes: modifier_if_nodes)")
   end
 
   test "CLI emits a standalone structured frontend" do
