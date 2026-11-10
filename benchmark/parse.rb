@@ -4,6 +4,7 @@ require "rbconfig"
 
 iterations = Integer(ENV.fetch("ITERATIONS", "100"))
 raise ArgumentError, "ITERATIONS must be positive" unless iterations.positive?
+warmup_iterations = 100
 sources = {
   small: "value = 1\n",
   medium: (1..100).map { |index| "value#{index} = #{index} * 2\n" }.join + "value100 + 1\n",
@@ -29,23 +30,23 @@ if ARGV.first == "--runtime"
   sources.each do |size, source|
     puts "#{size}: #{source.bytesize} bytes"
     measure("AST parse #{size} (first)") { BenchmarkRubyAst.parse(source) }
-    10.times { BenchmarkRubyAst.parse(source) }
+    warmup_iterations.times { BenchmarkRubyAst.parse(source) }
     measure("AST parse #{size} (warm)", iterations) { BenchmarkRubyAst.parse(source) }
     measure("Structural Tree parse #{size} (first)") { BenchmarkRubyStructured.parse(source) }
-    10.times { BenchmarkRubyStructured.parse(source) }
+    warmup_iterations.times { BenchmarkRubyStructured.parse(source) }
     measure("Structural Tree parse #{size} (warm)", iterations) { BenchmarkRubyStructured.parse(source) }
   end
 
   if defined?(RubyVM::AbstractSyntaxTree)
     sources.each do |size, source|
-      10.times { RubyVM::AbstractSyntaxTree.parse(source) }
+      warmup_iterations.times { RubyVM::AbstractSyntaxTree.parse(source) }
       measure("RubyVM AST #{size}", iterations) { RubyVM::AbstractSyntaxTree.parse(source) }
     end
   end
   require "prism"
   puts "Prism: #{Prism::VERSION}"
   sources.each do |size, source|
-    10.times { Prism.parse(source) }
+    warmup_iterations.times { Prism.parse(source) }
     measure("Prism #{size}", iterations) { Prism.parse(source) }
   end
 else
@@ -54,7 +55,7 @@ else
   ruby_source = ENV.fetch("RUBY_SOURCE", File.expand_path("../vendor/ruby", __dir__))
   puts "Arpaka frontend benchmark"
   puts "Generator: #{RUBY_DESCRIPTION}"
-  puts "Inputs: small/medium/large; iterations: #{iterations}; warmup: 10"
+  puts "Inputs: small/medium/large; iterations: #{iterations}; warmup: #{warmup_iterations}"
   code = {}
   code[:ast] = measure("generate AST frontend") do
     Arpaka.generate(ruby_source: ruby_source, class_name: "BenchmarkRubyAst",

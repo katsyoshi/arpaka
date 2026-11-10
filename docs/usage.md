@@ -275,7 +275,7 @@ option name.
 
 - loading the generated file, including reading and defining its classes;
 - the first parse for each input for both AST outputs;
-- ten warmup parses, followed by the configured number of warm parses, for both
+- 100 warmup parses, followed by the configured number of warm parses, for both
   AST outputs;
 - `RubyVM::AbstractSyntaxTree.parse` for the same inputs, when RubyVM AST is
   available; and
@@ -284,7 +284,9 @@ option name.
 Process startup is not included in the timed calls, and loading Prism itself is
 outside the Prism measurements. The runtime process uses `--yjit` when YJIT is
 already enabled in the invoking Ruby. Each result prints total elapsed time and
-average milliseconds per call. Generation and file loading are reported
+average milliseconds per call. The 100-call warmup is benchmark setup rather
+than a user-facing option, allowing YJIT to compile frequently called paths
+before measurement. Generation and file loading are reported
 separately because generation is a one-time cost when a frontend is built, not
 a cost paid by every later `parse` call.
 
@@ -305,19 +307,21 @@ complete output from your own run when comparing changes.
 ### Current reference result
 
 On 2026-11-11, Ruby 4.0.9 on x86_64 Linux with YJIT disabled and Prism 2.1.0
-produced the following result with 100 measured iterations and ten warmup
+produced the following result with 100 measured iterations and 100 warmup
 calls:
 
 | Input | Arpaka AST (warm) | Arpaka Structural Tree (warm) | RubyVM AST | Prism |
 | ---: | ---: | ---: | ---: | ---: |
-| 10 bytes | 0.080 ms | 0.067 ms | 0.002 ms | 0.002 ms |
-| 1,697 bytes | 7.099 ms | 6.996 ms | 0.078 ms | 0.101 ms |
-| 18,800 bytes | 72.672 ms | 77.737 ms | 0.987 ms | 1.131 ms |
+| 10 bytes | 0.057 ms | 0.066 ms | 0.001 ms | 0.002 ms |
+| 1,697 bytes | 6.451 ms | 7.034 ms | 0.067 ms | 0.098 ms |
+| 18,800 bytes | 70.461 ms | 77.258 ms | 0.882 ms | 1.139 ms |
 
-Frontend generation took 1.783s for the normal AST and 1.765s for Structured
-AST. Loading the generated files took 14.232ms and 11.323ms, respectively.
-The first Arpaka parse took 0.217ms, 7.896ms and 71.602ms for the normal AST,
-and 0.192ms, 6.524ms and 72.948ms for Structural Tree.
+Frontend generation took 1.729s for the normal AST and 1.702s for Structural
+Tree. Loading the generated files took 11.665ms and 9.560ms, respectively.
+The first Arpaka parse took 0.199ms, 6.512ms and 78.562ms for the normal AST,
+and 0.178ms, 6.508ms and 72.671ms for Structural Tree.
+The YJIT-enabled reference result is documented in
+[docs/benchmark.md](benchmark.md).
 
 ## AST compatibility benchmark
 

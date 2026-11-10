@@ -324,10 +324,10 @@ RUBY_BOX=1 bundle exec rake benchmark:parse
 ```
 
 The current reference run (Ruby 4.0.9, x86_64 Linux, YJIT disabled) measured
-warm parse times of 0.080/0.067 ms for the 10-byte input, 7.099/6.996 ms for
-the 1,697-byte input, and 72.672/77.737 ms for the 18,800-byte input (AST /
+warm parse times of 0.057/0.066 ms for the 10-byte input, 6.451/7.034 ms for
+the 1,697-byte input, and 70.461/77.258 ms for the 18,800-byte input (AST /
 Structural Tree). See [docs/benchmark.md](docs/benchmark.md) for the complete
-method, comparison values, and historical results.
+method, YJIT-enabled results, comparison values, and historical results.
 
 ### AST compatibility evidence
 
