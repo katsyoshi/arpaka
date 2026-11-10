@@ -317,31 +317,17 @@ Developer fixtures and tools are excluded from the gem.
 
 ### Benchmark
 
-`benchmark:parse` measures frontend generation separately from loading the
-generated file and parsing in a fresh process with Ruby Box disabled.
-Set `ITERATIONS` to change the measured parsing iterations (default: 100).
-Each warm measurement follows ten warmup calls. File reading/class definition
-is measured separately; process startup and `require "prism"` are not timed.
+Run the parsing benchmark with:
 
-The RubyVM and Prism measurements use the same source but return different AST
-representations. They are reference measurements, not equivalent-work guarantees.
+```sh
+RUBY_BOX=1 bundle exec rake benchmark:parse
+```
 
-Example results on Ruby 4.0.6, x86_64 Linux, YJIT disabled, Prism 1.9.0
-(10 measured iterations per input, ten warmup calls):
-
-| Input | Arpaka (warm) | RubyVM AST | Prism |
-| ---: | ---: | ---: | ---: |
-| 10 bytes | 0.054 ms | 0.003 ms | 0.003 ms |
-| 1,697 bytes | 5.901 ms | 0.060 ms | 0.128 ms |
-| 18,800 bytes | 61.475 ms | 0.850 ms | 1.859 ms |
-
-Frontend generation took 2.190s and loading the generated file took 20.571ms
-in the same run. The first Arpaka parse took 0.130ms, 6.707ms and 73.381ms
-for the small, medium and large inputs respectively.
-
-Generation is a one-time build step per regeneration, not a cost of parsing an
-input file. The generated frontend is loaded and measured with Ruby Box disabled.
-Results vary with input and environment.
+The current reference run (Ruby 4.0.9, x86_64 Linux, YJIT disabled) measured
+warm parse times of 0.080/0.067 ms for the 10-byte input, 7.099/6.996 ms for
+the 1,697-byte input, and 72.672/77.737 ms for the 18,800-byte input (AST /
+Structural Tree). See [docs/benchmark.md](docs/benchmark.md) for the complete
+method, comparison values, and historical results.
 
 ### AST compatibility evidence
 

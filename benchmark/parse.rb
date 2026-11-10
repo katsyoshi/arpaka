@@ -21,13 +21,19 @@ def measure(label, iterations = 1)
 end
 
 if ARGV.first == "--runtime"
+  ast_path = File.expand_path(ARGV.fetch(1))
+  structured_path = File.expand_path(ARGV.fetch(2))
   puts "Runtime: #{RUBY_DESCRIPTION}; Ruby Box: #{Ruby::Box.enabled?}"
-  measure("load generated file") { require File.expand_path(ARGV.fetch(1)) }
+  measure("load AST frontend") { require ast_path }
+  measure("load Structural Tree frontend") { require structured_path }
   sources.each do |size, source|
     puts "#{size}: #{source.bytesize} bytes"
-    measure("parse #{size} (first)") { BenchmarkRuby.parse(source) }
-    10.times { BenchmarkRuby.parse(source) }
-    measure("parse #{size} (warm)", iterations) { BenchmarkRuby.parse(source) }
+    measure("AST parse #{size} (first)") { BenchmarkRubyAst.parse(source) }
+    10.times { BenchmarkRubyAst.parse(source) }
+    measure("AST parse #{size} (warm)", iterations) { BenchmarkRubyAst.parse(source) }
+    measure("Structural Tree parse #{size} (first)") { BenchmarkRubyStructured.parse(source) }
+    10.times { BenchmarkRubyStructured.parse(source) }
+    measure("Structural Tree parse #{size} (warm)", iterations) { BenchmarkRubyStructured.parse(source) }
   end
 
   if defined?(RubyVM::AbstractSyntaxTree)
@@ -49,15 +55,23 @@ else
   puts "Arpaka frontend benchmark"
   puts "Generator: #{RUBY_DESCRIPTION}"
   puts "Inputs: small/medium/large; iterations: #{iterations}; warmup: 10"
-  code = measure("generate frontend") do
-    Arpaka.generate(ruby_source: ruby_source, class_name: "BenchmarkRuby")
+  code = {}
+  code[:ast] = measure("generate AST frontend") do
+    Arpaka.generate(ruby_source: ruby_source, class_name: "BenchmarkRubyAst",
+      ast_type: :detailed)
+  end
+  code[:structured] = measure("generate Structural Tree frontend") do
+    Arpaka.generate(ruby_source: ruby_source, class_name: "BenchmarkRubyStructured",
+      ast_type: :structured)
   end
   Dir.mktmpdir("arpaka-benchmark-") do |directory|
-    path = File.join(directory, "frontend.rb")
-    File.write(path, code)
+    ast_path = File.join(directory, "ast_frontend.rb")
+    structured_path = File.join(directory, "structured_frontend.rb")
+    File.write(ast_path, code[:ast])
+    File.write(structured_path, code[:structured])
     flags = defined?(RubyVM::YJIT) && RubyVM::YJIT.enabled? ? ["--yjit"] : []
     success = system({ "RUBY_BOX" => nil, "RUBYOPT" => nil },
-      RbConfig.ruby, *flags, File.expand_path(__FILE__), "--runtime", path)
+      RbConfig.ruby, *flags, File.expand_path(__FILE__), "--runtime", ast_path, structured_path)
     abort "Runtime benchmark failed" unless success
   end
 end

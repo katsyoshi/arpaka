@@ -113,7 +113,12 @@ at `MyRubyParser::AST::Program`; the generated runtime defaults `filename` to
 implementation details; callers do not provide tokens. Parsing state is not
 shared between calls.
 
-### Structured AST output
+### Structural Tree output
+
+Structural Tree is a lightweight structural projection built from the detailed
+AST. It keeps the definitions and their lexical nesting, while omitting syntax
+details that are not needed by the structural consumer. It is therefore a
+separate output representation, not a simplified AST contract.
 
 Pass `ast_type: :structured` to `Arpaka.generate` or `Arpaka.compile`, or use
 `--ast-type structured` with `arpaka generate`. The default is `:detailed`.
@@ -259,13 +264,19 @@ RUBY_BOX=1 RUBY_SOURCE=/path/to/ruby ITERATIONS=250 \
 ```
 
 The benchmark has two processes and two measurement phases. The generator
-process measures one `Arpaka.generate` call. It then writes the generated
-frontend to a temporary file and starts a fresh runtime process with Ruby Box
-disabled. That runtime process measures:
+process measures one `Arpaka.generate` call for the normal AST output and one
+for the Structural Tree output. It then writes both generated frontends to
+temporary files and starts a fresh runtime process with Ruby Box disabled. That
+runtime process measures:
+
+The API calls the normal output `ast_type: :detailed`; the benchmark labels it
+simply `AST` so the output describes the result rather than the implementation
+option name.
 
 - loading the generated file, including reading and defining its classes;
-- the first parse for each input;
-- ten warmup parses, followed by the configured number of warm parses;
+- the first parse for each input for both AST outputs;
+- ten warmup parses, followed by the configured number of warm parses, for both
+  AST outputs;
 - `RubyVM::AbstractSyntaxTree.parse` for the same inputs, when RubyVM AST is
   available; and
 - `Prism.parse` for the same inputs.
@@ -284,15 +295,29 @@ benchmark ranking. Arpaka performs frontend-specific lexing, parsing, AST
 construction, and normalization, so compare results only with the same Ruby
 version, CPU, YJIT setting, input sizes, source profile, and `ITERATIONS`.
 
-The README's reference run used Ruby 4.0.6 on x86_64 Linux with YJIT disabled
-and Prism 1.9.0. It reported warm Arpaka parse times of 0.054 ms, 5.901 ms,
-and 61.475 ms for 10-byte, 1,697-byte, and 18,800-byte inputs; the same table
-reports RubyVM AST and Prism reference values. Generation took 2.190 s,
-loading the generated file took 20.571 ms, and first Arpaka parses took
-0.130 ms, 6.707 ms, and 73.381 ms. These are historical measurements, not
-service-level targets. Self-hosted elapsed time varies with CPU, Ruby version,
-YJIT, source profile, and input shape; record the complete output from your
-own run when comparing changes.
+The README's historical reference run used Ruby 4.0.6 on x86_64 Linux with
+YJIT disabled and Prism 1.9.0. It measured the normal AST output only; rerun
+the benchmark to record comparable Structural Tree numbers. Historical
+measurements are not service-level targets. Self-hosted elapsed time varies
+with CPU, Ruby version, YJIT, source profile, and input shape; record the
+complete output from your own run when comparing changes.
+
+### Current reference result
+
+On 2026-11-11, Ruby 4.0.9 on x86_64 Linux with YJIT disabled and Prism 2.1.0
+produced the following result with 100 measured iterations and ten warmup
+calls:
+
+| Input | Arpaka AST (warm) | Arpaka Structural Tree (warm) | RubyVM AST | Prism |
+| ---: | ---: | ---: | ---: | ---: |
+| 10 bytes | 0.080 ms | 0.067 ms | 0.002 ms | 0.002 ms |
+| 1,697 bytes | 7.099 ms | 6.996 ms | 0.078 ms | 0.101 ms |
+| 18,800 bytes | 72.672 ms | 77.737 ms | 0.987 ms | 1.131 ms |
+
+Frontend generation took 1.783s for the normal AST and 1.765s for Structured
+AST. Loading the generated files took 14.232ms and 11.323ms, respectively.
+The first Arpaka parse took 0.217ms, 7.896ms and 71.602ms for the normal AST,
+and 0.192ms, 6.524ms and 72.948ms for Structural Tree.
 
 ## AST compatibility benchmark
 
