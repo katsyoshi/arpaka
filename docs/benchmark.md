@@ -77,6 +77,46 @@ With YJIT enabled, frontend generation took 1.453s for the normal AST and
 parse is affected by JIT compilation, so warm results are the more useful
 comparison.
 
+## AST compatibility
+
+The compatibility benchmark compares the generated frontend with
+`RubyVM::AbstractSyntaxTree` for every `.rb` file in explicitly supplied local
+corpora. It parses source files and does not execute them. Rails, Trick, and
+other external repositories are read-only inputs.
+
+Generate a frontend once, then compare it with one or more corpora:
+
+```sh
+RUBY_BOX=1 bundle exec ruby tool/ruby/grammar.rb \
+  --output local/tmp/compatibility-frontend.rb \
+  --class-name CompatibilityFrontend --force
+
+bundle exec ruby -Ilib benchmark/compatibility.rb \
+  --frontend local/tmp/compatibility-frontend.rb \
+  --corpus rails=/path/to/rails \
+  --corpus trick25=/path/to/trick2025 \
+  --reference-cache local/tmp/arpaka-reference-all.jsonl \
+  --threads 32 --parallel thread \
+  --report local/tmp/arpaka-compatibility.jsonl
+```
+
+The reference cache is generated separately with the same Ruby version and
+corpus revisions as the comparison. It is keyed by corpus, relative path, and
+source SHA256. A cache miss is reported as an error rather than silently using
+an outdated RubyVM tree. The Rake wrapper accepts equivalent `CORPORA`,
+`REPORT`, and `RUBY_SOURCE` environment variables.
+
+Report statuses distinguish `match`, `accepted_mismatch`, `mismatch`,
+`unverified`, `parse_failure`, `error`, and `timeout`. The command exits 0 only
+when every file is `match` or `accepted_mismatch`; a successful parse alone is
+not AST compatibility. See `docs/usage.md` for the complete cache-generation,
+parallelism, and report-format reference.
+
+Compatibility timings depend on CPU, Ruby version, corpus revisions, file
+count, worker count, and GC behavior. The reference measurements in
+[`docs/contributes.md`](contributes.md) are local baselines, not service-level
+targets.
+
 ## Historical reference
 
 An earlier run used Ruby 4.0.6 on x86_64 Linux with YJIT disabled and Prism
